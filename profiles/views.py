@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.contrib.auth import logout
 from django.contrib import messages
 from django.db.models import Q
 from .models import UserProfile, Referral
@@ -162,3 +163,30 @@ def referral_stats(request):
     
     from django.http import JsonResponse
     return JsonResponse(stats)
+
+
+@login_required
+def delete_profile(request):
+    """Delete user profile with confirmation"""
+    if request.method == 'POST':
+        if request.POST.get('confirm_deletion') == 'yes':
+            user = request.user
+            username = user.username
+            
+            # Delete the user (this will cascade to profile and related objects)
+            user.delete()
+            
+            # Log the user out
+            logout(request)
+            
+            messages.success(request, f'Your profile has been permanently deleted. Thank you for being part of GrowComm, {username}.')
+            return redirect('accounts:login')
+        else:
+            messages.error(request, 'Profile deletion was not confirmed.')
+            return redirect('profiles:edit')
+    
+    # GET request - show confirmation page
+    context = {
+        'user': request.user,
+    }
+    return render(request, 'profiles/delete_profile.html', context)

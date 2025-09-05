@@ -91,6 +91,17 @@
                     {% endif %}
                 </div>
 
+                <!-- Age Verification -->
+                <div class="flex items-center">
+                    <input type="checkbox" name="{{ form.age_verification.name }}" id="{{ form.age_verification.id_for_label }}" class="h-4 w-4 border-gray-300 bg-white rounded focus:ring-black">
+                    <label for="{{ form.age_verification.id_for_label }}" class="ml-2 block text-sm text-gray-600 font-light">
+                        I verify that I am 18 years of age or older
+                    </label>
+                </div>
+                {% if form.age_verification.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.age_verification.errors.0 }}</p>
+                {% endif %}
+
                 <!-- Terms Acceptance -->
                 <div class="flex items-center">
                     <input type="checkbox" name="{{ form.accept_terms.name }}" id="{{ form.accept_terms.id_for_label }}" class="h-4 w-4 border-gray-300 bg-white rounded focus:ring-black">
@@ -99,7 +110,7 @@
                     </label>
                 </div>
                 {% if form.accept_terms.errors %}
-                    <p class="mt-1 text-sm text-gray-600">{{ form.accept_terms.errors.0 }}</p>
+                    <p class="mt-1 text-sm text-red-600">{{ form.accept_terms.errors.0 }}</p>
                 {% endif %}
             </div>
 

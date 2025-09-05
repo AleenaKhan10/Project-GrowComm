@@ -21,7 +21,7 @@ class UnifiedLoginView(LoginView):
         user = self.get_form().get_user()
         if user and user.is_staff:
             return reverse_lazy('admin:index')
-        return reverse_lazy('communities:user_list')
+        return reverse_lazy('communities:community_list')
     
     def form_valid(self, form):
         """Login user after successful form validation"""
@@ -67,7 +67,7 @@ class UserLoginView(LoginView):
     redirect_authenticated_user = True
     
     def get_success_url(self):
-        return reverse_lazy('communities:user_list')
+        return reverse_lazy('communities:community_list')
     
     def form_valid(self, form):
         """Login user after successful form validation"""
@@ -148,5 +148,5 @@ def logout_view(request):
 def home_view(request):
     """Home page view - redirects based on authentication status"""
     if request.user.is_authenticated:
-        return redirect('communities:user_list')
+        return redirect('communities:community_list')
     return redirect('accounts:login')

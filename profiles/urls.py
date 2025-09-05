@@ -10,4 +10,5 @@ urlpatterns = [
     path('referrals/', views.referrals_view, name='referrals'),
     path('send-referral/', views.send_referral, name='send_referral'),
     path('referral-stats/', views.referral_stats, name='referral_stats'),
+    path('delete/', views.delete_profile, name='delete'),
 ]

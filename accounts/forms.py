@@ -207,6 +207,15 @@ class InviteRegistrationForm(UserCreationForm):
         })
     )
     
+    # Age verification
+    age_verification = forms.BooleanField(
+        required=True,
+        label="I verify that I am 18 years of age or older",
+        widget=forms.CheckboxInput(attrs={
+            'class': 'h-4 w-4 text-cyan-600 focus:ring-cyan-500 border-gray-300 rounded'
+        })
+    )
+    
     class Meta:
         model = User
         fields = ('username', 'email', 'first_name', 'last_name', 'password1', 'password2')
