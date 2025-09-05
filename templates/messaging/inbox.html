@@ -3,6 +3,10 @@
 {% block title %}Messages - GrowCommunity{% endblock %}
 
 {% block content %}
+<script>
+// Add messages-page class to body to prevent scrolling
+document.body.classList.add('messages-page');
+</script>
 <div class="messages-container">
     <!-- Left Sidebar - Conversations List -->
     <div class="sidebar">
@@ -677,6 +681,15 @@ document.addEventListener('DOMContentLoaded', function() {
 window.addEventListener('beforeunload', function() {
     if (window.messagingApp) {
         window.messagingApp.cleanup();
+    }
+    // Remove messages-page class when leaving
+    document.body.classList.remove('messages-page');
+});
+
+// Also remove class when page visibility changes (back button, etc.)
+document.addEventListener('visibilitychange', function() {
+    if (document.visibilityState === 'hidden') {
+        document.body.classList.remove('messages-page');
     }
 });
 </script>

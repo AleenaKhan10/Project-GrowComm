@@ -110,6 +110,12 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Prevent page scrolling on messages page */
+body.messages-page {
+  overflow: hidden;
+  height: 100vh;
+}
+
 /* Base Component Classes */
 .btn {
   padding: var(--space-3) var(--space-6);
@@ -277,7 +283,7 @@ textarea::placeholder {
 .messages-container {
   display: grid !important;
   grid-template-columns: 380px 1fr !important;
-  height: calc(100vh - 60px) !important; /* Adjust based on nav height */
+  height: calc(100vh - 64px) !important; /* 64px for sticky header height */
   overflow: hidden !important;
   position: relative;
 }
