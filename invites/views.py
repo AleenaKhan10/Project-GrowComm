@@ -4,32 +4,77 @@ from django.contrib import messages
 from django.urls import reverse
 from .models import InviteLink, ReferralApproval
 from .forms import CreateInviteForm
+from profiles.decorators import verified_user_required
+from profiles.models import Referral
+from profiles.forms import SendReferralForm
 
 
 @login_required
 def my_invites(request):
-    """Display user's sent invites and create new ones"""
+    """Combined view for invites and referrals management"""
     user_invites = InviteLink.objects.filter(created_by=request.user)
     
+    # Get referral data
+    profile = request.user.profile
+    received_referrals = Referral.objects.filter(
+        recipient_user=request.user
+    ).select_related('sender').order_by('-created_at')
+    
+    sent_referrals = Referral.objects.filter(
+        sender=request.user
+    ).select_related('recipient_user').order_by('-created_at')
+    
+    # Handle form submissions
+    invite_form = CreateInviteForm()
+    referral_form = SendReferralForm(user=request.user)
+    
     if request.method == 'POST':
-        form = CreateInviteForm(request.POST)
-        if form.is_valid():
-            invite = form.save(user=request.user)
-            # Build the full invite URL
-            invite_url = request.build_absolute_uri(
-                reverse('accounts:register', kwargs={'invite_code': invite.code})
-            )
-            messages.success(
-                request, 
-                f'Invite link created successfully! Share this link: {invite_url}'
-            )
-            return redirect('invites:my_invites')
-    else:
-        form = CreateInviteForm()
+        if 'create_invite' in request.POST:
+            # Check if user is verified before creating invite (superadmins bypass)
+            if not request.user.is_superuser and not request.user.profile.is_verified:
+                messages.error(request, f"You need {request.user.profile.referrals_needed} more referrals to create invite links.")
+                return redirect('invites:my_invites')
+            
+            invite_form = CreateInviteForm(request.POST)
+            if invite_form.is_valid():
+                invite = invite_form.save(user=request.user)
+                invite_url = request.build_absolute_uri(
+                    reverse('accounts:register', kwargs={'invite_code': invite.code})
+                )
+                messages.success(
+                    request, 
+                    f'Invite link created successfully! Share this link: {invite_url}'
+                )
+                return redirect('invites:my_invites')
+        
+        elif 'send_referral' in request.POST:
+            # Check if user is verified before sending referral (superadmins bypass)
+            if not request.user.is_superuser and not request.user.profile.is_verified:
+                messages.error(request, f"You need {request.user.profile.referrals_needed} more referrals to send referrals to others.")
+                return redirect('invites:my_invites')
+            
+            referral_form = SendReferralForm(user=request.user, data=request.POST)
+            if referral_form.is_valid():
+                referral = referral_form.save()
+                messages.success(
+                    request, 
+                    f'Referral sent successfully to {referral.recipient_email}!'
+                )
+                return redirect('invites:my_invites')
     
     context = {
-        'form': form,
+        'invite_form': invite_form,
+        'referral_form': referral_form,
         'invites': user_invites,
+        'profile': profile,
+        'received_referrals': received_referrals,
+        'sent_referrals': sent_referrals,
+        'verification_status': {
+            'is_verified': request.user.is_superuser or profile.is_verified,
+            'referral_count': profile.referral_count,
+            'referrals_needed': 0 if request.user.is_superuser else profile.referrals_needed,
+            'needs_referrals': False if request.user.is_superuser else profile.needs_referrals,
+        }
     }
     return render(request, 'invites/my_invites.html', context)
 

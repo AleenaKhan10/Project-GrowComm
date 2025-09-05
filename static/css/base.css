@@ -398,13 +398,14 @@ textarea::placeholder {
   padding: 8px 12px;
   margin: 1px 0;
   word-wrap: break-word;
-  word-break: normal;
+  word-break: break-word;
   overflow-wrap: break-word;
   hyphens: none;
   white-space: normal;
   min-width: 0;
   line-height: 1.2;
   text-align: left;
+  box-sizing: border-box;
 }
 
 .message-bubble p {
@@ -413,6 +414,7 @@ textarea::placeholder {
   line-height: 1.2 !important;
   white-space: normal !important;
   text-align: left !important;
+  box-sizing: border-box !important;
 }
 
 /* Active Navigation State */

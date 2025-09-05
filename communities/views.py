@@ -62,6 +62,7 @@ def user_list(request):
         'form': form,
         'page_obj': page_obj,
         'total_users': users.count(),
+        'user_is_verified': request.user.is_superuser or (hasattr(request.user, 'profile') and request.user.profile.is_verified),
     }
     return render(request, 'communities/user_list.html', context)
 
@@ -200,6 +201,15 @@ def send_inline_message(request):
     Creates direct message between users using the simplified Message model.
     """
     try:
+        # Check if user is verified before allowing message sending (superadmins bypass)
+        if not request.user.is_superuser and (not hasattr(request.user, 'profile') or not request.user.profile.is_verified):
+            referrals_needed = request.user.profile.referrals_needed if hasattr(request.user, 'profile') else 3
+            return JsonResponse({
+                'success': False,
+                'error': f'You need {referrals_needed} more referrals to send messages.',
+                'verification_required': True
+            }, status=403)
+        
         data = json.loads(request.body)
         to_user_id = data.get('to_user_id')
         message_type_name = data.get('message_type', 'General')

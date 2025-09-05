@@ -107,14 +107,27 @@
                         {% endif %}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <button 
-                            onclick="toggleUserDetails({{ user.id }})" 
-                            class="text-gray-600 hover:text-black"
-                        >
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
-                            </svg>
-                        </button>
+                        {% if request.user.is_superuser or user_is_verified %}
+                            <button 
+                                onclick="toggleUserDetails({{ user.id }})" 
+                                class="text-gray-600 hover:text-black"
+                                title="Send message"
+                            >
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                                </svg>
+                            </button>
+                        {% else %}
+                            <button 
+                                onclick="showVerificationRequired()" 
+                                class="text-gray-400 cursor-not-allowed"
+                                title="Get verified to send messages"
+                            >
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/>
+                                </svg>
+                            </button>
+                        {% endif %}
                     </td>
                 </tr>
                 <!-- Expandable message form row -->
@@ -260,7 +273,15 @@ function sendMessage(userId) {
                 window.location.href = '/messages/';
             }, 1500);
         } else {
-            showNotification('Error sending message: ' + (data.error || 'Unknown error'), 'error');
+            if (data.verification_required) {
+                showNotification('You need more referrals to send messages.', 'warning');
+                // Redirect to referrals page after showing message
+                setTimeout(() => {
+                    window.location.href = '/invites/';
+                }, 2000);
+            } else {
+                showNotification('Error sending message: ' + (data.error || 'Unknown error'), 'error');
+            }
         }
     })
     .catch(error => {
@@ -312,6 +333,14 @@ function showNotification(message, type = 'info') {
         notification.classList.add('translate-x-full');
         setTimeout(() => notification.remove(), 300);
     }, 4000);
+}
+
+function showVerificationRequired() {
+    showNotification('You need 3 referrals to send messages. Check your verification status!', 'warning');
+    // Redirect to invites/referrals page after showing message
+    setTimeout(() => {
+        window.location.href = '/invites/';
+    }, 2000);
 }
 </script>
 {% endblock %}

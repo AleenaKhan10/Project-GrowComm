@@ -181,7 +181,7 @@
                                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
                                 </svg>
-                                My Invites
+                                Invites & Referrals
                             </a>
                         </div>
                     </div>
@@ -258,7 +258,7 @@
                                     <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
                                     </svg>
-                                    My Invites
+                                    Invites & Referrals
                                 </a>
                                 <div class="border-t border-gray-700 mt-4 pt-4">
                                     <div class="flex items-center px-3 py-2">
@@ -283,6 +283,52 @@
                 </div>
             </div>
         </nav>
+        {% endif %}
+
+        <!-- Superadmin Status Banner -->
+        {% if user.is_authenticated and user.is_superuser %}
+        <div class="bg-blue-50 border-b border-blue-200">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+                <div class="flex items-center space-x-3">
+                    <svg class="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M9.504 1.132a1 1 0 01.992 0l1.75 1a1 1 0 11-.992 1.736L10 3.152l-1.254.716a1 1 0 11-.992-1.736l1.75-1zM5.618 4.504a1 1 0 01-.372 1.364L5.016 6l.23.132a1 1 0 11-.992 1.736L3.5 7.64a1 1 0 01-1.019-.007l-.75-.43a1 1 0 01.372-1.364l.75-.43a1 1 0 011.019.007l.746.428zm8.764 0a1 1 0 01.372 1.364l-.75.43a1 1 0 01-1.019-.007L12.5 5.86a1 1 0 01-.372-1.364l.75-.43a1 1 0 011.019.007l.484.277.23-.132a1 1 0 01.992 1.736L14.382 4.504z" clip-rule="evenodd"/>
+                    </svg>
+                    <p class="text-sm font-medium text-blue-800">
+                        Superadmin Access - All features unlocked
+                    </p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Verification Status Banner (for unverified users) -->
+        {% if user.is_authenticated and not user.is_superuser and not user.profile.is_verified and user.profile.needs_referrals %}
+        <div class="bg-yellow-50 border-b border-yellow-200">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-yellow-800">
+                                Account Verification Required: {{ user.profile.referral_count }}/3 referrals received
+                                {% if user.profile.referrals_needed > 0 %}
+                                    ({{ user.profile.referrals_needed }} more needed)
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <a href="{% url 'profiles:referrals' %}" class="text-sm font-medium text-yellow-800 hover:text-yellow-900 underline">
+                            View Referrals
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
         {% endif %}
 
         <!-- Flash Messages -->

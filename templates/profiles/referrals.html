@@ -1,0 +1,200 @@
+{% extends 'base.html' %}
+
+{% block title %}Referrals - GrowCommunity{% endblock %}
+
+{% block content %}
+<div class="container py-8">
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-4xl font-light text-black mb-4">
+            Account <span class="font-semibold">Verification</span>
+        </h1>
+        <p class="text-gray-600">
+            Manage your referrals and track your verification status
+        </p>
+    </div>
+    
+    <!-- Verification Status Banner -->
+    <div class="card mb-8">
+        {% if verification_status.is_verified %}
+            <div class="flex items-center space-x-4">
+                <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                    <svg class="w-6 h-6 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold text-black">Account Fully Verified</h3>
+                    <p class="text-gray-600">You have full access to all GrowCommunity features!</p>
+                </div>
+            </div>
+        {% else %}
+            <div class="flex items-center space-x-4">
+                <div class="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center">
+                    <svg class="w-6 h-6 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                    </svg>
+                </div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold text-black">Verification Required</h3>
+                    <p class="text-gray-600">
+                        {{ verification_status.referral_count }} of 3 referrals received
+                        {% if verification_status.referrals_needed > 0 %}
+                            - {{ verification_status.referrals_needed }} more needed
+                        {% endif %}
+                    </p>
+                    <!-- Progress Bar -->
+                    <div class="mt-3 w-full bg-gray-200 rounded-full h-2">
+                        {% if verification_status.referral_count == 0 %}
+                            <div class="bg-black h-2 rounded-full" style="width: 0%"></div>
+                        {% elif verification_status.referral_count == 1 %}
+                            <div class="bg-black h-2 rounded-full" style="width: 33.33%"></div>
+                        {% elif verification_status.referral_count == 2 %}
+                            <div class="bg-black h-2 rounded-full" style="width: 66.67%"></div>
+                        {% else %}
+                            <div class="bg-black h-2 rounded-full" style="width: 100%"></div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div>
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
+                        {{ verification_status.referral_count }}/3
+                    </span>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Tabs -->
+    <div class="mb-6">
+        <div class="border-b border-gray-200">
+            <nav class="-mb-px flex space-x-8">
+                <button onclick="showTab('received')" id="received-tab" class="referral-tab active border-b-2 border-black text-black py-4 px-1 text-sm font-medium">
+                    Received Referrals
+                </button>
+                <button onclick="showTab('send')" id="send-tab" class="referral-tab border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 py-4 px-1 text-sm font-medium">
+                    Send Referral
+                </button>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Received Referrals Tab -->
+    <div id="received-content" class="tab-content">
+        <div class="card">
+            <h3 class="text-lg font-medium text-black mb-4">Referrals You've Received</h3>
+            
+            {% if received_referrals %}
+                <div class="space-y-4">
+                    {% for referral in received_referrals %}
+                    <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
+                                <span class="text-sm font-medium text-gray-700">
+                                    {{ referral.sender.first_name|first|default:referral.sender.username|first|upper }}
+                                </span>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-black">
+                                    {{ referral.sender.first_name }} {{ referral.sender.last_name|default:referral.sender.username }}
+                                </p>
+                                <p class="text-sm text-gray-600">{{ referral.created_at|date:"M d, Y" }}</p>
+                            </div>
+                        </div>
+                        <div>
+                            {% if referral.status == 'accepted' %}
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                    Accepted
+                                </span>
+                            {% else %}
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                    Pending
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-8">
+                    <svg class="mx-auto h-16 w-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                    </svg>
+                    <h3 class="mt-4 text-lg font-medium text-gray-900">No referrals yet</h3>
+                    <p class="mt-2 text-sm text-gray-500">
+                        Ask existing community members to refer you to get verified.
+                    </p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Send Referral Tab -->
+    <div id="send-content" class="tab-content hidden">
+        <div class="card">
+            <h3 class="text-lg font-medium text-black mb-4">Send a Referral</h3>
+            
+            {% if user.profile.is_verified %}
+                <form method="post" action="{% url 'profiles:send_referral' %}" class="space-y-6">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="id_recipient_email" class="form-label">
+                            Email Address
+                        </label>
+                        <input type="email" name="recipient_email" id="id_recipient_email" class="input" placeholder="Enter email address to refer" required>
+                        <p class="mt-2 text-sm text-gray-500">Email address of the person you want to refer to GrowCommunity</p>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="id_message" class="form-label">
+                            Personal Message (Optional)
+                        </label>
+                        <textarea name="message" id="id_message" class="input" rows="4" placeholder="Optional message to include with your referral..."></textarea>
+                        <p class="mt-2 text-sm text-gray-500">Optional personal message (max 500 characters)</p>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+                        </svg>
+                        Send Referral
+                    </button>
+                </form>
+            {% else %}
+                <div class="text-center py-8">
+                    <svg class="mx-auto h-16 w-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 0h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                    </svg>
+                    <h3 class="mt-4 text-lg font-medium text-gray-900">Verification Required</h3>
+                    <p class="mt-2 text-sm text-gray-500">
+                        You need to be verified before you can send referrals to others.
+                    </p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+function showTab(tabName) {
+    // Hide all tab contents
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.add('hidden');
+    });
+    
+    // Remove active class from all tabs
+    document.querySelectorAll('.referral-tab').forEach(tab => {
+        tab.classList.remove('active', 'border-black', 'text-black');
+        tab.classList.add('border-transparent', 'text-gray-500');
+    });
+    
+    // Show selected tab content
+    document.getElementById(tabName + '-content').classList.remove('hidden');
+    
+    // Activate selected tab
+    const activeTab = document.getElementById(tabName + '-tab');
+    activeTab.classList.add('active', 'border-black', 'text-black');
+    activeTab.classList.remove('border-transparent', 'text-gray-500');
+}
+</script>
+{% endblock %}

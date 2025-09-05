@@ -3,8 +3,9 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.db.models import Q
-from .models import UserProfile
-from .forms import UserProfileForm
+from .models import UserProfile, Referral
+from .forms import UserProfileForm, SendReferralForm
+from .decorators import verified_user_required
 
 
 @login_required
@@ -92,3 +93,72 @@ def user_search(request):
         return render(request, 'profiles/user_list_partial.html', context)
     
     return render(request, 'profiles/user_search.html', context)
+
+
+@login_required
+def referrals_view(request):
+    """View referrals page - shows both send and received referrals"""
+    profile = request.user.profile
+    
+    # Get received referrals
+    received_referrals = Referral.objects.filter(
+        recipient_user=request.user
+    ).select_related('sender').order_by('-created_at')
+    
+    # Get sent referrals
+    sent_referrals = Referral.objects.filter(
+        sender=request.user
+    ).select_related('recipient_user').order_by('-created_at')
+    
+    context = {
+        'profile': profile,
+        'received_referrals': received_referrals,
+        'sent_referrals': sent_referrals,
+        'verification_status': {
+            'is_verified': profile.is_verified,
+            'referral_count': profile.referral_count,
+            'referrals_needed': profile.referrals_needed,
+            'needs_referrals': profile.needs_referrals,
+        }
+    }
+    return render(request, 'profiles/referrals.html', context)
+
+
+@login_required
+@verified_user_required
+def send_referral(request):
+    """Send a referral to someone via email"""
+    if request.method == 'POST':
+        form = SendReferralForm(user=request.user, data=request.POST)
+        if form.is_valid():
+            referral = form.save()
+            messages.success(
+                request, 
+                f'Referral sent successfully to {referral.recipient_email}!'
+            )
+            return redirect('profiles:referrals')
+        else:
+            messages.error(request, 'Please correct the errors below.')
+    else:
+        form = SendReferralForm(user=request.user)
+    
+    context = {
+        'form': form,
+    }
+    return render(request, 'profiles/send_referral.html', context)
+
+
+@login_required
+def referral_stats(request):
+    """AJAX endpoint for referral statistics"""
+    profile = request.user.profile
+    
+    stats = {
+        'is_verified': profile.is_verified,
+        'referral_count': profile.referral_count,
+        'referrals_needed': profile.referrals_needed,
+        'needs_referrals': profile.needs_referrals,
+    }
+    
+    from django.http import JsonResponse
+    return JsonResponse(stats)

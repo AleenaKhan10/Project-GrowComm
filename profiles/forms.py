@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.models import User
-from .models import UserProfile
+from .models import UserProfile, Referral
 
 
 class UserProfileForm(forms.ModelForm):
@@ -157,3 +157,142 @@ class ProfileSearchForm(forms.Form):
             'placeholder': 'Filter by tags...'
         })
     )
+
+
+class SendReferralForm(forms.ModelForm):
+    """Form for sending referrals to new users"""
+    
+    recipient_email = forms.EmailField(
+        widget=forms.EmailInput(attrs={
+            'class': 'input',
+            'placeholder': 'Enter email address to refer'
+        }),
+        help_text="Email address of the person you want to refer to GrowCommunity"
+    )
+    
+    message = forms.CharField(
+        widget=forms.Textarea(attrs={
+            'class': 'input',
+            'rows': 4,
+            'placeholder': 'Optional message to include with your referral...'
+        }),
+        required=False,
+        max_length=500,
+        help_text="Optional personal message (max 500 characters)"
+    )
+    
+    class Meta:
+        model = Referral
+        fields = ['recipient_email']
+    
+    def __init__(self, user=None, *args, **kwargs):
+        self.user = user
+        super().__init__(*args, **kwargs)
+    
+    def clean_recipient_email(self):
+        email = self.cleaned_data.get('recipient_email')
+        
+        if not email:
+            return email
+        
+        # Check if user is trying to refer themselves
+        if self.user and self.user.email == email:
+            raise forms.ValidationError("You cannot refer yourself.")
+        
+        # Check if this email is already referred by this user
+        if self.user and Referral.objects.filter(sender=self.user, recipient_email=email).exists():
+            raise forms.ValidationError("You have already referred this email address.")
+        
+        # Check if user with this email already exists and is verified
+        try:
+            existing_user = User.objects.get(email=email)
+            if hasattr(existing_user, 'profile') and existing_user.profile.is_verified:
+                raise forms.ValidationError("This user is already verified and doesn't need referrals.")
+        except User.DoesNotExist:
+            pass  # Email doesn't exist yet, which is fine
+        
+        return email
+    
+    def save(self, commit=True):
+        referral = super().save(commit=False)
+        referral.sender = self.user
+        
+        # Check if recipient already exists and link them
+        try:
+            existing_user = User.objects.get(email=referral.recipient_email)
+            referral.recipient_user = existing_user
+        except User.DoesNotExist:
+            pass  # User doesn't exist yet
+        
+        if commit:
+            referral.save()
+            
+            # Send email notification
+            self._send_referral_email(referral)
+            
+            # If recipient exists, automatically accept the referral
+            if referral.recipient_user:
+                referral.accept_referral()
+        
+        return referral
+    
+    def _send_referral_email(self, referral):
+        """Send email notification about the referral"""
+        from django.core.mail import send_mail
+        from django.conf import settings
+        from django.template.loader import render_to_string
+        
+        try:
+            # Get the custom message if provided
+            custom_message = self.cleaned_data.get('message', '').strip()
+            
+            # Email context
+            context = {
+                'sender_name': referral.sender.first_name or referral.sender.username,
+                'recipient_email': referral.recipient_email,
+                'custom_message': custom_message,
+                'referral_id': referral.id,
+            }
+            
+            # Subject and message
+            subject = f"{context['sender_name']} referred you to join GrowCommunity!"
+            
+            # Plain text message
+            message_lines = [
+                f"Hi!",
+                f"",
+                f"{context['sender_name']} has referred you to join GrowCommunity - a platform for professional networking and growth.",
+                f"",
+            ]
+            
+            if custom_message:
+                message_lines.extend([
+                    f"Personal message from {context['sender_name']}:",
+                    f'"{custom_message}"',
+                    f"",
+                ])
+            
+            message_lines.extend([
+                f"GrowCommunity is an invite-only professional networking platform where members connect, share opportunities, and grow their careers together.",
+                f"",
+                f"To join, you'll need an invite link from {context['sender_name']} or another community member.",
+                f"",
+                f"Best regards,",
+                f"The GrowCommunity Team"
+            ])
+            
+            message = '\n'.join(message_lines)
+            
+            # Send email
+            send_mail(
+                subject=subject,
+                message=message,
+                from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@growcommunity.com'),
+                recipient_list=[referral.recipient_email],
+                fail_silently=True,  # Don't break if email fails
+            )
+        except Exception as e:
+            # Log error but don't break the referral process
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Failed to send referral email: {e}")

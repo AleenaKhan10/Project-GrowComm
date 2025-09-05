@@ -15,6 +15,7 @@ from .models import (
     MessageType, UserMessageSettings
 )
 from .forms import MessageRequestForm, MessageReplyForm, UserMessageSettingsForm
+from profiles.decorators import verified_user_required
 
 
 @login_required
@@ -68,8 +69,13 @@ def conversation_view(request, user_id):
         is_read=False
     ).update(is_read=True, read_date=timezone.now())
     
-    # Handle message sending via POST
+    # Handle message sending via POST (check verification)
     if request.method == 'POST':
+        # Check if user is verified before allowing message sending (superadmins bypass)
+        if not request.user.is_superuser and not request.user.profile.is_verified:
+            messages.warning(request, f"You need {request.user.profile.referrals_needed} more referrals to send messages.")
+            return redirect('profiles:referrals')
+        
         content = request.POST.get('content', '').strip()
         if content:
             Message.objects.create(
@@ -98,6 +104,7 @@ def conversation_view(request, user_id):
 
 
 @login_required
+@verified_user_required
 @require_http_methods(["POST"])
 def send_message(request):
     """
@@ -320,6 +327,7 @@ def conversation_detail(request, conversation_id):
 
 
 @login_required
+@verified_user_required
 def send_message_request(request, user_id):
     """Send a message request to another user - kept for backward compatibility"""
     recipient = get_object_or_404(User, id=user_id)

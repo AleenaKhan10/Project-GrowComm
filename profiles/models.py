@@ -91,6 +91,18 @@ class UserProfile(models.Model):
     networking_slots = models.PositiveIntegerField(default=10)
     general_slots = models.PositiveIntegerField(default=15)
     
+    # Verification and referral system
+    is_verified = models.BooleanField(default=False, help_text="User can perform actions if verified")
+    invite_source = models.ForeignKey(
+        User, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='invited_users',
+        help_text="User who sent the original invite"
+    )
+    needs_referrals = models.BooleanField(default=True, help_text="True if user needs 3 referrals to be verified")
+    
     class Meta:
         ordering = ['-created_date']
     
@@ -168,6 +180,110 @@ class UserProfile(models.Model):
             'networking': max(0, self.networking_slots - used_networking_slots),
             'general': max(0, self.general_slots - used_general_slots),
         }
+    
+    @property
+    def referral_count(self):
+        """Return the number of approved referrals received"""
+        return Referral.objects.filter(
+            recipient_user=self.user,
+            status='accepted'
+        ).count()
+    
+    @property
+    def referrals_needed(self):
+        """Return how many more referrals are needed for verification"""
+        if not self.needs_referrals or self.is_verified:
+            return 0
+        return max(0, 3 - self.referral_count)
+
+
+class Referral(models.Model):
+    """Referral system for user verification"""
+    
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('accepted', 'Accepted'),
+    ]
+    
+    sender = models.ForeignKey(
+        User, 
+        on_delete=models.CASCADE, 
+        related_name='sent_referrals',
+        help_text="User who sends the referral"
+    )
+    recipient_email = models.EmailField(help_text="Email address of the referral recipient")
+    recipient_user = models.ForeignKey(
+        User, 
+        on_delete=models.CASCADE, 
+        null=True, 
+        blank=True, 
+        related_name='received_referrals',
+        help_text="User once they register (populated automatically)"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    
+    class Meta:
+        unique_together = ['sender', 'recipient_email']
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"Referral from {self.sender.username} to {self.recipient_email}"
+    
+    def accept_referral(self):
+        """Mark referral as accepted and check if user should be verified"""
+        if self.status != 'accepted' and self.recipient_user:
+            self.status = 'accepted'
+            self.save()
+            
+            # Check if user now has enough referrals
+            profile = self.recipient_user.profile
+            if profile.needs_referrals and profile.referral_count >= 3:
+                profile.is_verified = True
+                profile.save()
+                
+                # Send verification complete email
+                self._send_verification_complete_email()
+    
+    def _send_verification_complete_email(self):
+        """Send email notification when user becomes verified"""
+        from django.core.mail import send_mail
+        from django.conf import settings
+        
+        try:
+            user = self.recipient_user
+            subject = "🎉 Your GrowCommunity account is now verified!"
+            
+            message_lines = [
+                f"Congratulations {user.first_name or user.username}!",
+                f"",
+                f"You've received 3 referrals from community members and your GrowCommunity account is now fully verified!",
+                f"",
+                f"You can now:",
+                f"• Send messages to other community members",
+                f"• Create invite links to bring new people to the community",
+                f"• Send referrals to help others get verified",
+                f"• Access all community features",
+                f"",
+                f"Welcome to the verified GrowCommunity family!",
+                f"",
+                f"Best regards,",
+                f"The GrowCommunity Team"
+            ]
+            
+            message = '\n'.join(message_lines)
+            
+            send_mail(
+                subject=subject,
+                message=message,
+                from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@growcommunity.com'),
+                recipient_list=[user.email],
+                fail_silently=True,
+            )
+        except Exception as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Failed to send verification complete email: {e}")
 
 
 # Signal to create profile when user is created

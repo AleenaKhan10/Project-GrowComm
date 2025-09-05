@@ -8,6 +8,7 @@ from django.views.generic import CreateView
 from django.http import Http404
 from .forms import AdminLoginForm, UserLoginForm, InviteRegistrationForm, UnifiedLoginForm
 from invites.models import InviteLink
+from profiles.decorators import verified_user_required
 
 
 class UnifiedLoginView(LoginView):
@@ -95,13 +96,30 @@ def register_view(request, invite_code):
         form = InviteRegistrationForm(invite_code=invite_code, data=request.POST)
         if form.is_valid():
             user = form.save()
+            
+            # Set verification status based on who sent the invite
+            profile = user.profile
+            profile.invite_source = invite.created_by
+            
+            if invite.created_by.is_superuser:
+                # Superadmin invite - verify immediately
+                profile.is_verified = True
+                profile.needs_referrals = False
+                messages.success(request, f'Welcome to GrowCommunity, {user.first_name}! Your account is fully verified.')
+            else:
+                # Regular user invite - needs referrals
+                profile.is_verified = False
+                profile.needs_referrals = True
+                messages.info(request, f'Welcome to GrowCommunity, {user.first_name}! You need 3 referrals to unlock all features.')
+            
+            profile.save()
+            
             # Automatically log in the user after registration
             username = form.cleaned_data.get('username')
             password = form.cleaned_data.get('password1')
             user = authenticate(username=username, password=password)
             if user:
                 login(request, user)
-                messages.success(request, f'Welcome to GrowCommunity, {user.first_name}!')
                 return redirect('profiles:edit')  # Redirect to profile setup
         else:
             messages.error(request, 'Please correct the errors below.')
