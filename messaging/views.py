@@ -12,7 +12,7 @@ import json
 
 from .models import (
     Conversation, Message, MessageRequest, 
-    MessageType, UserMessageSettings
+    MessageType, UserMessageSettings, MessageSlotBooking
 )
 from .forms import MessageRequestForm, MessageReplyForm, UserMessageSettingsForm
 from profiles.decorators import verified_user_required
@@ -155,6 +155,18 @@ def send_message(request):
                     'success': False,
                     'error': 'Invalid message type'
                 }, status=400)
+            
+            # Check slot availability if message type is provided
+            can_send, reason = MessageSlotBooking.can_user_send_message(request.user, receiver, message_type)
+            if not can_send:
+                error_messages = {
+                    'already_sent': f'You have already sent a {message_type.name} message to {receiver.username}. Please wait 3 days before sending another.',
+                    'slots_full': f'{receiver.username}\'s {message_type.name} slots are currently full. Please try again later.'
+                }
+                return JsonResponse({
+                    'success': False,
+                    'error': error_messages.get(reason, 'Cannot send message at this time')
+                }, status=400)
         
         # Create the message
         message = Message.objects.create(
@@ -163,6 +175,19 @@ def send_message(request):
             content=content,
             message_type=message_type
         )
+        
+        # Book slot if message type is provided
+        if message_type:
+            booking, booking_reason = MessageSlotBooking.book_slot(
+                request.user, receiver, message_type, message
+            )
+            if not booking:
+                # If booking failed, delete the message and return error
+                message.delete()
+                return JsonResponse({
+                    'success': False,
+                    'error': f'Failed to send message: {booking_reason}'
+                }, status=400)
         
         # Return success with message data
         return JsonResponse({
@@ -329,40 +354,92 @@ def conversation_detail(request, conversation_id):
 @login_required
 @verified_user_required
 def send_message_request(request, user_id):
-    """Send a message request to another user - kept for backward compatibility"""
+    """Send a message request to another user with slot availability checking"""
     recipient = get_object_or_404(User, id=user_id)
     
     if recipient == request.user:
         messages.error(request, "You cannot send a message to yourself.")
         return redirect('communities:user_list')
     
-    # Check if request already exists
-    existing_request = MessageRequest.objects.filter(
-        from_user=request.user,
-        to_user=recipient,
-        status='pending'
-    ).exists()
+    # Get slot availability information for this recipient
+    try:
+        recipient_message_settings = recipient.message_settings
+        slot_availability = recipient_message_settings.get_slot_availability_for_user(request.user)
+    except:
+        slot_availability = {}
     
-    if existing_request:
-        messages.warning(request, f"You already have a pending message request to {recipient.username}.")
-        return redirect('messaging:conversation', user_id=recipient.id)
+    # Get all active message types
+    message_types = MessageType.objects.filter(is_active=True)
     
     if request.method == 'POST':
-        form = MessageRequestForm(request.POST)
-        if form.is_valid():
-            message_request = form.save(commit=False)
-            message_request.from_user = request.user
-            message_request.to_user = recipient
-            message_request.save()
-            
-            messages.success(request, f'Message request sent to {recipient.username}!')
+        message_type_id = request.POST.get('message_type')
+        initial_message = request.POST.get('initial_message', '').strip()
+        
+        if not message_type_id:
+            messages.error(request, "Please select a message type.")
+            return render(request, 'messaging/send_request.html', {
+                'recipient': recipient,
+                'message_types': message_types,
+                'slot_availability': slot_availability,
+            })
+        
+        if not initial_message:
+            messages.error(request, "Please enter an initial message.")
+            return render(request, 'messaging/send_request.html', {
+                'recipient': recipient,
+                'message_types': message_types,
+                'slot_availability': slot_availability,
+            })
+        
+        try:
+            message_type = MessageType.objects.get(id=message_type_id)
+        except MessageType.DoesNotExist:
+            messages.error(request, "Invalid message type selected.")
+            return render(request, 'messaging/send_request.html', {
+                'recipient': recipient,
+                'message_types': message_types,
+                'slot_availability': slot_availability,
+            })
+        
+        # Check slot availability before creating message
+        can_send, reason = MessageSlotBooking.can_user_send_message(request.user, recipient, message_type)
+        
+        if not can_send:
+            if reason == "already_sent":
+                messages.error(request, f"You have already sent a {message_type.name} message to {recipient.username}. Please wait 3 days before sending another.")
+            elif reason == "slots_full":
+                messages.error(request, f"{recipient.username}'s {message_type.name} slots are currently full. Please try again later.")
+            return render(request, 'messaging/send_request.html', {
+                'recipient': recipient,
+                'message_types': message_types,
+                'slot_availability': slot_availability,
+            })
+        
+        # Create the message directly (no request system for slot-based messages)
+        message = Message.objects.create(
+            sender=request.user,
+            receiver=recipient,
+            content=initial_message,
+            message_type=message_type
+        )
+        
+        # Book the slot
+        booking, booking_reason = MessageSlotBooking.book_slot(
+            request.user, recipient, message_type, message
+        )
+        
+        if booking:
+            messages.success(request, f'{message_type.name} message sent to {recipient.username}!')
             return redirect('messaging:conversation', user_id=recipient.id)
-    else:
-        form = MessageRequestForm()
+        else:
+            # If booking failed, delete the message
+            message.delete()
+            messages.error(request, f'Failed to send message: {booking_reason}')
     
     context = {
-        'form': form,
         'recipient': recipient,
+        'message_types': message_types,
+        'slot_availability': slot_availability,
     }
     return render(request, 'messaging/send_request.html', context)
 

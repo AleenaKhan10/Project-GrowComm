@@ -12,7 +12,7 @@ import json
 
 from .models import Community, CommunityMembership
 from profiles.forms import ProfileSearchForm
-from messaging.models import Message, MessageType
+from messaging.models import Message, MessageType, MessageSlotBooking
 from messaging.forms import MessageRequestForm
 
 
@@ -58,11 +58,27 @@ def user_list(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
+    # Get message types and prepare slot availability data for each user
+    message_types = MessageType.objects.filter(is_active=True)
+    users_slot_data = {}
+    
+    for user in page_obj:
+        if hasattr(user, 'message_settings'):
+            try:
+                slot_availability = user.message_settings.get_slot_availability_for_user(request.user)
+                users_slot_data[user.id] = slot_availability
+            except:
+                users_slot_data[user.id] = {}
+        else:
+            users_slot_data[user.id] = {}
+    
     context = {
         'form': form,
         'page_obj': page_obj,
         'total_users': users.count(),
         'user_is_verified': request.user.is_superuser or (hasattr(request.user, 'profile') and request.user.profile.is_verified),
+        'message_types': message_types,
+        'users_slot_data': users_slot_data,
     }
     return render(request, 'communities/user_list.html', context)
 
@@ -256,6 +272,19 @@ def send_inline_message(request):
                     }
                 )
             
+            # Check slot availability if message type is provided
+            if message_type:
+                can_send, reason = MessageSlotBooking.can_user_send_message(request.user, to_user, message_type)
+                if not can_send:
+                    error_messages = {
+                        'already_sent': f'You have already sent a {message_type.name} message to {to_user.username}. Please wait 3 days before sending another.',
+                        'slots_full': f'{to_user.username}\'s {message_type.name} slots are currently full. Please try again later.'
+                    }
+                    return JsonResponse({
+                        'success': False,
+                        'error': error_messages.get(reason, 'Cannot send message at this time')
+                    }, status=400)
+            
             # Create the message using the simplified model
             message = Message.objects.create(
                 sender=request.user,
@@ -263,6 +292,19 @@ def send_inline_message(request):
                 content=message_content,
                 message_type=message_type
             )
+            
+            # Book slot if message type is provided
+            if message_type:
+                booking, booking_reason = MessageSlotBooking.book_slot(
+                    request.user, to_user, message_type, message
+                )
+                if not booking:
+                    # If booking failed, delete the message and return error
+                    message.delete()
+                    return JsonResponse({
+                        'success': False,
+                        'error': f'Failed to send message: {booking_reason}'
+                    }, status=400)
         
         # Return success response
         return JsonResponse({

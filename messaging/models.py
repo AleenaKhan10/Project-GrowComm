@@ -256,6 +256,113 @@ class MessageRequest(models.Model):
             self.save()
 
 
+class MessageSlotBooking(models.Model):
+    """Model to track message slot bookings with 3-day expiry"""
+    
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='slot_bookings_sent')
+    receiver = models.ForeignKey(User, on_delete=models.CASCADE, related_name='slot_bookings_received')
+    message_type = models.ForeignKey(MessageType, on_delete=models.CASCADE, related_name='slot_bookings')
+    
+    created_date = models.DateTimeField(auto_now_add=True)
+    expires_date = models.DateTimeField()
+    
+    # Reference to the actual message (optional, for tracking)
+    message = models.ForeignKey(Message, on_delete=models.CASCADE, null=True, blank=True, related_name='slot_booking')
+    
+    class Meta:
+        unique_together = ['sender', 'receiver', 'message_type']
+        ordering = ['-created_date']
+        indexes = [
+            models.Index(fields=['receiver', 'message_type', 'expires_date']),
+            models.Index(fields=['sender', 'receiver', 'message_type']),
+        ]
+    
+    def __str__(self):
+        return f"{self.sender.username} -> {self.receiver.username} ({self.message_type.name})"
+    
+    def save(self, *args, **kwargs):
+        # Auto-set expiry date to 3 days from creation
+        if not self.expires_date:
+            from datetime import timedelta
+            self.expires_date = timezone.now() + timedelta(days=3)
+        super().save(*args, **kwargs)
+    
+    @property
+    def is_expired(self):
+        """Check if this booking has expired"""
+        return timezone.now() > self.expires_date
+    
+    @classmethod
+    def cleanup_expired_bookings(cls):
+        """Remove all expired bookings (can be called by management command)"""
+        expired_count = cls.objects.filter(expires_date__lt=timezone.now()).count()
+        cls.objects.filter(expires_date__lt=timezone.now()).delete()
+        return expired_count
+    
+    @classmethod
+    def get_active_bookings_for_receiver(cls, receiver, message_type):
+        """Get active (non-expired) bookings for a receiver and message type"""
+        return cls.objects.filter(
+            receiver=receiver,
+            message_type=message_type,
+            expires_date__gt=timezone.now()
+        )
+    
+    @classmethod
+    def can_user_send_message(cls, sender, receiver, message_type):
+        """Check if sender can send a message to receiver for given message type"""
+        # Check if sender already has an active booking for this receiver and message type
+        existing_booking = cls.objects.filter(
+            sender=sender,
+            receiver=receiver,
+            message_type=message_type,
+            expires_date__gt=timezone.now()
+        ).exists()
+        
+        if existing_booking:
+            return False, "already_sent"
+        
+        # Check if receiver has available slots
+        active_bookings_count = cls.get_active_bookings_for_receiver(receiver, message_type).count()
+        receiver_limit = cls._get_receiver_slot_limit(receiver, message_type)
+        
+        if active_bookings_count >= receiver_limit:
+            return False, "slots_full"
+        
+        return True, "available"
+    
+    @classmethod
+    def _get_receiver_slot_limit(cls, receiver, message_type):
+        """Get the slot limit for a receiver based on message type"""
+        try:
+            profile = receiver.profile
+            type_mapping = {
+                'Coffee Chat': profile.coffee_chat_slots,
+                'Mentorship': profile.mentorship_slots,
+                'Networking': profile.networking_slots,
+                'General': profile.general_slots,
+            }
+            return type_mapping.get(message_type.name, 0)
+        except:
+            return 0
+    
+    @classmethod
+    def book_slot(cls, sender, receiver, message_type, message=None):
+        """Book a slot for sender to message receiver"""
+        can_send, reason = cls.can_user_send_message(sender, receiver, message_type)
+        if not can_send:
+            return None, reason
+        
+        # Create the booking
+        booking = cls.objects.create(
+            sender=sender,
+            receiver=receiver,
+            message_type=message_type,
+            message=message
+        )
+        return booking, "booked"
+
+
 class UserMessageSettings(models.Model):
     """Model for user's message settings and preferences"""
     
@@ -289,6 +396,49 @@ class UserMessageSettings(models.Model):
             'General': self.general_enabled,
         }
         return type_mapping.get(message_type_name, True)
+    
+    def get_slot_availability_for_user(self, requesting_user):
+        """Get slot availability information for all message types when requesting_user wants to message this user"""
+        from datetime import timedelta
+        
+        message_types = MessageType.objects.filter(is_active=True)
+        availability = {}
+        
+        for msg_type in message_types:
+            # Get user's slot limit for this message type
+            slot_limit = MessageSlotBooking._get_receiver_slot_limit(self.user, msg_type)
+            
+            # Count active bookings
+            active_bookings = MessageSlotBooking.get_active_bookings_for_receiver(self.user, msg_type).count()
+            
+            # Check if requesting user already sent a message
+            already_sent = MessageSlotBooking.objects.filter(
+                sender=requesting_user,
+                receiver=self.user,
+                message_type=msg_type,
+                expires_date__gt=timezone.now()
+            ).exists()
+            
+            # Calculate status
+            available_slots = slot_limit - active_bookings
+            
+            if already_sent:
+                status = "already_sent"
+            elif available_slots <= 0:
+                status = "full"
+            else:
+                status = "available"
+            
+            availability[msg_type.name.lower().replace(' ', '_')] = {
+                'message_type': msg_type,
+                'total_slots': slot_limit,
+                'used_slots': active_bookings,
+                'available_slots': max(0, available_slots),
+                'status': status,
+                'already_sent': already_sent
+            }
+        
+        return availability
 
 
 # Signal to create message settings when user is created

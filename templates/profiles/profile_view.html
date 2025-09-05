@@ -3,161 +3,327 @@
 {% block title %}{{ profile.display_name }} - Profile{% endblock %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    <div class="card overflow-hidden">
-        <!-- Cover Photo / Header -->
-        <div class="bg-gradient-to-r from-gray-100 to-gray-200 h-32"></div>
-        
-        <!-- Profile Content -->
-        <div class="px-6 py-6">
-            <!-- Profile Picture and Basic Info -->
-            <div class="flex items-start justify-between -mt-16 mb-6">
-                <div class="flex items-end">
-                    {% if profile.profile_picture %}
-                        <img src="{{ profile.profile_picture.url }}" alt="{{ profile.display_name }}" class="h-32 w-32 rounded-full border-4 border-white object-cover shadow-lg">
-                    {% else %}
-                        <div class="h-32 w-32 rounded-full border-4 border-white bg-white flex items-center justify-center text-black text-4xl font-bold shadow-lg white-glow">
-                            {{ profile_user.first_name|first|default:profile_user.username|first }}
-                        </div>
-                    {% endif %}
-                    <div class="ml-6 pb-2">
-                        <h1 class="text-3xl font-light text-black">{{ profile.display_name }}</h1>
-                        <p class="text-gray-600">@{{ profile_user.username }}</p>
-                        {% if profile.organization_level %}
-                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800 mt-2">
-                                {{ profile.get_organization_level_display }}
-                            </span>
+<div class="container py-8">
+    <div class="card max-w-3xl mx-auto">
+        <!-- Header -->
+        <div class="px-8 py-6 border-b border-gray-300">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                    <h1 class="text-3xl font-semibold text-black mb-2">
+                        {% if profile_user == user %}Your {% endif %}<span class="font-bold">Profile</span>
+                    </h1>
+                    <p class="text-base text-gray-600">
+                        {% if profile_user == user %}
+                            View and manage your profile information.
+                        {% else %}
+                            {{ profile.display_name|default:profile_user.username }}'s profile information.
                         {% endif %}
-                    </div>
+                    </p>
                 </div>
                 
                 <!-- Action Buttons -->
-                <div class="flex space-x-3 pt-16">
+                <div class="flex gap-3 mt-4 sm:mt-0">
                     {% if profile_user == user %}
-                        <a href="{% url 'profiles:edit' %}" class="btn btn-secondary">
-                            <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <a href="{% url 'profiles:edit' %}" class="btn btn-primary">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                             </svg>
                             Edit Profile
                         </a>
                     {% elif can_message %}
-                        <a href="{% url 'messaging:send_request' profile_user.id %}" class="btn btn-primary">
-                            <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
-                            </svg>
-                            Send Message
-                        </a>
+                        {% if user.is_superuser or user.profile.is_verified %}
+                            <a href="{% url 'messaging:send_request' profile_user.id %}" class="btn btn-primary">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                                </svg>
+                                Send Message
+                            </a>
+                        {% else %}
+                            <div class="btn bg-gray-100 text-gray-500 cursor-not-allowed flex items-center">
+                                <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/>
+                                </svg>
+                                Get Verified to Message
+                            </div>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Profile Content -->
+        <div class="px-8 py-8 space-y-9">
+            
+            <!-- Personal Information -->
+            <div>
+                <div class="border-t border-gray-700 pt-6 -mt-2"></div>
+                <h2 class="text-xl font-semibold text-black mb-6">Personal Information</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="form-label">
+                            First Name
+                        </label>
+                        <div class="input bg-gray-50 text-gray-700">
+                            {{ profile_user.first_name|default:"Not provided" }}
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="form-label">
+                            Last Name
+                        </label>
+                        <div class="input bg-gray-50 text-gray-700">
+                            {{ profile_user.last_name|default:"Not provided" }}
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="form-label">
+                            Email Address
+                        </label>
+                        <div class="input bg-gray-50 text-gray-700">
+                            {{ profile_user.email }}
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="form-label">
+                            Phone Number
+                        </label>
+                        <div class="input bg-gray-50 text-gray-700">
+                            {{ profile.phone_number|default:"Not provided" }}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Verification Status -->
+                <div class="mt-4">
+                    <label class="form-label">
+                        Account Status
+                    </label>
+                    <div class="flex items-center space-x-3">
+                        {% if profile.is_verified or profile_user.is_superuser %}
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                                <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                </svg>
+                                {% if profile_user.is_superuser %}Superadmin{% else %}Verified{% endif %}
+                            </span>
+                        {% else %}
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
+                                <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                </svg>
+                                Needs Verification ({{ profile.referral_count }}/3 referrals)
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Profile Picture -->
+            <div>
+                <div class="border-t border-gray-700 pt-6"></div>
+                <h2 class="text-xl font-semibold text-black mb-6">Profile Picture</h2>
+                <div class="border border-gray-300 rounded-lg p-6 bg-gray-50">
+                    {% if profile.profile_picture %}
+                        <div class="flex items-center space-x-4">
+                            <img src="{{ profile.profile_picture.url }}" alt="Profile picture" class="h-16 w-16 rounded-full object-cover ring-2 ring-gray-300">
+                            <span class="text-sm text-gray-600">Profile picture</span>
+                        </div>
+                    {% else %}
+                        <div class="flex items-center space-x-4">
+                            <div class="h-16 w-16 rounded-full bg-gray-200 flex items-center justify-center ring-2 ring-gray-300">
+                                <span class="text-xl font-bold text-gray-500">{{ profile_user.first_name|first|default:profile_user.username|first|upper }}</span>
+                            </div>
+                            <span class="text-sm text-gray-600">No profile picture uploaded</span>
+                        </div>
                     {% endif %}
                 </div>
             </div>
             
-            <!-- Profile Information Grid -->
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <!-- Left Column - Main Info -->
-                <div class="lg:col-span-2 space-y-6">
-                    <!-- Bio -->
-                    {% if profile.bio %}
+            <!-- Bio -->
+            <div>
+                <div class="border-t border-gray-700 pt-6"></div>
+                <label class="form-label">
+                    Bio
+                </label>
+                <div class="input bg-gray-50 text-gray-700 min-h-[100px] whitespace-pre-wrap">{{ profile.bio|default:"No bio provided" }}</div>
+                <div class="mt-2 text-sm text-gray-500">
+                    Tell others about yourself, your interests, and what you're looking for in the community.
+                </div>
+            </div>
+            
+            <!-- Professional Information -->
+            <div>
+                <div class="border-t border-gray-700 pt-6"></div>
+                <h2 class="text-xl font-semibold text-black mb-6">Professional Information</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <h2 class="text-lg font-medium text-black mb-3">About</h2>
-                        <p class="text-gray-600 whitespace-pre-line">{{ profile.bio }}</p>
+                        <label class="form-label">
+                            Company
+                        </label>
+                        <div class="input bg-gray-50 text-gray-700">
+                            {{ profile.company|default:"Not provided" }}
+                        </div>
                     </div>
-                    {% endif %}
                     
-                    <!-- Tags/Skills -->
-                    {% if profile.tag_list %}
                     <div>
-                        <h2 class="text-lg font-medium text-black mb-3">Skills & Interests</h2>
+                        <label class="form-label">
+                            Team/Department
+                        </label>
+                        <div class="input bg-gray-50 text-gray-700">
+                            {{ profile.team|default:"Not provided" }}
+                        </div>
+                    </div>
+                    
+                    <div class="md:col-span-2">
+                        <label class="form-label">
+                            Organization Level
+                        </label>
+                        <div class="input bg-gray-50 text-gray-700">
+                            {{ profile.get_organization_level_display|default:"Not specified" }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Education -->
+            <div>
+                <div class="border-t border-gray-700 pt-6"></div>
+                <label class="form-label">
+                    Schools/Education
+                </label>
+                <div class="input bg-gray-50 text-gray-700">
+                    {{ profile.schools|default:"Not provided" }}
+                </div>
+                <p class="mt-1 text-sm text-gray-500">Universities, colleges, or other educational institutions</p>
+            </div>
+            
+            <!-- Tags/Skills -->
+            <div>
+                <div class="border-t border-gray-700 pt-6"></div>
+                <label class="form-label">
+                    Skills & Interests
+                </label>
+                {% if profile.tag_list %}
+                    <div class="border border-gray-300 rounded-lg p-4 bg-gray-50">
                         <div class="flex flex-wrap gap-2">
                             {% for tag in profile.tag_list %}
-                                <span class="badge">
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
                                     {{ tag }}
                                 </span>
                             {% endfor %}
                         </div>
                     </div>
-                    {% endif %}
+                {% else %}
+                    <div class="input bg-gray-50 text-gray-700">
+                        No skills or interests added
+                    </div>
+                {% endif %}
+                <p class="mt-2 text-sm text-gray-500">
+                    Comma-separated list of your skills, interests, and expertise
+                </p>
+            </div>
+            
+            <!-- Privacy Settings -->
+            <div>
+                <div class="border-t border-gray-700 pt-6"></div>
+                <h2 class="text-xl font-semibold text-black mb-6">Privacy Settings</h2>
+                <div>
+                    <label class="form-label">
+                        Name Visibility
+                    </label>
+                    <div class="input bg-gray-50 text-gray-700">
+                        {{ profile.get_name_visibility_display|default:"Full name" }}
+                    </div>
+                    <p class="mt-2 text-sm text-gray-500">How your name appears to other users in the community</p>
+                </div>
+            </div>
+            
+            <!-- Message Slot Settings (Owner Only) -->
+            {% if profile_user == user %}
+            <div>
+                <div class="border-t border-gray-700 pt-6"></div>
+                <h2 class="text-xl font-semibold text-black mb-6">Message Slot Limits</h2>
+                <p class="text-sm text-gray-600 mb-6">
+                    Monthly limits for different types of messages you're willing to receive.
+                </p>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div>
+                        <label class="form-label">
+                            Coffee Chat
+                        </label>
+                        <div class="input bg-gray-50 text-gray-700 text-center font-medium">
+                            {{ profile.coffee_chat_slots }}
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="form-label">
+                            Mentorship
+                        </label>
+                        <div class="input bg-gray-50 text-gray-700 text-center font-medium">
+                            {{ profile.mentorship_slots }}
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="form-label">
+                            Networking
+                        </label>
+                        <div class="input bg-gray-50 text-gray-700 text-center font-medium">
+                            {{ profile.networking_slots }}
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="form-label">
+                            General
+                        </label>
+                        <div class="input bg-gray-50 text-gray-700 text-center font-medium">
+                            {{ profile.general_slots }}
+                        </div>
+                    </div>
                 </div>
                 
-                <!-- Right Column - Details -->
-                <div class="space-y-6">
-                    <!-- Professional Info -->
-                    {% if profile.company or profile.team %}
-                    <div>
-                        <h2 class="text-lg font-medium text-black mb-3">Professional</h2>
-                        <div class="space-y-3">
-                            {% if profile.company %}
-                            <div class="flex items-center text-sm text-gray-600">
-                                <svg class="h-5 w-5 mr-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
-                                </svg>
-                                <span>{{ profile.company }}</span>
-                            </div>
-                            {% endif %}
-                            
-                            {% if profile.team %}
-                            <div class="flex items-center text-sm text-gray-600">
-                                <svg class="h-5 w-5 mr-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
-                                </svg>
-                                <span>{{ profile.team }}</span>
-                            </div>
-                            {% endif %}
+                <!-- Available Slots Display -->
+                <div class="mt-4 p-4 bg-blue-50 rounded-lg">
+                    <h3 class="text-sm font-medium text-blue-900 mb-3">Available This Month</h3>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        {% with profile.available_slots as slots %}
+                        <div class="text-center">
+                            <div class="text-lg font-bold text-blue-900">{{ slots.coffee_chat }}</div>
+                            <div class="text-xs text-blue-700">Coffee Chat</div>
                         </div>
-                    </div>
-                    {% endif %}
-                    
-                    <!-- Education -->
-                    {% if profile.schools %}
-                    <div>
-                        <h2 class="text-lg font-medium text-black mb-3">Education</h2>
-                        <div class="flex items-center text-sm text-gray-600">
-                            <svg class="h-5 w-5 mr-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z"/>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/>
-                            </svg>
-                            <span>{{ profile.schools }}</span>
+                        <div class="text-center">
+                            <div class="text-lg font-bold text-blue-900">{{ slots.mentorship }}</div>
+                            <div class="text-xs text-blue-700">Mentorship</div>
                         </div>
-                    </div>
-                    {% endif %}
-                    
-                    <!-- Member Since -->
-                    <div>
-                        <h2 class="text-lg font-medium text-black mb-3">Member Since</h2>
-                        <div class="flex items-center text-sm text-gray-600">
-                            <svg class="h-5 w-5 mr-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3a2 2 0 012-2h4a2 2 0 012 2v4m-4 8v5a2 2 0 002 2h4a2 2 0 002-2v-5M8 19a2 2 0 002 2h4a2 2 0 002-2v-5a2 2 0 00-2-2H10a2 2 0 00-2 2v5z"/>
-                            </svg>
-                            <span>{{ profile.created_date|date:"F Y" }}</span>
+                        <div class="text-center">
+                            <div class="text-lg font-bold text-blue-900">{{ slots.networking }}</div>
+                            <div class="text-xs text-blue-700">Networking</div>
                         </div>
-                    </div>
-                    
-                    {% if profile_user == user %}
-                    <!-- Message Slots (only visible to profile owner) -->
-                    <div>
-                        <h2 class="text-lg font-medium text-black mb-3">Available Message Slots</h2>
-                        <div class="space-y-2 text-sm">
-                            {% with profile.available_slots as slots %}
-                            <div class="flex justify-between">
-                                <span class="text-gray-600">Coffee Chat:</span>
-                                <span class="font-medium">{{ slots.coffee_chat }}/{{ profile.coffee_chat_slots }}</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-gray-600">Mentorship:</span>
-                                <span class="font-medium">{{ slots.mentorship }}/{{ profile.mentorship_slots }}</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-gray-600">Networking:</span>
-                                <span class="font-medium">{{ slots.networking }}/{{ profile.networking_slots }}</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-gray-600">General:</span>
-                                <span class="font-medium">{{ slots.general }}/{{ profile.general_slots }}</span>
-                            </div>
-                            {% endwith %}
+                        <div class="text-center">
+                            <div class="text-lg font-bold text-blue-900">{{ slots.general }}</div>
+                            <div class="text-xs text-blue-700">General</div>
                         </div>
+                        {% endwith %}
                     </div>
-                    {% endif %}
                 </div>
+            </div>
+            {% endif %}
+            
+            <!-- Member Since -->
+            <div>
+                <div class="border-t border-gray-700 pt-6"></div>
+                <label class="form-label">
+                    Member Since
+                </label>
+                <div class="input bg-gray-50 text-gray-700">
+                    {{ profile.created_date|date:"F j, Y" }}
+                </div>
+                <p class="mt-1 text-sm text-gray-500">Date when this account was created</p>
             </div>
         </div>
     </div>

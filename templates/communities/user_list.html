@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load messaging_extras %}
 
 {% block title %}Baselist - GrowCommunity{% endblock %}
 
@@ -8,9 +9,20 @@
     transition: all 0.2s ease;
 }
 
-.message-type-btn:hover {
+.message-type-btn:hover:not(:disabled) {
     transform: translateY(-1px);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.message-type-btn:disabled {
+    opacity: 0.6;
+    transform: none !important;
+    cursor: not-allowed;
+}
+
+.message-type-btn.cursor-not-allowed {
+    cursor: not-allowed;
+    opacity: 0.6;
 }
 </style>
 {% endblock %}
@@ -137,24 +149,39 @@
                             <div class="mb-4">
                                 <label class="form-label">Select Message Type:</label>
                                 <div class="flex flex-wrap gap-2 mb-4">
-                                    <button onclick="selectMessageType({{ user.id }}, 'Coffee Chat')" class="btn btn-secondary message-type-btn">
-                                        ☕ Coffee Chat
-                                    </button>
-                                    <button onclick="selectMessageType({{ user.id }}, 'Mentorship')" class="btn btn-secondary message-type-btn">
-                                        🎓 Mentorship
-                                    </button>
-                                    <button onclick="selectMessageType({{ user.id }}, 'Networking')" class="btn btn-secondary message-type-btn">
-                                        🤝 Networking
-                                    </button>
-                                    <button onclick="selectMessageType({{ user.id }}, 'General')" class="btn btn-secondary message-type-btn">
-                                        💬 General
-                                    </button>
-                                    <button onclick="selectMessageType({{ user.id }}, 'Collaboration')" class="btn btn-secondary message-type-btn">
-                                        🤝 Collaboration
-                                    </button>
-                                    <button onclick="selectMessageType({{ user.id }}, 'Job Opportunity')" class="btn btn-secondary message-type-btn">
-                                        💼 Job Opportunity
-                                    </button>
+                                    {% for message_type in message_types %}
+                                        {% with user_slots=users_slot_data|dict_get:user.id %}
+                                        {% with slot_key=message_type.name|lower|space_to_underscore %}
+                                        {% with slot_info=user_slots|dict_get:slot_key %}
+                                        <button 
+                                            onclick="selectMessageType({{ user.id }}, '{{ message_type.name }}')" 
+                                            class="btn message-type-btn
+                                                {% if slot_info.status == 'available' %}btn-secondary
+                                                {% elif slot_info.status == 'already_sent' %}btn-ghost cursor-not-allowed
+                                                {% elif slot_info.status == 'full' %}btn-ghost cursor-not-allowed{% endif %}"
+                                            {% if slot_info.status != 'available' %}disabled{% endif %}
+                                        >
+                                            {{ message_type.name }}
+                                            {% if slot_info %}
+                                                <span class="ml-1 text-xs
+                                                    {% if slot_info.status == 'available' %}text-green-600
+                                                    {% elif slot_info.status == 'already_sent' %}text-gray-500
+                                                    {% elif slot_info.status == 'full' %}text-red-600{% endif %}
+                                                ">
+                                                    {% if slot_info.status == 'available' %}
+                                                        ({{ slot_info.available_slots }}/{{ slot_info.total_slots }})
+                                                    {% elif slot_info.status == 'already_sent' %}
+                                                        ✓ Sent
+                                                    {% elif slot_info.status == 'full' %}
+                                                        (Full)
+                                                    {% endif %}
+                                                </span>
+                                            {% endif %}
+                                        </button>
+                                        {% endwith %}
+                                        {% endwith %}
+                                        {% endwith %}
+                                    {% endfor %}
                                 </div>
                             </div>
                             <div class="mb-4">
@@ -176,7 +203,7 @@
                                 <button 
                                     onclick="sendMessage({{ user.id }})" 
                                     class="btn btn-primary text-sm">
-                                    💬 Send Message
+                                    Send Message
                                 </button>
                             </div>
                         </div>
@@ -212,16 +239,25 @@ function toggleUserDetails(userId) {
 }
 
 function selectMessageType(userId, type) {
+    // Check if button is disabled (for already sent or full slots)
+    const parentRow = document.getElementById(`message-form-${userId}`);
+    const clickedButton = Array.from(parentRow.querySelectorAll('.message-type-btn'))
+        .find(btn => btn.textContent.trim().includes(type));
+    
+    if (clickedButton && clickedButton.disabled) {
+        return; // Don't allow selection of disabled buttons
+    }
+    
     selectedMessageType[userId] = type;
     // Update button styles
-    const parentRow = document.getElementById(`message-form-${userId}`);
     const buttons = parentRow.querySelectorAll('.message-type-btn');
     buttons.forEach(btn => {
-        if (btn.textContent.trim().includes(type)) {
-            btn.className = 'message-type-btn px-3 py-2 text-sm bg-white text-black rounded transition-all transform scale-105 white-glow';
-        } else {
+        if (btn.textContent.trim().includes(type) && !btn.disabled) {
+            btn.className = 'btn message-type-btn px-3 py-2 text-sm bg-white text-black rounded transition-all transform scale-105 white-glow';
+        } else if (!btn.disabled) {
             btn.className = 'btn btn-secondary message-type-btn';
         }
+        // Keep disabled buttons with their original styling
     });
 }
 
