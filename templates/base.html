@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full bg-black">
+<html lang="en" class="h-full bg-white">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -142,7 +142,7 @@
         }
     </style>
 </head>
-<body class="h-full bg-black text-white">
+<body class="h-full bg-white text-black">
     <div class="min-h-full">
         {% if user.is_authenticated %}
         <!-- Navigation Header -->
@@ -289,15 +289,15 @@
         {% if messages %}
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
             {% for message in messages %}
-            <div class="fade-in rounded-md p-4 mb-4 {% if message.tags == 'success' %}bg-gray-900 text-white border border-gray-600{% elif message.tags == 'error' %}bg-gray-900 text-white border border-gray-600{% elif message.tags == 'warning' %}bg-gray-900 text-white border border-gray-600{% else %}bg-gray-900 text-white border border-gray-600{% endif %}">
+            <div class="fade-in rounded-md p-4 mb-4 {% if message.tags == 'success' %}bg-white text-black border border-gray-300 shadow-sm{% elif message.tags == 'error' %}bg-white text-black border border-gray-300 shadow-sm{% elif message.tags == 'warning' %}bg-white text-black border border-gray-300 shadow-sm{% else %}bg-white text-black border border-gray-300 shadow-sm{% endif %}">
                 <div class="flex">
                     <div class="flex-shrink-0">
                         {% if message.tags == 'success' %}
-                        <svg class="h-5 w-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                        <svg class="h-5 w-5 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                         </svg>
                         {% elif message.tags == 'error' %}
-                        <svg class="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                        <svg class="h-5 w-5 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
                         </svg>
                         {% endif %}

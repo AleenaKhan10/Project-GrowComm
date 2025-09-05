@@ -3,31 +3,31 @@
 {% block title %}My Invites - GrowCommunity{% endblock %}
 
 {% block content %}
-<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-gray-950 min-h-screen">
+<div class="container py-8">
     <!-- Header -->
     <div class="mb-10">
-        <h1 class="text-4xl font-light text-white mb-4">
-            Invite <span class="text-white">Management</span>
+        <h1 class="text-4xl font-light text-black mb-4">
+            Invite <span class="font-semibold">Management</span>
         </h1>
-        <p class="mt-4 text-gray-300">
+        <p class="mt-4 text-gray-600">
             Create and manage your community invites
         </p>
     </div>
     
     <!-- Create New Invite -->
-    <div class="bg-card shadow rounded-lg p-6 mb-8 white-border border-2 border-zinc-800">
-        <h2 class="text-lg font-medium text-white mb-4">Create New Invite</h2>
+    <div class="card mb-8">
+        <h2 class="text-lg font-medium text-black mb-4">Create New Invite</h2>
         <form method="post" class="space-y-4">
             {% csrf_token %}
-            <div>
-                <label for="{{ form.expires_in_days.id_for_label }}" class="block text-sm font-medium text-white mb-2">
+            <div class="form-group">
+                <label for="{{ form.expires_in_days.id_for_label }}" class="form-label">
                     Expires In (Days)
                 </label>
                 {{ form.expires_in_days }}
                 {% if form.expires_in_days.errors %}
-                    <p class="mt-1 text-sm text-red-400">{{ form.expires_in_days.errors.0 }}</p>
+                    <p class="mt-1 text-sm text-gray-600">{{ form.expires_in_days.errors.0 }}</p>
                 {% endif %}
-                <p class="mt-2 text-sm text-gray-400 opacity-70">{{ form.expires_in_days.help_text }}</p>
+                <p class="mt-2 text-sm text-gray-500">{{ form.expires_in_days.help_text }}</p>
             </div>
             <button type="submit" class="btn btn-primary w-full">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -40,12 +40,12 @@
     
     <!-- Invites List -->
     {% if invites %}
-    <div class="bg-card shadow rounded-lg overflow-hidden white-border border-2 border-zinc-800">
-        <div class="px-6 py-4 border-b border-gray-600">
-            <h2 class="text-lg font-medium text-white">Your Invites</h2>
+    <div class="card overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-300">
+            <h2 class="text-lg font-medium text-black">Your Invites</h2>
         </div>
         
-        <div class="divide-y divide-gray-600">
+        <div class="divide-y divide-gray-200">
             {% for invite in invites %}
             <div class="p-6">
                 <div class="flex items-center justify-between">
@@ -77,13 +77,13 @@
                             <!-- Invite Details -->
                             <div class="flex-1">
                                 <div class="flex items-center space-x-2">
-                                    <h3 class="text-sm font-medium text-white">Invite Code: {{ invite.code }}</h3>
+                                    <h3 class="text-sm font-medium text-black">Invite Code: {{ invite.code }}</h3>
                                     {% if invite.is_used %}
                                         <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
                                             Used
                                         </span>
                                     {% elif invite.is_valid %}
-                                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-white bg-opacity-10 text-white">
+                                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
                                             Active
                                         </span>
                                     {% else %}
@@ -93,7 +93,7 @@
                                     {% endif %}
                                 </div>
                                 
-                                <div class="mt-1 text-sm text-gray-300">
+                                <div class="mt-1 text-sm text-gray-600">
                                     <p>Created: {{ invite.created_date|date:"M d, Y" }}</p>
                                     {% if invite.expiry_date %}
                                         <p>Expires: {{ invite.expiry_date|date:"M d, Y" }}</p>
@@ -109,11 +109,11 @@
                     <!-- Actions -->
                     <div class="flex items-center space-x-3">
                         {% if invite.is_valid %}
-                            <button onclick="copyInviteLink('{{ invite.code }}')" class="text-white hover:text-gray-300 text-sm font-medium">
+                            <button onclick="copyInviteLink('{{ invite.code }}')" class="text-black hover:text-gray-600 text-sm font-medium">
                                 Copy Link
                             </button>
                         {% endif %}
-                        <a href="{% url 'invites:invite_detail' invite.id %}" class="text-gray-300 hover:text-white text-sm font-medium">
+                        <a href="{% url 'invites:invite_detail' invite.id %}" class="text-gray-600 hover:text-black text-sm font-medium">
                             Details →
                         </a>
                     </div>
@@ -121,10 +121,10 @@
                 
                 <!-- Full invite URL (initially hidden) -->
                 {% if invite.is_valid %}
-                <div id="invite-url-{{ invite.code }}" class="mt-4 p-3 bg-gray-800 rounded-lg hidden">
+                <div id="invite-url-{{ invite.code }}" class="mt-4 p-3 bg-gray-100 rounded-lg hidden">
                     <div class="flex items-center justify-between">
                         <input type="text" readonly value="{{ request.scheme }}://{{ request.get_host }}{% url 'accounts:register' invite.code %}" class="input flex-1">
-                        <button onclick="copyToClipboard('invite-url-{{ invite.code }}')" class="ml-3 bg-white text-black px-3 py-2 rounded text-sm hover:bg-gray-100 transition-colors">
+                        <button onclick="copyToClipboard('invite-url-{{ invite.code }}')" class="ml-3 btn btn-primary">
                             Copy
                         </button>
                     </div>
@@ -141,8 +141,8 @@
             <svg class="mx-auto h-16 w-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
             </svg>
-            <h3 class="mt-4 text-lg font-semibold text-white">No invites created yet</h3>
-            <p class="mt-2 text-sm text-gray-300">
+            <h3 class="mt-4 text-lg font-semibold text-black">No invites created yet</h3>
+            <p class="mt-2 text-sm text-gray-600">
                 Create your first invite to start growing the community.
             </p>
         </div>
@@ -168,12 +168,12 @@ function copyToClipboard(elementId) {
         const originalText = button.textContent;
         button.textContent = 'Copied!';
         button.classList.add('bg-green-600');
-        button.classList.remove('bg-lime');
+        button.classList.remove('bg-white');
         
         setTimeout(() => {
             button.textContent = originalText;
             button.classList.remove('bg-green-600');
-            button.classList.add('bg-white');
+            button.classList.add('btn', 'btn-primary');
         }, 2000);
     } catch (err) {
         console.error('Failed to copy text: ', err);

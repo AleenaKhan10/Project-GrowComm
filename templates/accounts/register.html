@@ -3,131 +3,133 @@
 {% block title %}Join GrowCommunity{% endblock %}
 
 {% block content %}
-<div class="min-h-screen flex items-center justify-center bg-black py-12 px-4 sm:px-6 lg:px-8">
+<div class="min-h-screen flex items-center justify-center bg-white py-12 px-4 sm:px-6 lg:px-8">
     <div class="max-w-md w-full space-y-8">
         <!-- Header -->
         <div>
-            <div class="mx-auto h-12 w-12 flex items-center justify-center rounded-full bg-white white-glow">
-                <svg class="h-6 w-6 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="mx-auto h-12 w-12 flex items-center justify-center rounded-full bg-gray-100 border border-gray-300">
+                <svg class="h-6 w-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
                 </svg>
             </div>
-            <h2 class="mt-6 text-center text-3xl font-light text-white">
-                Join <span class="logo-text">Grow<span class="logo-accent white-text">Community</span></span>
+            <h2 class="mt-6 text-center text-3xl font-light text-black">
+                Join <span class="font-semibold">GrowCommunity</span>
             </h2>
-            <p class="mt-2 text-center text-sm text-gray-300 font-light">
-                You've been invited by <span class="font-medium text-white">{{ inviter_name }}</span>
+            <p class="mt-2 text-center text-sm text-gray-600 font-light">
+                You've been invited by <span class="font-medium text-black">{{ inviter_name }}</span>
             </p>
         </div>
         
         <!-- Registration Form -->
-        <form class="mt-8 space-y-6" method="post">
-            {% csrf_token %}
-            <div class="space-y-4">
+        <div class="card">
+            <form class="space-y-6" method="post">
+                {% csrf_token %}
+                <div class="space-y-4">
                 <!-- First Name -->
-                <div>
-                    <label for="{{ form.first_name.id_for_label }}" class="block text-sm font-light text-gray-300 mb-2">
+                <div class="form-group">
+                    <label for="{{ form.first_name.id_for_label }}" class="form-label">
                         First Name
                     </label>
                     <input type="text" name="{{ form.first_name.name }}" id="{{ form.first_name.id_for_label }}" class="input" placeholder="Enter your first name" {% if form.first_name.value %}value="{{ form.first_name.value }}"{% endif %}>
                     {% if form.first_name.errors %}
-                        <p class="mt-1 text-sm text-red-400">{{ form.first_name.errors.0 }}</p>
+                        <p class="mt-1 text-sm text-gray-600">{{ form.first_name.errors.0 }}</p>
                     {% endif %}
                 </div>
 
                 <!-- Last Name -->
-                <div>
-                    <label for="{{ form.last_name.id_for_label }}" class="block text-sm font-light text-gray-300 mb-2">
+                <div class="form-group">
+                    <label for="{{ form.last_name.id_for_label }}" class="form-label">
                         Last Name
                     </label>
                     <input type="text" name="{{ form.last_name.name }}" id="{{ form.last_name.id_for_label }}" class="input" placeholder="Enter your last name" {% if form.last_name.value %}value="{{ form.last_name.value }}"{% endif %}>
                     {% if form.last_name.errors %}
-                        <p class="mt-1 text-sm text-red-400">{{ form.last_name.errors.0 }}</p>
+                        <p class="mt-1 text-sm text-gray-600">{{ form.last_name.errors.0 }}</p>
                     {% endif %}
                 </div>
 
                 <!-- Username -->
-                <div>
-                    <label for="{{ form.username.id_for_label }}" class="block text-sm font-light text-gray-300 mb-2">
+                <div class="form-group">
+                    <label for="{{ form.username.id_for_label }}" class="form-label">
                         Username
                     </label>
                     <input type="text" name="{{ form.username.name }}" id="{{ form.username.id_for_label }}" class="input" placeholder="Choose a username" {% if form.username.value %}value="{{ form.username.value }}"{% endif %}>
                     {% if form.username.errors %}
-                        <p class="mt-1 text-sm text-red-400">{{ form.username.errors.0 }}</p>
+                        <p class="mt-1 text-sm text-gray-600">{{ form.username.errors.0 }}</p>
                     {% endif %}
                 </div>
 
                 <!-- Email -->
-                <div>
-                    <label for="{{ form.email.id_for_label }}" class="block text-sm font-light text-gray-300 mb-2">
+                <div class="form-group">
+                    <label for="{{ form.email.id_for_label }}" class="form-label">
                         Email Address
                     </label>
                     <input type="email" name="{{ form.email.name }}" id="{{ form.email.id_for_label }}" class="input" placeholder="Enter your email address" {% if form.email.value %}value="{{ form.email.value }}"{% endif %}>
                     {% if form.email.errors %}
-                        <p class="mt-1 text-sm text-red-400">{{ form.email.errors.0 }}</p>
+                        <p class="mt-1 text-sm text-gray-600">{{ form.email.errors.0 }}</p>
                     {% endif %}
                 </div>
 
                 <!-- Password -->
-                <div>
-                    <label for="{{ form.password1.id_for_label }}" class="block text-sm font-light text-gray-300 mb-2">
+                <div class="form-group">
+                    <label for="{{ form.password1.id_for_label }}" class="form-label">
                         Password
                     </label>
                     <input type="password" name="{{ form.password1.name }}" id="{{ form.password1.id_for_label }}" class="input" placeholder="Create a password">
                     {% if form.password1.errors %}
-                        <p class="mt-1 text-sm text-red-400">{{ form.password1.errors.0 }}</p>
+                        <p class="mt-1 text-sm text-gray-600">{{ form.password1.errors.0 }}</p>
                     {% endif %}
                 </div>
 
                 <!-- Confirm Password -->
-                <div>
-                    <label for="{{ form.password2.id_for_label }}" class="block text-sm font-light text-gray-300 mb-2">
+                <div class="form-group">
+                    <label for="{{ form.password2.id_for_label }}" class="form-label">
                         Confirm Password
                     </label>
                     <input type="password" name="{{ form.password2.name }}" id="{{ form.password2.id_for_label }}" class="input" placeholder="Confirm your password">
                     {% if form.password2.errors %}
-                        <p class="mt-1 text-sm text-red-400">{{ form.password2.errors.0 }}</p>
+                        <p class="mt-1 text-sm text-gray-600">{{ form.password2.errors.0 }}</p>
                     {% endif %}
                 </div>
 
                 <!-- Terms Acceptance -->
                 <div class="flex items-center">
-                    <input type="checkbox" name="{{ form.accept_terms.name }}" id="{{ form.accept_terms.id_for_label }}" class="h-4 w-4 border-gray-600 bg-gray-800 rounded focus:ring-white">
-                    <label for="{{ form.accept_terms.id_for_label }}" class="ml-2 block text-sm text-gray-300 font-light">
-                        I accept the <a href="#" class="text-white hover:text-gray-300">Terms of Service</a> and <a href="#" class="text-white hover:text-gray-300">Privacy Policy</a>
+                    <input type="checkbox" name="{{ form.accept_terms.name }}" id="{{ form.accept_terms.id_for_label }}" class="h-4 w-4 border-gray-300 bg-white rounded focus:ring-black">
+                    <label for="{{ form.accept_terms.id_for_label }}" class="ml-2 block text-sm text-gray-600 font-light">
+                        I accept the <a href="#" class="text-gray-600 hover:text-black underline">Terms of Service</a> and <a href="#" class="text-gray-600 hover:text-black underline">Privacy Policy</a>
                     </label>
                 </div>
                 {% if form.accept_terms.errors %}
-                    <p class="mt-1 text-sm text-red-400">{{ form.accept_terms.errors.0 }}</p>
+                    <p class="mt-1 text-sm text-gray-600">{{ form.accept_terms.errors.0 }}</p>
                 {% endif %}
             </div>
 
-            <!-- Non-field errors -->
-            {% if form.non_field_errors %}
-                <div class="bg-red-900 border border-red-600 rounded-lg p-4">
-                    {% for error in form.non_field_errors %}
-                        <p class="text-sm text-red-100">{{ error }}</p>
-                    {% endfor %}
+                <!-- Non-field errors -->
+                {% if form.non_field_errors %}
+                    <div class="bg-gray-100 border border-gray-300 rounded-lg p-4">
+                        {% for error in form.non_field_errors %}
+                            <p class="text-sm text-gray-700">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <!-- Create Account Button -->
+                <div>
+                    <button type="submit" class="btn btn-primary w-full">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+                        </svg>
+                        Create Account
+                    </button>
                 </div>
-            {% endif %}
 
-            <!-- Create Account Button -->
-            <div>
-                <button type="submit" class="btn btn-primary w-full">
-                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
-                    </svg>
-                    Create Account
-                </button>
-            </div>
-
-            <!-- Back to Login -->
-            <div class="text-center">
-                <a href="{% url 'accounts:login' %}" class="font-light text-white hover:text-gray-300">
-                    Already have an account? Sign in
-                </a>
-            </div>
-        </form>
+                <!-- Back to Login -->
+                <div class="text-center">
+                    <a href="{% url 'accounts:login' %}" class="font-light text-gray-600 hover:text-black">
+                        Already have an account? Sign in
+                    </a>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 {% endblock %}

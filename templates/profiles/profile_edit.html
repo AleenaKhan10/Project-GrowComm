@@ -3,14 +3,14 @@
 {% block title %}Edit Profile - GrowCommunity{% endblock %}
 
 {% block content %}
-<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-black min-h-screen">
-    <div class="bg-card shadow rounded-lg white-border">
+<div class="container py-8">
+    <div class="card max-w-3xl mx-auto">
         <!-- Header -->
-        <div class="px-8 py-6 border-b border-gray-600">
-            <h1 class="text-3xl font-semibold text-white mb-2">
-                Edit Your <span class="text-white">Profile</span>
+        <div class="px-8 py-6 border-b border-gray-300">
+            <h1 class="text-3xl font-semibold text-black mb-2">
+                Edit Your <span class="font-bold">Profile</span>
             </h1>
-            <p class="text-base text-gray-400">
+            <p class="text-base text-gray-600">
                 Update your information to help others discover and connect with you.
             </p>
         </div>
@@ -22,10 +22,10 @@
             <!-- Personal Information -->
             <div>
                 <div class="border-t border-gray-700 pt-6 -mt-2"></div>
-                <h2 class="text-xl font-semibold text-white mb-6">Personal Information</h2>
+                <h2 class="text-xl font-semibold text-black mb-6">Personal Information</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label for="{{ form.first_name.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">
+                        <label for="{{ form.first_name.id_for_label }}" class="form-label">
                             First Name <span class="text-red-400">*</span>
                         </label>
                         {{ form.first_name }}
@@ -35,7 +35,7 @@
                     </div>
                     
                     <div>
-                        <label for="{{ form.last_name.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">
+                        <label for="{{ form.last_name.id_for_label }}" class="form-label">
                             Last Name <span class="text-red-400">*</span>
                         </label>
                         {{ form.last_name }}
@@ -45,7 +45,7 @@
                     </div>
                     
                     <div>
-                        <label for="{{ form.email.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">
+                        <label for="{{ form.email.id_for_label }}" class="form-label">
                             Email Address <span class="text-red-400">*</span>
                         </label>
                         {{ form.email }}
@@ -55,7 +55,7 @@
                     </div>
                     
                     <div>
-                        <label for="{{ form.phone_number.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">
+                        <label for="{{ form.phone_number.id_for_label }}" class="form-label">
                             Phone Number
                         </label>
                         {{ form.phone_number }}
@@ -69,12 +69,12 @@
             <!-- Profile Picture -->
             <div>
                 <div class="border-t border-gray-700 pt-6"></div>
-                <h2 class="text-xl font-semibold text-white mb-6">Profile Picture</h2>
-                <div class="border border-gray-600 rounded-lg p-6 bg-gray-900">
+                <h2 class="text-xl font-semibold text-black mb-6">Profile Picture</h2>
+                <div class="border border-gray-300 rounded-lg p-6 bg-gray-50">
                     {% if user.profile.profile_picture %}
                         <div class="mb-4 flex items-center space-x-4">
-                            <img src="{{ user.profile.profile_picture.url }}" alt="Current profile picture" class="h-16 w-16 rounded-full object-cover ring-2 ring-gray-600">
-                            <span class="text-sm text-gray-300">Current profile picture</span>
+                            <img src="{{ user.profile.profile_picture.url }}" alt="Current profile picture" class="h-16 w-16 rounded-full object-cover ring-2 ring-gray-300">
+                            <span class="text-sm text-gray-600">Current profile picture</span>
                         </div>
                     {% endif %}
                     <div class="space-y-2">
@@ -82,7 +82,7 @@
                         {% if form.profile_picture.errors %}
                             <p class="text-sm text-red-400">{{ form.profile_picture.errors.0 }}</p>
                         {% endif %}
-                        <p class="text-sm text-gray-400">{{ form.profile_picture.help_text }}</p>
+                        <p class="text-sm text-gray-500">{{ form.profile_picture.help_text }}</p>
                     </div>
                 </div>
             </div>
@@ -90,7 +90,7 @@
             <!-- Bio -->
             <div>
                 <div class="border-t border-gray-700 pt-6"></div>
-                <label for="{{ form.bio.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">
+                <label for="{{ form.bio.id_for_label }}" class="form-label">
                     Bio
                 </label>
                 {{ form.bio }}
@@ -98,18 +98,18 @@
                     <p class="mt-1 text-sm text-red-400">{{ form.bio.errors.0 }}</p>
                 {% endif %}
                 <div class="mt-2 flex justify-between text-sm">
-                    <p class="text-gray-400">{{ form.bio.help_text }}</p>
-                    <span class="text-gray-500" id="bio-counter">0 / 500 characters</span>
+                    <p class="text-gray-500">{{ form.bio.help_text }}</p>
+                    <span class="text-gray-400" id="bio-counter">0 / 500 characters</span>
                 </div>
             </div>
             
             <!-- Professional Information -->
             <div>
                 <div class="border-t border-gray-700 pt-6"></div>
-                <h2 class="text-xl font-semibold text-white mb-6">Professional Information</h2>
+                <h2 class="text-xl font-semibold text-black mb-6">Professional Information</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label for="{{ form.company.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">
+                        <label for="{{ form.company.id_for_label }}" class="form-label">
                             Company
                         </label>
                         {{ form.company }}
@@ -119,7 +119,7 @@
                     </div>
                     
                     <div>
-                        <label for="{{ form.team.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">
+                        <label for="{{ form.team.id_for_label }}" class="form-label">
                             Team/Department
                         </label>
                         {{ form.team }}
@@ -129,7 +129,7 @@
                     </div>
                     
                     <div class="md:col-span-2">
-                        <label for="{{ form.organization_level.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">
+                        <label for="{{ form.organization_level.id_for_label }}" class="form-label">
                             Organization Level
                         </label>
                         {{ form.organization_level }}
@@ -143,20 +143,20 @@
             <!-- Education -->
             <div>
                 <div class="border-t border-gray-700 pt-6"></div>
-                <label for="{{ form.schools.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">
+                <label for="{{ form.schools.id_for_label }}" class="form-label">
                     Schools/Education
                 </label>
                 {{ form.schools }}
                 {% if form.schools.errors %}
                     <p class="mt-1 text-sm text-red-400">{{ form.schools.errors.0 }}</p>
                 {% endif %}
-                <p class="mt-1 text-sm text-gray-400">{{ form.schools.help_text }}</p>
+                <p class="mt-1 text-sm text-gray-500">{{ form.schools.help_text }}</p>
             </div>
             
             <!-- Tags/Skills -->
             <div>
                 <div class="border-t border-gray-700 pt-6"></div>
-                <label for="{{ form.tags.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">
+                <label for="{{ form.tags.id_for_label }}" class="form-label">
                     Skills & Interests
                 </label>
                 {{ form.tags }}
@@ -164,37 +164,37 @@
                     <p class="mt-1 text-sm text-red-400">{{ form.tags.errors.0 }}</p>
                 {% endif %}
                 <div class="mt-2 flex justify-between text-sm">
-                    <p class="text-gray-400">{{ form.tags.help_text }}</p>
-                    <span class="text-gray-500" id="tags-counter">0 / 500 characters</span>
+                    <p class="text-gray-500">{{ form.tags.help_text }}</p>
+                    <span class="text-gray-400" id="tags-counter">0 / 500 characters</span>
                 </div>
             </div>
             
             <!-- Privacy Settings -->
             <div>
                 <div class="border-t border-gray-700 pt-6"></div>
-                <h2 class="text-xl font-semibold text-white mb-6">Privacy Settings</h2>
+                <h2 class="text-xl font-semibold text-black mb-6">Privacy Settings</h2>
                 <div>
-                    <label for="{{ form.name_visibility.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">
+                    <label for="{{ form.name_visibility.id_for_label }}" class="form-label">
                         Name Visibility
                     </label>
                     {{ form.name_visibility }}
                     {% if form.name_visibility.errors %}
                         <p class="mt-1 text-sm text-red-400">{{ form.name_visibility.errors.0 }}</p>
                     {% endif %}
-                    <p class="mt-2 text-sm text-gray-400">Control how your name appears to other users in the community</p>
+                    <p class="mt-2 text-sm text-gray-500">Control how your name appears to other users in the community</p>
                 </div>
             </div>
             
             <!-- Message Slot Settings -->
             <div>
                 <div class="border-t border-gray-700 pt-6"></div>
-                <h2 class="text-xl font-semibold text-white mb-6">Message Slot Limits</h2>
-                <p class="text-sm text-gray-400 mb-6">
+                <h2 class="text-xl font-semibold text-black mb-6">Message Slot Limits</h2>
+                <p class="text-sm text-gray-600 mb-6">
                     Set monthly limits for different types of messages you're willing to receive.
                 </p>
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
                     <div>
-                        <label for="{{ form.coffee_chat_slots.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">
+                        <label for="{{ form.coffee_chat_slots.id_for_label }}" class="form-label">
                             Coffee Chat
                         </label>
                         {{ form.coffee_chat_slots }}
@@ -204,7 +204,7 @@
                     </div>
                     
                     <div>
-                        <label for="{{ form.mentorship_slots.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">
+                        <label for="{{ form.mentorship_slots.id_for_label }}" class="form-label">
                             Mentorship
                         </label>
                         {{ form.mentorship_slots }}
@@ -214,7 +214,7 @@
                     </div>
                     
                     <div>
-                        <label for="{{ form.networking_slots.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">
+                        <label for="{{ form.networking_slots.id_for_label }}" class="form-label">
                             Networking
                         </label>
                         {{ form.networking_slots }}
@@ -224,7 +224,7 @@
                     </div>
                     
                     <div>
-                        <label for="{{ form.general_slots.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">
+                        <label for="{{ form.general_slots.id_for_label }}" class="form-label">
                             General
                         </label>
                         {{ form.general_slots }}
@@ -245,9 +245,9 @@
             {% endif %}
             
             <!-- Action Buttons -->
-            <div class="pt-8 border-t border-gray-600">
+            <div class="pt-8 border-t border-gray-300">
                 <div class="flex flex-col sm:flex-row sm:justify-end gap-4">
-                    <a href="{% url 'profiles:view' user.id %}" class="px-6 py-3 border border-gray-600 rounded-lg text-sm font-medium text-gray-300 hover:bg-gray-700 hover:border-gray-500 transition-colors text-center min-h-[44px] flex items-center justify-center">
+                    <a href="{% url 'profiles:view' user.id %}" class="btn btn-secondary">
                         Cancel
                     </a>
                     <button type="submit" class="btn btn-primary" id="save-btn">
@@ -270,14 +270,14 @@ document.addEventListener('DOMContentLoaded', function() {
             const length = bioField.value.length;
             bioCounter.textContent = `${length} / 500 characters`;
             if (length > 400) {
-                bioCounter.classList.add('text-yellow-400');
-                bioCounter.classList.remove('text-gray-500');
+                bioCounter.classList.add('text-yellow-600');
+                bioCounter.classList.remove('text-gray-400');
             } else if (length > 450) {
-                bioCounter.classList.add('text-red-400');
-                bioCounter.classList.remove('text-yellow-400', 'text-gray-500');
+                bioCounter.classList.add('text-red-600');
+                bioCounter.classList.remove('text-yellow-600', 'text-gray-400');
             } else {
-                bioCounter.classList.add('text-gray-500');
-                bioCounter.classList.remove('text-yellow-400', 'text-red-400');
+                bioCounter.classList.add('text-gray-400');
+                bioCounter.classList.remove('text-yellow-600', 'text-red-600');
             }
         }
         
@@ -294,14 +294,14 @@ document.addEventListener('DOMContentLoaded', function() {
             const length = tagsField.value.length;
             tagsCounter.textContent = `${length} / 500 characters`;
             if (length > 400) {
-                tagsCounter.classList.add('text-yellow-400');
-                tagsCounter.classList.remove('text-gray-500');
+                tagsCounter.classList.add('text-yellow-600');
+                tagsCounter.classList.remove('text-gray-400');
             } else if (length > 450) {
-                tagsCounter.classList.add('text-red-400');
-                tagsCounter.classList.remove('text-yellow-400', 'text-gray-500');
+                tagsCounter.classList.add('text-red-600');
+                tagsCounter.classList.remove('text-yellow-600', 'text-gray-400');
             } else {
-                tagsCounter.classList.add('text-gray-500');
-                tagsCounter.classList.remove('text-yellow-400', 'text-red-400');
+                tagsCounter.classList.add('text-gray-400');
+                tagsCounter.classList.remove('text-yellow-600', 'text-red-600');
             }
         }
         

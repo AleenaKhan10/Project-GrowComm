@@ -1,19 +1,41 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import login, authenticate
+from django.contrib.auth import login, authenticate, logout
 from django.contrib import messages
 from django.contrib.auth.views import LoginView
+from django.contrib.auth.decorators import login_required
 from django.urls import reverse_lazy
 from django.views.generic import CreateView
 from django.http import Http404
-from .forms import AdminLoginForm, UserLoginForm, InviteRegistrationForm
+from .forms import AdminLoginForm, UserLoginForm, InviteRegistrationForm, UnifiedLoginForm
 from invites.models import InviteLink
 
 
+class UnifiedLoginView(LoginView):
+    """Unified login view for all users"""
+    form_class = UnifiedLoginForm
+    template_name = 'accounts/login.html'
+    redirect_authenticated_user = True
+    
+    def get_success_url(self):
+        user = self.get_form().get_user()
+        if user and user.is_staff:
+            return reverse_lazy('admin:index')
+        return reverse_lazy('communities:user_list')
+    
+    def form_valid(self, form):
+        """Login user after successful form validation"""
+        user = form.get_user()
+        login(self.request, user)
+        return redirect(self.get_success_url())
+    
+    def form_invalid(self, form):
+        messages.error(self.request, 'Invalid username/email or password.')
+        return super().form_invalid(form)
+
+
 def login_choice_view(request):
-    """Main login page with admin/user choice"""
-    if request.user.is_authenticated:
-        return redirect('communities:user_list')
-    return render(request, 'accounts/login_choice.html')
+    """Redirect to unified login"""
+    return redirect('accounts:unified_login')
 
 
 class AdminLoginView(LoginView):
@@ -92,6 +114,17 @@ def register_view(request, invite_code):
         'inviter_name': invite.created_by.first_name or invite.created_by.username,
     }
     return render(request, 'accounts/register.html', context)
+
+
+@login_required
+def logout_view(request):
+    """Custom logout view with confirmation page"""
+    if request.method == 'POST':
+        logout(request)
+        messages.success(request, 'You have been successfully signed out.')
+        return render(request, 'accounts/logout_success.html')
+    
+    return render(request, 'accounts/logout.html')
 
 
 def home_view(request):

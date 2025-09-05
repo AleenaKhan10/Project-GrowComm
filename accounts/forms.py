@@ -5,6 +5,57 @@ from django.contrib.auth import authenticate
 from invites.models import InviteLink
 
 
+class UnifiedLoginForm(forms.Form):
+    """Unified login form that supports both admin and regular user login"""
+    
+    username_email = forms.CharField(
+        label="Username or Email",
+        widget=forms.TextInput(attrs={
+            'class': 'input',
+            'placeholder': 'Enter your username or email'
+        })
+    )
+    password = forms.CharField(
+        widget=forms.PasswordInput(attrs={
+            'class': 'input',
+            'placeholder': 'Enter your password'
+        })
+    )
+    
+    def __init__(self, request=None, *args, **kwargs):
+        self.request = request
+        self.user_cache = None
+        super().__init__(*args, **kwargs)
+    
+    def clean(self):
+        username_email = self.cleaned_data.get('username_email')
+        password = self.cleaned_data.get('password')
+        
+        if username_email and password:
+            # Try to authenticate with username first
+            self.user_cache = authenticate(self.request, username=username_email, password=password)
+            
+            # If that fails, try to find user by email and authenticate with username
+            if self.user_cache is None:
+                try:
+                    user = User.objects.get(email=username_email)
+                    self.user_cache = authenticate(self.request, username=user.username, password=password)
+                except User.DoesNotExist:
+                    pass
+            
+            if self.user_cache is None:
+                raise forms.ValidationError("Invalid username/email or password.")
+            
+            # Check if user is inactive
+            if not self.user_cache.is_active:
+                raise forms.ValidationError("This account is inactive.")
+        
+        return self.cleaned_data
+    
+    def get_user(self):
+        return self.user_cache
+
+
 class AdminLoginForm(AuthenticationForm):
     """Simple admin login with email and password"""
     

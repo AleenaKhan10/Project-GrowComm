@@ -4,22 +4,6 @@
 
 {% block extra_css %}
 <style>
-.loading-spinner {
-    display: inline-block;
-    width: 12px;
-    height: 12px;
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    border-top-color: #ffffff;
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-    to {
-        transform: rotate(360deg);
-    }
-}
-
 .message-type-btn {
     transition: all 0.2s ease;
 }
@@ -32,15 +16,15 @@
 {% endblock %}
 
 {% block content %}
-<div class="p-6 bg-black min-h-screen text-white">
+<div class="container py-6">
     <!-- Header -->
     <div class="flex justify-between items-center mb-6">
-        <h1 class="text-2xl font-light text-white">Baselist</h1>
-        <div class="text-sm text-gray-400">{{ total_users }} members</div>
+        <h1 class="text-2xl font-light text-black">Baselist</h1>
+        <div class="text-sm text-gray-600">{{ total_users }} members</div>
     </div>
 
     <!-- Search and Filter Form -->
-    <div class="mb-6 bg-card p-4 rounded-lg shadow-sm white-border">
+    <div class="card mb-6">
         <form method="GET" class="flex space-x-4">
             <div class="flex-1">
                 {{ form.search }}
@@ -58,60 +42,60 @@
     </div>
 
     <!-- Community Table -->
-    <div class="bg-card rounded-lg shadow-sm white-border overflow-hidden">
-        <table class="min-w-full divide-y divide-gray-700">
-            <thead class="bg-gray-900">
+    <div class="card overflow-hidden">
+        <table class="table">
+            <thead>
                 <tr>
-                    <th class="px-6 py-3 text-left text-xs font-light text-gray-300 uppercase tracking-wider">Name</th>
-                    <th class="px-6 py-3 text-left text-xs font-light text-gray-300 uppercase tracking-wider">Location</th>
-                    <th class="px-6 py-3 text-left text-xs font-light text-gray-300 uppercase tracking-wider">Company</th>
-                    <th class="px-6 py-3 text-left text-xs font-light text-gray-300 uppercase tracking-wider">Team</th>
-                    <th class="px-6 py-3 text-left text-xs font-light text-gray-300 uppercase tracking-wider">Org Level</th>
-                    <th class="px-6 py-3 text-left text-xs font-light text-gray-300 uppercase tracking-wider">Education</th>
-                    <th class="px-6 py-3 text-left text-xs font-light text-gray-300 uppercase tracking-wider">Tags</th>
-                    <th class="px-6 py-3 text-left text-xs font-light text-gray-300 uppercase tracking-wider">Actions</th>
+                    <th>Name</th>
+                    <th>Location</th>
+                    <th>Company</th>
+                    <th>Team</th>
+                    <th>Org Level</th>
+                    <th>Education</th>
+                    <th>Tags</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
-            <tbody class="bg-card divide-y divide-gray-700">
+            <tbody>
                 {% for user in page_obj %}
-                <tr class="hover:bg-card-hover">
+                <tr>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <div class="flex items-center">
                             {% if user.profile.profile_picture %}
                                 <img src="{{ user.profile.profile_picture.url }}" alt="{{ user.profile.display_name }}" class="h-8 w-8 rounded-full object-cover mr-3">
                             {% else %}
-                                <div class="h-8 w-8 rounded-full bg-white flex items-center justify-center text-black text-sm font-medium mr-3 white-glow">
+                                <div class="avatar avatar-white avatar-sm mr-3">
                                     {{ user.first_name|first|default:user.username|first }}
                                 </div>
                             {% endif %}
-                            <div class="text-sm font-medium text-white">{{ user.profile.display_name|default:"Anonymous" }}</div>
+                            <div class="text-sm font-medium text-black">{{ user.profile.display_name|default:"Anonymous" }}</div>
                         </div>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                         {{ user.profile.location|default:"-" }}
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                         {{ user.profile.company|default:"-" }}
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                         {{ user.profile.team|default:"-" }}
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                         {% if user.profile.organization_level %}
-                            <span class="px-2 py-1 text-xs font-medium rounded-full bg-gray-700 text-white">
+                            <span class="badge">
                                 {{ user.profile.get_organization_level_display }}
                             </span>
                         {% else %}
                             -
                         {% endif %}
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                         {{ user.profile.schools|default:"-" }}
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                         {% if user.profile.tag_list %}
                             {% for tag in user.profile.tag_list|slice:":2" %}
-                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-white/20 text-white mr-1">
+                                <span class="badge mr-1">
                                     {{ tag }}
                                 </span>
                             {% endfor %}
@@ -125,7 +109,7 @@
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <button 
                             onclick="toggleUserDetails({{ user.id }})" 
-                            class="text-gray-400 hover:text-white"
+                            class="text-gray-600 hover:text-black"
                         >
                             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
@@ -138,30 +122,30 @@
                     <td colspan="8" class="px-6 py-4 bg-gray-800">
                         <div class="max-w-2xl">
                             <div class="mb-4">
-                                <label class="block text-sm font-medium text-gray-300 mb-2">Select Message Type:</label>
+                                <label class="form-label">Select Message Type:</label>
                                 <div class="flex flex-wrap gap-2 mb-4">
-                                    <button onclick="selectMessageType({{ user.id }}, 'Coffee Chat')" class="message-type-btn px-3 py-2 text-sm bg-gray-700 hover:bg-gray-600 text-white rounded transition-all">
+                                    <button onclick="selectMessageType({{ user.id }}, 'Coffee Chat')" class="btn btn-secondary message-type-btn">
                                         ☕ Coffee Chat
                                     </button>
-                                    <button onclick="selectMessageType({{ user.id }}, 'Mentorship')" class="message-type-btn px-3 py-2 text-sm bg-gray-700 hover:bg-gray-600 text-white rounded transition-all">
+                                    <button onclick="selectMessageType({{ user.id }}, 'Mentorship')" class="btn btn-secondary message-type-btn">
                                         🎓 Mentorship
                                     </button>
-                                    <button onclick="selectMessageType({{ user.id }}, 'Networking')" class="message-type-btn px-3 py-2 text-sm bg-gray-700 hover:bg-gray-600 text-white rounded transition-all">
+                                    <button onclick="selectMessageType({{ user.id }}, 'Networking')" class="btn btn-secondary message-type-btn">
                                         🤝 Networking
                                     </button>
-                                    <button onclick="selectMessageType({{ user.id }}, 'General')" class="message-type-btn px-3 py-2 text-sm bg-gray-700 hover:bg-gray-600 text-white rounded transition-all">
+                                    <button onclick="selectMessageType({{ user.id }}, 'General')" class="btn btn-secondary message-type-btn">
                                         💬 General
                                     </button>
-                                    <button onclick="selectMessageType({{ user.id }}, 'Collaboration')" class="message-type-btn px-3 py-2 text-sm bg-gray-700 hover:bg-gray-600 text-white rounded transition-all">
+                                    <button onclick="selectMessageType({{ user.id }}, 'Collaboration')" class="btn btn-secondary message-type-btn">
                                         🤝 Collaboration
                                     </button>
-                                    <button onclick="selectMessageType({{ user.id }}, 'Job Opportunity')" class="message-type-btn px-3 py-2 text-sm bg-gray-700 hover:bg-gray-600 text-white rounded transition-all">
+                                    <button onclick="selectMessageType({{ user.id }}, 'Job Opportunity')" class="btn btn-secondary message-type-btn">
                                         💼 Job Opportunity
                                     </button>
                                 </div>
                             </div>
                             <div class="mb-4">
-                                <label class="block text-sm font-medium text-gray-300 mb-2">Your Message:</label>
+                                <label class="form-label">Your Message:</label>
                                 <textarea 
                                     id="message-text-{{ user.id }}" 
                                     class="input" 
@@ -172,7 +156,7 @@
                             <div class="flex justify-end space-x-2">
                                 <button 
                                     onclick="toggleUserDetails({{ user.id }})" 
-                                    class="px-4 py-2 text-sm text-gray-300 hover:text-white">
+                                    class="btn btn-ghost">
                                 >
                                     Cancel
                                 </button>
@@ -195,11 +179,11 @@
     <div class="flex justify-center mt-6">
         <nav class="flex space-x-2">
             {% if page_obj.has_previous %}
-                <a href="?page={{ page_obj.previous_page_number }}" class="px-3 py-2 text-sm bg-gray-800 border border-gray-600 text-white rounded hover:bg-gray-700">Previous</a>
+                <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-secondary">Previous</a>
             {% endif %}
-            <span class="px-3 py-2 text-sm bg-white/20 border border-white text-white rounded">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+            <span class="px-3 py-2 text-sm bg-gray-100 border border-gray-300 text-black rounded">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
             {% if page_obj.has_next %}
-                <a href="?page={{ page_obj.next_page_number }}" class="px-3 py-2 text-sm bg-gray-800 border border-gray-600 text-white rounded hover:bg-gray-700">Next</a>
+                <a href="?page={{ page_obj.next_page_number }}" class="btn btn-secondary">Next</a>
             {% endif %}
         </nav>
     </div>
@@ -223,7 +207,7 @@ function selectMessageType(userId, type) {
         if (btn.textContent.trim().includes(type)) {
             btn.className = 'message-type-btn px-3 py-2 text-sm bg-white text-black rounded transition-all transform scale-105 white-glow';
         } else {
-            btn.className = 'message-type-btn px-3 py-2 text-sm bg-gray-700 hover:bg-gray-600 text-white rounded transition-all';
+            btn.className = 'btn btn-secondary message-type-btn';
         }
     });
 }
@@ -246,7 +230,7 @@ function sendMessage(userId) {
     // Show loading state
     sendButton.disabled = true;
     sendButton.innerHTML = '<span class="loading-spinner"></span> Sending...';
-    sendButton.className = 'px-6 py-2 bg-gray-400 text-white text-sm font-medium rounded-md cursor-not-allowed';
+    sendButton.className = 'btn btn-ghost cursor-not-allowed';
     
     // Send via AJAX
     fetch('/community/send-message/', {
@@ -298,7 +282,7 @@ function showNotification(message, type = 'info') {
     
     // Create notification
     const notification = document.createElement('div');
-    notification.className = `notification fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg text-white font-medium z-50 transform transition-all duration-300 translate-x-full`;
+    notification.className = `notification fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg text-black bg-white border border-gray-300 font-medium z-50 transform transition-all duration-300 translate-x-full`;
     
     // Set color based on type
     switch(type) {

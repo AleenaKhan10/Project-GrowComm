@@ -3,10 +3,10 @@
 {% block title %}{{ profile.display_name }} - Profile{% endblock %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-black min-h-screen">
-    <div class="bg-card shadow rounded-lg overflow-hidden white-border">
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="card overflow-hidden">
         <!-- Cover Photo / Header -->
-        <div class="bg-gradient-to-r from-gray-800 to-gray-700 h-32"></div>
+        <div class="bg-gradient-to-r from-gray-100 to-gray-200 h-32"></div>
         
         <!-- Profile Content -->
         <div class="px-6 py-6">
@@ -21,10 +21,10 @@
                         </div>
                     {% endif %}
                     <div class="ml-6 pb-2">
-                        <h1 class="text-3xl font-light text-white">{{ profile.display_name }}</h1>
-                        <p class="text-gray-300">@{{ profile_user.username }}</p>
+                        <h1 class="text-3xl font-light text-black">{{ profile.display_name }}</h1>
+                        <p class="text-gray-600">@{{ profile_user.username }}</p>
                         {% if profile.organization_level %}
-                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-white/20 text-white mt-2">
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800 mt-2">
                                 {{ profile.get_organization_level_display }}
                             </span>
                         {% endif %}
@@ -58,18 +58,18 @@
                     <!-- Bio -->
                     {% if profile.bio %}
                     <div>
-                        <h2 class="text-lg font-medium text-white mb-3">About</h2>
-                        <p class="text-gray-300 whitespace-pre-line">{{ profile.bio }}</p>
+                        <h2 class="text-lg font-medium text-black mb-3">About</h2>
+                        <p class="text-gray-600 whitespace-pre-line">{{ profile.bio }}</p>
                     </div>
                     {% endif %}
                     
                     <!-- Tags/Skills -->
                     {% if profile.tag_list %}
                     <div>
-                        <h2 class="text-lg font-medium text-white mb-3">Skills & Interests</h2>
+                        <h2 class="text-lg font-medium text-black mb-3">Skills & Interests</h2>
                         <div class="flex flex-wrap gap-2">
                             {% for tag in profile.tag_list %}
-                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-lime bg-opacity-10 text-lime-dark">
+                                <span class="badge">
                                     {{ tag }}
                                 </span>
                             {% endfor %}
@@ -83,11 +83,11 @@
                     <!-- Professional Info -->
                     {% if profile.company or profile.team %}
                     <div>
-                        <h2 class="text-lg font-medium text-white mb-3">Professional</h2>
+                        <h2 class="text-lg font-medium text-black mb-3">Professional</h2>
                         <div class="space-y-3">
                             {% if profile.company %}
-                            <div class="flex items-center text-sm text-gray-300">
-                                <svg class="h-5 w-5 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <div class="flex items-center text-sm text-gray-600">
+                                <svg class="h-5 w-5 mr-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
                                 </svg>
                                 <span>{{ profile.company }}</span>
@@ -95,8 +95,8 @@
                             {% endif %}
                             
                             {% if profile.team %}
-                            <div class="flex items-center text-sm text-gray-300">
-                                <svg class="h-5 w-5 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <div class="flex items-center text-sm text-gray-600">
+                                <svg class="h-5 w-5 mr-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
                                 </svg>
                                 <span>{{ profile.team }}</span>
@@ -109,9 +109,9 @@
                     <!-- Education -->
                     {% if profile.schools %}
                     <div>
-                        <h2 class="text-lg font-medium text-white mb-3">Education</h2>
-                        <div class="flex items-center text-sm text-gray-300">
-                            <svg class="h-5 w-5 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <h2 class="text-lg font-medium text-black mb-3">Education</h2>
+                        <div class="flex items-center text-sm text-gray-600">
+                            <svg class="h-5 w-5 mr-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z"/>
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/>
                             </svg>
@@ -122,9 +122,9 @@
                     
                     <!-- Member Since -->
                     <div>
-                        <h2 class="text-lg font-medium text-white mb-3">Member Since</h2>
-                        <div class="flex items-center text-sm text-gray-300">
-                            <svg class="h-5 w-5 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <h2 class="text-lg font-medium text-black mb-3">Member Since</h2>
+                        <div class="flex items-center text-sm text-gray-600">
+                            <svg class="h-5 w-5 mr-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3a2 2 0 012-2h4a2 2 0 012 2v4m-4 8v5a2 2 0 002 2h4a2 2 0 002-2v-5M8 19a2 2 0 002 2h4a2 2 0 002-2v-5a2 2 0 00-2-2H10a2 2 0 00-2 2v5z"/>
                             </svg>
                             <span>{{ profile.created_date|date:"F Y" }}</span>
@@ -134,23 +134,23 @@
                     {% if profile_user == user %}
                     <!-- Message Slots (only visible to profile owner) -->
                     <div>
-                        <h2 class="text-lg font-medium text-white mb-3">Available Message Slots</h2>
+                        <h2 class="text-lg font-medium text-black mb-3">Available Message Slots</h2>
                         <div class="space-y-2 text-sm">
                             {% with profile.available_slots as slots %}
                             <div class="flex justify-between">
-                                <span class="text-gray-300">Coffee Chat:</span>
+                                <span class="text-gray-600">Coffee Chat:</span>
                                 <span class="font-medium">{{ slots.coffee_chat }}/{{ profile.coffee_chat_slots }}</span>
                             </div>
                             <div class="flex justify-between">
-                                <span class="text-gray-300">Mentorship:</span>
+                                <span class="text-gray-600">Mentorship:</span>
                                 <span class="font-medium">{{ slots.mentorship }}/{{ profile.mentorship_slots }}</span>
                             </div>
                             <div class="flex justify-between">
-                                <span class="text-gray-300">Networking:</span>
+                                <span class="text-gray-600">Networking:</span>
                                 <span class="font-medium">{{ slots.networking }}/{{ profile.networking_slots }}</span>
                             </div>
                             <div class="flex justify-between">
-                                <span class="text-gray-300">General:</span>
+                                <span class="text-gray-600">General:</span>
                                 <span class="font-medium">{{ slots.general }}/{{ profile.general_slots }}</span>
                             </div>
                             {% endwith %}
