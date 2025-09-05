@@ -153,25 +153,25 @@ class UserProfile(models.Model):
         used_coffee_slots = Message.objects.filter(
             sender=self.user,
             message_type__name='Coffee Chat',
-            created_date__gte=thirty_days_ago
+            timestamp__gte=thirty_days_ago
         ).count()
         
         used_mentorship_slots = Message.objects.filter(
             sender=self.user,
             message_type__name='Mentorship',
-            created_date__gte=thirty_days_ago
+            timestamp__gte=thirty_days_ago
         ).count()
         
         used_networking_slots = Message.objects.filter(
             sender=self.user,
             message_type__name='Networking',
-            created_date__gte=thirty_days_ago
+            timestamp__gte=thirty_days_ago
         ).count()
         
         used_general_slots = Message.objects.filter(
             sender=self.user,
             message_type__name='General',
-            created_date__gte=thirty_days_ago
+            timestamp__gte=thirty_days_ago
         ).count()
         
         return {
