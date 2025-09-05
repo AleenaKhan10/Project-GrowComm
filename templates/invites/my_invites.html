@@ -1,0 +1,183 @@
+{% extends 'base.html' %}
+
+{% block title %}My Invites - GrowCommunity{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-gray-950 min-h-screen">
+    <!-- Header -->
+    <div class="mb-10">
+        <h1 class="text-4xl font-light text-white mb-4">
+            Invite <span class="text-lime">Management</span>
+        </h1>
+        <p class="mt-4 text-gray-300">
+            Create and manage your community invites
+        </p>
+    </div>
+    
+    <!-- Create New Invite -->
+    <div class="bg-card shadow rounded-lg p-6 mb-8 lime-border border-2 border-zinc-800">
+        <h2 class="text-lg font-medium text-white mb-4">Create New Invite</h2>
+        <form method="post" class="space-y-4">
+            {% csrf_token %}
+            <div>
+                <label for="{{ form.expires_in_days.id_for_label }}" class="block text-sm font-medium text-white mb-2">
+                    Expires In (Days)
+                </label>
+                {{ form.expires_in_days }}
+                {% if form.expires_in_days.errors %}
+                    <p class="mt-1 text-sm text-red-400">{{ form.expires_in_days.errors.0 }}</p>
+                {% endif %}
+                <p class="mt-2 text-sm text-gray-400 opacity-70">{{ form.expires_in_days.help_text }}</p>
+            </div>
+            <button type="submit" class="w-full bg-lime text-black px-6 py-3 rounded-lg font-medium hover:bg-lime-dark transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center space-x-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                </svg>
+                <span>Create Invite</span>
+            </button>
+        </form>
+    </div>
+    
+    <!-- Invites List -->
+    {% if invites %}
+    <div class="bg-card shadow rounded-lg overflow-hidden lime-border border-2 border-zinc-800">
+        <div class="px-6 py-4 border-b border-gray-600">
+            <h2 class="text-lg font-medium text-white">Your Invites</h2>
+        </div>
+        
+        <div class="divide-y divide-gray-600">
+            {% for invite in invites %}
+            <div class="p-6">
+                <div class="flex items-center justify-between">
+                    <div class="flex-1">
+                        <div class="flex items-center space-x-4">
+                            <!-- Status Indicator -->
+                            <div class="flex-shrink-0">
+                                {% if invite.is_used %}
+                                    <div class="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center">
+                                        <svg class="h-5 w-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                        </svg>
+                                    </div>
+                                {% elif invite.is_valid %}
+                                    <div class="h-8 w-8 rounded-full bg-lime bg-opacity-10 flex items-center justify-center">
+                                        <svg class="h-5 w-5 text-lime" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                        </svg>
+                                    </div>
+                                {% else %}
+                                    <div class="h-8 w-8 rounded-full bg-red-100 flex items-center justify-center">
+                                        <svg class="h-5 w-5 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                                        </svg>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Invite Details -->
+                            <div class="flex-1">
+                                <div class="flex items-center space-x-2">
+                                    <h3 class="text-sm font-medium text-white">Invite Code: {{ invite.code }}</h3>
+                                    {% if invite.is_used %}
+                                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                            Used
+                                        </span>
+                                    {% elif invite.is_valid %}
+                                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-lime bg-opacity-10 text-lime-dark">
+                                            Active
+                                        </span>
+                                    {% else %}
+                                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                            Expired
+                                        </span>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="mt-1 text-sm text-gray-300">
+                                    <p>Created: {{ invite.created_date|date:"M d, Y" }}</p>
+                                    {% if invite.expiry_date %}
+                                        <p>Expires: {{ invite.expiry_date|date:"M d, Y" }}</p>
+                                    {% endif %}
+                                    {% if invite.is_used and invite.used_by %}
+                                        <p>Used by: {{ invite.used_by.profile.display_name }} on {{ invite.used_by.date_joined|date:"M d, Y" }}</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Actions -->
+                    <div class="flex items-center space-x-3">
+                        {% if invite.is_valid %}
+                            <button onclick="copyInviteLink('{{ invite.code }}')" class="text-lime hover:text-lime-dark text-sm font-medium">
+                                Copy Link
+                            </button>
+                        {% endif %}
+                        <a href="{% url 'invites:invite_detail' invite.id %}" class="text-gray-300 hover:text-white text-sm font-medium">
+                            Details →
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Full invite URL (initially hidden) -->
+                {% if invite.is_valid %}
+                <div id="invite-url-{{ invite.code }}" class="mt-4 p-3 bg-gray-800 rounded-lg hidden">
+                    <div class="flex items-center justify-between">
+                        <input type="text" readonly value="{{ request.scheme }}://{{ request.get_host }}{% url 'accounts:register' invite.code %}" class="flex-1 bg-zinc-800 text-white border border-gray-600 rounded px-3 py-2 text-sm focus:outline-none focus:border-lime">
+                        <button onclick="copyToClipboard('invite-url-{{ invite.code }}')" class="ml-3 bg-lime text-black px-3 py-2 rounded text-sm hover:bg-lime-dark transition-colors">
+                            Copy
+                        </button>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% else %}
+    <!-- No Invites -->
+    <div class="bg-card shadow rounded-lg border-2 border-zinc-800">
+        <div class="text-center py-8">
+            <svg class="mx-auto h-16 w-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+            </svg>
+            <h3 class="mt-4 text-lg font-semibold text-white">No invites created yet</h3>
+            <p class="mt-2 text-sm text-gray-300">
+                Create your first invite to start growing the community.
+            </p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+function copyInviteLink(inviteCode) {
+    const urlDiv = document.getElementById('invite-url-' + inviteCode);
+    urlDiv.classList.toggle('hidden');
+}
+
+function copyToClipboard(elementId) {
+    const element = document.getElementById(elementId);
+    const input = element.querySelector('input');
+    input.select();
+    input.setSelectionRange(0, 99999); // For mobile devices
+    
+    try {
+        document.execCommand('copy');
+        const button = element.querySelector('button');
+        const originalText = button.textContent;
+        button.textContent = 'Copied!';
+        button.classList.add('bg-green-600');
+        button.classList.remove('bg-lime');
+        
+        setTimeout(() => {
+            button.textContent = originalText;
+            button.classList.remove('bg-green-600');
+            button.classList.add('bg-lime');
+        }, 2000);
+    } catch (err) {
+        console.error('Failed to copy text: ', err);
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,33 @@
+from django import forms
+from datetime import datetime, timedelta
+from .models import InviteLink
+
+
+class CreateInviteForm(forms.ModelForm):
+    """Form for creating new invite links"""
+    
+    expires_in_days = forms.IntegerField(
+        min_value=1,
+        max_value=30,
+        initial=7,
+        help_text="Number of days until the invite expires (1-30 days)",
+        widget=forms.NumberInput(attrs={
+            'class': 'w-full px-4 py-3 bg-zinc-800 border-2 border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-0 focus:border-lime focus:shadow-lime transition-all duration-200',
+            'placeholder': 'Enter number of days (1-30)',
+        })
+    )
+    
+    class Meta:
+        model = InviteLink
+        fields = []  # We don't include model fields directly
+    
+    def save(self, user, commit=True):
+        """Create invite link with expiry date"""
+        expires_in_days = self.cleaned_data['expires_in_days']
+        expiry_date = datetime.now() + timedelta(days=expires_in_days)
+        
+        invite = InviteLink.objects.create(
+            created_by=user,
+            expiry_date=expiry_date
+        )
+        return invite

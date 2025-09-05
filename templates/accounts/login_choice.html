@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+
+{% block title %}Choose Login Type - GrowCommunity{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center bg-black py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full space-y-8">
+        <!-- Header -->
+        <div>
+            <div class="mx-auto h-12 w-12 flex items-center justify-center rounded-full bg-lime lime-glow">
+                <svg class="h-6 w-6 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                </svg>
+            </div>
+            <h2 class="mt-6 text-center text-3xl font-light text-white">
+                Welcome to <span class="logo-text">Grow<span class="logo-accent lime-text">Community</span></span>
+            </h2>
+            <p class="mt-2 text-center text-sm text-gray-300 font-light">
+                Please choose your login type
+            </p>
+        </div>
+        
+        <!-- Login Type Buttons -->
+        <div class="mt-8 space-y-4">
+            <!-- Admin Login Button -->
+            <a href="{% url 'accounts:admin_login' %}" class="group relative w-full flex justify-center py-4 px-4 border border-gray-600 bg-gray-900 text-sm font-light rounded-lg text-white hover:bg-gray-800 hover:border-red-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 ring-offset-black transition-all duration-200">
+                <span class="absolute left-0 inset-y-0 flex items-center pl-3">
+                    <svg class="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z" clip-rule="evenodd"/>
+                    </svg>
+                </span>
+                Admin Login
+                <span class="ml-2 text-xs text-gray-400">(Email + Password)</span>
+            </a>
+            
+            <!-- User Login Button -->
+            <a href="{% url 'accounts:user_login' %}" class="group relative w-full flex justify-center py-4 px-4 border border-transparent text-sm font-light rounded-lg text-black bg-lime hover:bg-lime-light focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-lime ring-offset-black lime-glow transition-all duration-200">
+                <span class="absolute left-0 inset-y-0 flex items-center pl-3">
+                    <svg class="h-5 w-5 text-black" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/>
+                    </svg>
+                </span>
+                Member Login
+                <span class="ml-2 text-xs text-gray-800">(Email + Password + Invite Code)</span>
+            </a>
+        </div>
+
+        <!-- Info Section -->
+        <div class="mt-8">
+            <div class="relative">
+                <div class="absolute inset-0 flex items-center">
+                    <div class="w-full border-t border-gray-700" />
+                </div>
+                <div class="relative flex justify-center text-sm">
+                    <span class="px-2 bg-black text-gray-400">Information</span>
+                </div>
+            </div>
+            <div class="mt-4 text-center space-y-2">
+                <p class="text-sm text-gray-300 font-light">
+                    <strong class="font-medium text-red-400">Admin:</strong> Simple email and password login for administrators
+                </p>
+                <p class="text-sm text-gray-300 font-light">
+                    <strong class="font-medium text-lime">Member:</strong> Regular users need email, password, and a valid invite code
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

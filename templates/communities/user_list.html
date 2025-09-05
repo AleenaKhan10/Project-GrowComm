@@ -1,0 +1,334 @@
+{% extends 'base.html' %}
+
+{% block title %}Baselist - GrowCommunity{% endblock %}
+
+{% block extra_css %}
+<style>
+.loading-spinner {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: #ffffff;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.message-type-btn {
+    transition: all 0.2s ease;
+}
+
+.message-type-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="p-6 bg-black min-h-screen text-white">
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-light text-white">Baselist</h1>
+        <div class="text-sm text-gray-400">{{ total_users }} members</div>
+    </div>
+
+    <!-- Search and Filter Form -->
+    <div class="mb-6 bg-card p-4 rounded-lg shadow-sm lime-border">
+        <form method="GET" class="flex space-x-4">
+            <div class="flex-1">
+                {{ form.search }}
+            </div>
+            <div class="w-48">
+                {{ form.organization_level }}
+            </div>
+            <div class="w-48">
+                {{ form.tags }}
+            </div>
+            <button type="submit" class="px-4 py-2 bg-lime text-black rounded-lg hover:bg-lime-light font-light lime-glow transition-all duration-200">
+                Search
+            </button>
+        </form>
+    </div>
+
+    <!-- Community Table -->
+    <div class="bg-card rounded-lg shadow-sm lime-border overflow-hidden">
+        <table class="min-w-full divide-y divide-gray-700">
+            <thead class="bg-gray-900">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-light text-gray-300 uppercase tracking-wider">Name</th>
+                    <th class="px-6 py-3 text-left text-xs font-light text-gray-300 uppercase tracking-wider">Location</th>
+                    <th class="px-6 py-3 text-left text-xs font-light text-gray-300 uppercase tracking-wider">Company</th>
+                    <th class="px-6 py-3 text-left text-xs font-light text-gray-300 uppercase tracking-wider">Team</th>
+                    <th class="px-6 py-3 text-left text-xs font-light text-gray-300 uppercase tracking-wider">Org Level</th>
+                    <th class="px-6 py-3 text-left text-xs font-light text-gray-300 uppercase tracking-wider">Education</th>
+                    <th class="px-6 py-3 text-left text-xs font-light text-gray-300 uppercase tracking-wider">Tags</th>
+                    <th class="px-6 py-3 text-left text-xs font-light text-gray-300 uppercase tracking-wider">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="bg-card divide-y divide-gray-700">
+                {% for user in page_obj %}
+                <tr class="hover:bg-card-hover">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                            {% if user.profile.profile_picture %}
+                                <img src="{{ user.profile.profile_picture.url }}" alt="{{ user.profile.display_name }}" class="h-8 w-8 rounded-full object-cover mr-3">
+                            {% else %}
+                                <div class="h-8 w-8 rounded-full bg-lime flex items-center justify-center text-black text-sm font-medium mr-3 lime-glow">
+                                    {{ user.first_name|first|default:user.username|first }}
+                                </div>
+                            {% endif %}
+                            <div class="text-sm font-medium text-white">{{ user.profile.display_name|default:"Anonymous" }}</div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                        {{ user.profile.location|default:"-" }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                        {{ user.profile.company|default:"-" }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                        {{ user.profile.team|default:"-" }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                        {% if user.profile.organization_level %}
+                            <span class="px-2 py-1 text-xs font-medium rounded-full bg-gray-700 text-white">
+                                {{ user.profile.get_organization_level_display }}
+                            </span>
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                        {{ user.profile.schools|default:"-" }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                        {% if user.profile.tag_list %}
+                            {% for tag in user.profile.tag_list|slice:":2" %}
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-lime/20 text-lime mr-1">
+                                    {{ tag }}
+                                </span>
+                            {% endfor %}
+                            {% if user.profile.tag_list|length > 2 %}
+                                <span class="text-xs text-gray-400">+{{ user.profile.tag_list|length|add:"-2" }}</span>
+                            {% endif %}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <button 
+                            onclick="toggleUserDetails({{ user.id }})" 
+                            class="text-gray-400 hover:text-lime"
+                        >
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                            </svg>
+                        </button>
+                    </td>
+                </tr>
+                <!-- Expandable message form row -->
+                <tr id="message-form-{{ user.id }}" class="hidden">
+                    <td colspan="8" class="px-6 py-4 bg-gray-800">
+                        <div class="max-w-2xl">
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium text-gray-300 mb-2">Select Message Type:</label>
+                                <div class="flex flex-wrap gap-2 mb-4">
+                                    <button onclick="selectMessageType({{ user.id }}, 'Coffee Chat')" class="message-type-btn px-3 py-2 text-sm bg-gray-700 hover:bg-gray-600 text-white rounded transition-all">
+                                        ☕ Coffee Chat
+                                    </button>
+                                    <button onclick="selectMessageType({{ user.id }}, 'Mentorship')" class="message-type-btn px-3 py-2 text-sm bg-gray-700 hover:bg-gray-600 text-white rounded transition-all">
+                                        🎓 Mentorship
+                                    </button>
+                                    <button onclick="selectMessageType({{ user.id }}, 'Networking')" class="message-type-btn px-3 py-2 text-sm bg-gray-700 hover:bg-gray-600 text-white rounded transition-all">
+                                        🤝 Networking
+                                    </button>
+                                    <button onclick="selectMessageType({{ user.id }}, 'General')" class="message-type-btn px-3 py-2 text-sm bg-gray-700 hover:bg-gray-600 text-white rounded transition-all">
+                                        💬 General
+                                    </button>
+                                    <button onclick="selectMessageType({{ user.id }}, 'Collaboration')" class="message-type-btn px-3 py-2 text-sm bg-gray-700 hover:bg-gray-600 text-white rounded transition-all">
+                                        🤝 Collaboration
+                                    </button>
+                                    <button onclick="selectMessageType({{ user.id }}, 'Job Opportunity')" class="message-type-btn px-3 py-2 text-sm bg-gray-700 hover:bg-gray-600 text-white rounded transition-all">
+                                        💼 Job Opportunity
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium text-gray-300 mb-2">Your Message:</label>
+                                <textarea 
+                                    id="message-text-{{ user.id }}" 
+                                    class="w-full p-3 border border-gray-600 rounded-lg bg-gray-900 text-white placeholder-gray-400 focus:ring-2 focus:ring-lime focus:border-lime lime-border" 
+                                    rows="3" 
+                                    placeholder="Write your message here..."
+                                ></textarea>
+                            </div>
+                            <div class="flex justify-end space-x-2">
+                                <button 
+                                    onclick="toggleUserDetails({{ user.id }})" 
+                                    class="px-4 py-2 text-sm text-gray-300 hover:text-white">
+                                >
+                                    Cancel
+                                </button>
+                                <button 
+                                    onclick="sendMessage({{ user.id }})" 
+                                    class="px-6 py-2 bg-lime text-black text-sm font-medium rounded-md hover:bg-lime-light transition-colors lime-glow">
+                                >
+                                    💬 Send Message
+                                </button>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <div class="flex justify-center mt-6">
+        <nav class="flex space-x-2">
+            {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}" class="px-3 py-2 text-sm bg-gray-800 border border-gray-600 text-white rounded hover:bg-gray-700">Previous</a>
+            {% endif %}
+            <span class="px-3 py-2 text-sm bg-lime/20 border border-lime text-lime rounded">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}" class="px-3 py-2 text-sm bg-gray-800 border border-gray-600 text-white rounded hover:bg-gray-700">Next</a>
+            {% endif %}
+        </nav>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+let selectedMessageType = {};
+
+function toggleUserDetails(userId) {
+    const messageForm = document.getElementById(`message-form-${userId}`);
+    messageForm.classList.toggle('hidden');
+}
+
+function selectMessageType(userId, type) {
+    selectedMessageType[userId] = type;
+    // Update button styles
+    const parentRow = document.getElementById(`message-form-${userId}`);
+    const buttons = parentRow.querySelectorAll('.message-type-btn');
+    buttons.forEach(btn => {
+        if (btn.textContent.trim().includes(type)) {
+            btn.className = 'message-type-btn px-3 py-2 text-sm bg-lime text-black rounded transition-all transform scale-105 lime-glow';
+        } else {
+            btn.className = 'message-type-btn px-3 py-2 text-sm bg-gray-700 hover:bg-gray-600 text-white rounded transition-all';
+        }
+    });
+}
+
+function sendMessage(userId) {
+    const messageText = document.getElementById(`message-text-${userId}`).value;
+    const messageType = selectedMessageType[userId];
+    const sendButton = document.querySelector(`#message-form-${userId} button[onclick="sendMessage(${userId})"]`);
+    
+    if (!messageType) {
+        showNotification('Please select a message type', 'warning');
+        return;
+    }
+    
+    if (!messageText.trim()) {
+        showNotification('Please enter a message', 'warning');
+        return;
+    }
+    
+    // Show loading state
+    sendButton.disabled = true;
+    sendButton.innerHTML = '<span class="loading-spinner"></span> Sending...';
+    sendButton.className = 'px-6 py-2 bg-gray-400 text-white text-sm font-medium rounded-md cursor-not-allowed';
+    
+    // Send via AJAX
+    fetch('/community/send-message/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}',
+        },
+        body: JSON.stringify({
+            'to_user_id': userId,
+            'message_type': messageType,
+            'message_content': messageText
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('Message sent successfully! Redirecting to chat...', 'success');
+            
+            // Clear form and hide
+            document.getElementById(`message-text-${userId}`).value = '';
+            toggleUserDetails(userId);
+            selectedMessageType[userId] = null;
+            
+            // Redirect to messages page after a short delay
+            setTimeout(() => {
+                window.location.href = '/messages/';
+            }, 1500);
+        } else {
+            showNotification('Error sending message: ' + (data.error || 'Unknown error'), 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('Error sending message. Please try again.', 'error');
+    })
+    .finally(() => {
+        // Restore button state
+        sendButton.disabled = false;
+        sendButton.innerHTML = 'Send Message';
+        sendButton.className = 'px-6 py-2 bg-lime text-black text-sm font-medium rounded-md hover:bg-lime-light transition-colors lime-glow';
+    });
+}
+
+function showNotification(message, type = 'info') {
+    // Remove existing notifications
+    const existingNotifications = document.querySelectorAll('.notification');
+    existingNotifications.forEach(n => n.remove());
+    
+    // Create notification
+    const notification = document.createElement('div');
+    notification.className = `notification fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg text-white font-medium z-50 transform transition-all duration-300 translate-x-full`;
+    
+    // Set color based on type
+    switch(type) {
+        case 'success':
+            notification.style.background = '#10B981';
+            break;
+        case 'error':
+            notification.style.background = '#EF4444';
+            break;
+        case 'warning':
+            notification.style.background = '#F59E0B';
+            break;
+        default:
+            notification.style.background = '#3B82F6';
+    }
+    
+    notification.textContent = message;
+    document.body.appendChild(notification);
+    
+    // Animate in
+    setTimeout(() => {
+        notification.classList.remove('translate-x-full');
+    }, 10);
+    
+    // Auto remove after 4 seconds
+    setTimeout(() => {
+        notification.classList.add('translate-x-full');
+        setTimeout(() => notification.remove(), 300);
+    }, 4000);
+}
+</script>
+{% endblock %}

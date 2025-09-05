@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+
+{% block title %}Member Login - GrowCommunity{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center bg-black py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full space-y-8">
+        <!-- Header -->
+        <div>
+            <div class="mx-auto h-12 w-12 flex items-center justify-center rounded-full bg-lime lime-glow">
+                <svg class="h-6 w-6 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                </svg>
+            </div>
+            <h2 class="mt-6 text-center text-3xl font-light text-white">
+                Member Login
+            </h2>
+            <p class="mt-2 text-center text-sm text-gray-300 font-light">
+                Sign in with your credentials and invite code
+            </p>
+        </div>
+        
+        <!-- Login Form -->
+        <form class="mt-8 space-y-6" method="post">
+            {% csrf_token %}
+            <div class="space-y-4">
+                <!-- Email Field -->
+                <div>
+                    <label for="{{ form.email.id_for_label }}" class="block text-sm font-light text-gray-300 mb-2">
+                        Email
+                    </label>
+                    <input type="email" name="{{ form.email.name }}" id="{{ form.email.id_for_label }}" class="appearance-none relative block w-full px-3 py-3 border border-gray-600 bg-gray-900 text-white placeholder-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-lime focus:border-lime focus:z-10 text-sm font-light lime-border transition-all" placeholder="Enter your email" {% if form.email.value %}value="{{ form.email.value }}"{% endif %}>
+                    {% if form.email.errors %}
+                        <p class="mt-1 text-sm text-red-400">{{ form.email.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                
+                <!-- Password Field -->
+                <div>
+                    <label for="{{ form.password.id_for_label }}" class="block text-sm font-light text-gray-300 mb-2">
+                        Password
+                    </label>
+                    <input type="password" name="{{ form.password.name }}" id="{{ form.password.id_for_label }}" class="appearance-none relative block w-full px-3 py-3 border border-gray-600 bg-gray-900 text-white placeholder-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-lime focus:border-lime focus:z-10 text-sm font-light lime-border transition-all" placeholder="Enter your password">
+                    {% if form.password.errors %}
+                        <p class="mt-1 text-sm text-red-400">{{ form.password.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Invite Code Field -->
+                <div>
+                    <label for="{{ form.invite_code.id_for_label }}" class="block text-sm font-light text-gray-300 mb-2">
+                        Invite Code
+                    </label>
+                    <input type="text" name="{{ form.invite_code.name }}" id="{{ form.invite_code.id_for_label }}" class="appearance-none relative block w-full px-3 py-3 border border-gray-600 bg-gray-900 text-white placeholder-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-lime focus:border-lime focus:z-10 text-sm font-light lime-border transition-all" placeholder="Enter your invite code" {% if form.invite_code.value %}value="{{ form.invite_code.value }}"{% endif %}>
+                    {% if form.invite_code.errors %}
+                        <p class="mt-1 text-sm text-red-400">{{ form.invite_code.errors.0 }}</p>
+                    {% endif %}
+                    <p class="mt-1 text-xs text-gray-400">
+                        You need a valid invite code from an existing member
+                    </p>
+                </div>
+            </div>
+
+            <!-- Form Errors -->
+            {% if form.non_field_errors %}
+                <div class="bg-red-900 border border-red-600 rounded-lg p-4">
+                    {% for error in form.non_field_errors %}
+                        <p class="text-sm text-red-100">{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <!-- Sign In Button -->
+            <div>
+                <button type="submit" class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-light rounded-lg text-black bg-lime hover:bg-lime-light focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-lime ring-offset-black lime-glow transition-all duration-200">
+                    <span class="absolute left-0 inset-y-0 flex items-center pl-3">
+                        <svg class="h-5 w-5 text-black group-hover:text-gray-900" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/>
+                        </svg>
+                    </span>
+                    Sign in as Member
+                </button>
+            </div>
+
+            <!-- Back to Choice -->
+            <div class="text-center">
+                <a href="{% url 'accounts:login' %}" class="text-sm text-gray-300 hover:text-white font-light">
+                    ← Back to login options
+                </a>
+            </div>
+
+            <!-- Registration Link -->
+            <div class="mt-6">
+                <div class="relative">
+                    <div class="absolute inset-0 flex items-center">
+                        <div class="w-full border-t border-gray-700" />
+                    </div>
+                    <div class="relative flex justify-center text-sm">
+                        <span class="px-2 bg-black text-gray-400">Don't have an account?</span>
+                    </div>
+                </div>
+                <div class="mt-4 text-center">
+                    <p class="text-sm text-gray-300 font-light">
+                        GrowCommunity is invite-only. Ask an existing member for an invite link to join our community.
+                    </p>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

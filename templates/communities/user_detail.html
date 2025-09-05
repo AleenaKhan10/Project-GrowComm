@@ -1,0 +1,199 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ profile_user.profile.display_name }} - GrowCommunity{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-black min-h-screen">
+    
+    <!-- Back Button -->
+    <div class="mb-6">
+        <a href="{% url 'communities:user_list' %}" class="inline-flex items-center text-sm text-gray-300 hover:text-lime">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+            </svg>
+            Back to Community
+        </a>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <!-- User Profile Section -->
+        <div class="lg:col-span-2">
+            <div class="bg-card rounded-lg shadow-sm border border-gray-700 overflow-hidden lime-border">
+                <!-- Profile Header -->
+                <div class="px-6 py-8 bg-gradient-to-r from-lime to-lime-dark">
+                    <div class="flex items-start space-x-6">
+                        <!-- Profile Picture -->
+                        {% if profile_user.profile.profile_picture %}
+                            <img src="{{ profile_user.profile.profile_picture.url }}" alt="{{ profile_user.profile.display_name }}" class="h-24 w-24 rounded-full object-cover border-4 border-white shadow-lg">
+                        {% else %}
+                            <div class="h-24 w-24 rounded-full bg-black bg-opacity-20 flex items-center justify-center text-black text-2xl font-semibold border-4 border-black shadow-lg">
+                                {{ profile_user.first_name|first|default:profile_user.username|first }}
+                            </div>
+                        {% endif %}
+                        
+                        <!-- Basic Info -->
+                        <div class="flex-1 min-w-0">
+                            <h1 class="text-2xl font-bold text-black">{{ profile_user.profile.display_name }}</h1>
+                            <p class="text-black text-opacity-80 text-lg">@{{ profile_user.username }}</p>
+                            {% if profile_user.profile.organization_level %}
+                                <span class="inline-flex items-center mt-2 px-3 py-1 rounded-full text-sm font-medium bg-black bg-opacity-20 text-black">
+                                    {{ profile_user.profile.get_organization_level_display }}
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Profile Details -->
+                <div class="px-6 py-6 space-y-6">
+                    <!-- Company & Team -->
+                    {% if profile_user.profile.company or profile_user.profile.team %}
+                    <div>
+                        <h3 class="text-lg font-medium text-white mb-3">Work Information</h3>
+                        <div class="space-y-2">
+                            {% if profile_user.profile.company %}
+                                <div class="flex items-center text-gray-300">
+                                    <svg class="w-5 h-5 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                                    </svg>
+                                    {{ profile_user.profile.company }}
+                                </div>
+                            {% endif %}
+                            {% if profile_user.profile.team %}
+                                <div class="flex items-center text-gray-300">
+                                    <svg class="w-5 h-5 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                                    </svg>
+                                    {{ profile_user.profile.team }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Bio -->
+                    {% if profile_user.profile.bio %}
+                    <div>
+                        <h3 class="text-lg font-medium text-white mb-3">About</h3>
+                        <p class="text-gray-300 leading-relaxed">{{ profile_user.profile.bio }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Skills/Tags -->
+                    {% if profile_user.profile.tag_list %}
+                    <div>
+                        <h3 class="text-lg font-medium text-white mb-3">Skills & Interests</h3>
+                        <div class="flex flex-wrap gap-2">
+                            {% for tag in profile_user.profile.tag_list %}
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-lime/20 text-lime">
+                                    {{ tag }}
+                                </span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Education -->
+                    {% if profile_user.profile.schools %}
+                    <div>
+                        <h3 class="text-lg font-medium text-white mb-3">Education</h3>
+                        <div class="text-gray-300">
+                            {{ profile_user.profile.schools|linebreaks }}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Message Form Section -->
+        <div class="lg:col-span-1">
+            <div class="bg-card rounded-lg shadow-sm border border-gray-700 overflow-hidden sticky top-4 lime-border">
+                <div class="px-6 py-4 bg-gray-800 border-b border-gray-600">
+                    <h2 class="text-lg font-medium text-white">Send Message</h2>
+                    <p class="text-sm text-gray-300 mt-1">Connect with {{ profile_user.profile.display_name }}</p>
+                </div>
+                
+                <div class="px-6 py-6">
+                    <!-- Available Slots Info -->
+                    {% if available_slots %}
+                    <div class="mb-6 p-4 bg-lime/10 rounded-lg">
+                        <h4 class="text-sm font-medium text-lime mb-2">Your Available Slots</h4>
+                        <div class="text-sm text-gray-300 space-y-1">
+                            {% if available_slots.coffee_chat > 0 %}
+                                <div>☕ Coffee Chat: {{ available_slots.coffee_chat }}</div>
+                            {% endif %}
+                            {% if available_slots.mentorship > 0 %}
+                                <div>🎯 Mentorship: {{ available_slots.mentorship }}</div>
+                            {% endif %}
+                            {% if available_slots.networking > 0 %}
+                                <div>🤝 Networking: {{ available_slots.networking }}</div>
+                            {% endif %}
+                            {% if available_slots.general > 0 %}
+                                <div>💬 General: {{ available_slots.general }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Message Form -->
+                    <form method="post" class="space-y-4">
+                        {% csrf_token %}
+                        
+                        <!-- Message Type -->
+                        <div>
+                            <label for="{{ form.message_type.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">
+                                Message Category
+                            </label>
+                            {{ form.message_type }}
+                            {% if form.message_type.errors %}
+                                <p class="mt-1 text-sm text-red-400">{{ form.message_type.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Initial Message -->
+                        <div>
+                            <label for="{{ form.initial_message.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">
+                                Your Message
+                            </label>
+                            {{ form.initial_message }}
+                            {% if form.initial_message.errors %}
+                                <p class="mt-1 text-sm text-red-400">{{ form.initial_message.errors.0 }}</p>
+                            {% endif %}
+                            <p class="mt-1 text-xs text-gray-400">
+                                Be clear about what you're looking for and why you'd like to connect.
+                            </p>
+                        </div>
+                        
+                        <!-- Send Button -->
+                        <button type="submit" class="w-full bg-lime text-black px-4 py-3 rounded-lg font-medium hover:bg-lime-light focus:outline-none focus:ring-2 focus:ring-lime focus:ring-offset-2 ring-offset-black transition-colors lime-glow">
+                            Send Message Request
+                        </button>
+                        
+                        <!-- Form Errors -->
+                        {% if form.non_field_errors %}
+                            <div class="bg-red-900 border border-red-600 rounded-lg p-4">
+                                {% for error in form.non_field_errors %}
+                                    <p class="text-sm text-red-100">{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </form>
+                    
+                    <!-- Tips -->
+                    <div class="mt-6 p-4 bg-gray-800 rounded-lg">
+                        <h4 class="text-sm font-medium text-white mb-2">💡 Tips for Success</h4>
+                        <ul class="text-sm text-gray-300 space-y-1">
+                            <li>• Be specific about your request</li>
+                            <li>• Mention shared interests or goals</li>
+                            <li>• Keep your message concise and friendly</li>
+                            <li>• Check your available message slots</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

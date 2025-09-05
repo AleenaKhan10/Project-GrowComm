@@ -1,0 +1,325 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Profile - GrowCommunity{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-black min-h-screen">
+    <div class="bg-card shadow rounded-lg lime-border">
+        <!-- Header -->
+        <div class="px-8 py-6 border-b border-gray-600">
+            <h1 class="text-3xl font-semibold text-white mb-2">
+                Edit Your <span class="text-lime">Profile</span>
+            </h1>
+            <p class="text-base text-gray-400">
+                Update your information to help others discover and connect with you.
+            </p>
+        </div>
+        
+        <!-- Form -->
+        <form method="post" enctype="multipart/form-data" class="px-8 py-8 space-y-9">
+            {% csrf_token %}
+            
+            <!-- Personal Information -->
+            <div>
+                <div class="border-t border-gray-700 pt-6 -mt-2"></div>
+                <h2 class="text-xl font-semibold text-white mb-6">Personal Information</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="{{ form.first_name.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">
+                            First Name <span class="text-red-400">*</span>
+                        </label>
+                        {{ form.first_name }}
+                        {% if form.first_name.errors %}
+                            <p class="mt-1 text-sm text-red-400">{{ form.first_name.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="{{ form.last_name.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">
+                            Last Name <span class="text-red-400">*</span>
+                        </label>
+                        {{ form.last_name }}
+                        {% if form.last_name.errors %}
+                            <p class="mt-1 text-sm text-red-400">{{ form.last_name.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="{{ form.email.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">
+                            Email Address <span class="text-red-400">*</span>
+                        </label>
+                        {{ form.email }}
+                        {% if form.email.errors %}
+                            <p class="mt-1 text-sm text-red-400">{{ form.email.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="{{ form.phone_number.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">
+                            Phone Number
+                        </label>
+                        {{ form.phone_number }}
+                        {% if form.phone_number.errors %}
+                            <p class="mt-1 text-sm text-red-400">{{ form.phone_number.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Profile Picture -->
+            <div>
+                <div class="border-t border-gray-700 pt-6"></div>
+                <h2 class="text-xl font-semibold text-white mb-6">Profile Picture</h2>
+                <div class="border border-gray-600 rounded-lg p-6 bg-gray-900">
+                    {% if user.profile.profile_picture %}
+                        <div class="mb-4 flex items-center space-x-4">
+                            <img src="{{ user.profile.profile_picture.url }}" alt="Current profile picture" class="h-16 w-16 rounded-full object-cover ring-2 ring-gray-600">
+                            <span class="text-sm text-gray-300">Current profile picture</span>
+                        </div>
+                    {% endif %}
+                    <div class="space-y-2">
+                        {{ form.profile_picture }}
+                        {% if form.profile_picture.errors %}
+                            <p class="text-sm text-red-400">{{ form.profile_picture.errors.0 }}</p>
+                        {% endif %}
+                        <p class="text-sm text-gray-400">{{ form.profile_picture.help_text }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Bio -->
+            <div>
+                <div class="border-t border-gray-700 pt-6"></div>
+                <label for="{{ form.bio.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">
+                    Bio
+                </label>
+                {{ form.bio }}
+                {% if form.bio.errors %}
+                    <p class="mt-1 text-sm text-red-400">{{ form.bio.errors.0 }}</p>
+                {% endif %}
+                <div class="mt-2 flex justify-between text-sm">
+                    <p class="text-gray-400">{{ form.bio.help_text }}</p>
+                    <span class="text-gray-500" id="bio-counter">0 / 500 characters</span>
+                </div>
+            </div>
+            
+            <!-- Professional Information -->
+            <div>
+                <div class="border-t border-gray-700 pt-6"></div>
+                <h2 class="text-xl font-semibold text-white mb-6">Professional Information</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="{{ form.company.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">
+                            Company
+                        </label>
+                        {{ form.company }}
+                        {% if form.company.errors %}
+                            <p class="mt-1 text-sm text-red-400">{{ form.company.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="{{ form.team.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">
+                            Team/Department
+                        </label>
+                        {{ form.team }}
+                        {% if form.team.errors %}
+                            <p class="mt-1 text-sm text-red-400">{{ form.team.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="md:col-span-2">
+                        <label for="{{ form.organization_level.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">
+                            Organization Level
+                        </label>
+                        {{ form.organization_level }}
+                        {% if form.organization_level.errors %}
+                            <p class="mt-1 text-sm text-red-400">{{ form.organization_level.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Education -->
+            <div>
+                <div class="border-t border-gray-700 pt-6"></div>
+                <label for="{{ form.schools.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">
+                    Schools/Education
+                </label>
+                {{ form.schools }}
+                {% if form.schools.errors %}
+                    <p class="mt-1 text-sm text-red-400">{{ form.schools.errors.0 }}</p>
+                {% endif %}
+                <p class="mt-1 text-sm text-gray-400">{{ form.schools.help_text }}</p>
+            </div>
+            
+            <!-- Tags/Skills -->
+            <div>
+                <div class="border-t border-gray-700 pt-6"></div>
+                <label for="{{ form.tags.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">
+                    Skills & Interests
+                </label>
+                {{ form.tags }}
+                {% if form.tags.errors %}
+                    <p class="mt-1 text-sm text-red-400">{{ form.tags.errors.0 }}</p>
+                {% endif %}
+                <div class="mt-2 flex justify-between text-sm">
+                    <p class="text-gray-400">{{ form.tags.help_text }}</p>
+                    <span class="text-gray-500" id="tags-counter">0 / 500 characters</span>
+                </div>
+            </div>
+            
+            <!-- Privacy Settings -->
+            <div>
+                <div class="border-t border-gray-700 pt-6"></div>
+                <h2 class="text-xl font-semibold text-white mb-6">Privacy Settings</h2>
+                <div>
+                    <label for="{{ form.name_visibility.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">
+                        Name Visibility
+                    </label>
+                    {{ form.name_visibility }}
+                    {% if form.name_visibility.errors %}
+                        <p class="mt-1 text-sm text-red-400">{{ form.name_visibility.errors.0 }}</p>
+                    {% endif %}
+                    <p class="mt-2 text-sm text-gray-400">Control how your name appears to other users in the community</p>
+                </div>
+            </div>
+            
+            <!-- Message Slot Settings -->
+            <div>
+                <div class="border-t border-gray-700 pt-6"></div>
+                <h2 class="text-xl font-semibold text-white mb-6">Message Slot Limits</h2>
+                <p class="text-sm text-gray-400 mb-6">
+                    Set monthly limits for different types of messages you're willing to receive.
+                </p>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div>
+                        <label for="{{ form.coffee_chat_slots.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">
+                            Coffee Chat
+                        </label>
+                        {{ form.coffee_chat_slots }}
+                        {% if form.coffee_chat_slots.errors %}
+                            <p class="mt-1 text-sm text-red-400">{{ form.coffee_chat_slots.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="{{ form.mentorship_slots.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">
+                            Mentorship
+                        </label>
+                        {{ form.mentorship_slots }}
+                        {% if form.mentorship_slots.errors %}
+                            <p class="mt-1 text-sm text-red-400">{{ form.mentorship_slots.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="{{ form.networking_slots.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">
+                            Networking
+                        </label>
+                        {{ form.networking_slots }}
+                        {% if form.networking_slots.errors %}
+                            <p class="mt-1 text-sm text-red-400">{{ form.networking_slots.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="{{ form.general_slots.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-2">
+                            General
+                        </label>
+                        {{ form.general_slots }}
+                        {% if form.general_slots.errors %}
+                            <p class="mt-1 text-sm text-red-400">{{ form.general_slots.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Non-field errors -->
+            {% if form.non_field_errors %}
+                <div class="bg-red-900 border border-red-600 rounded-lg p-4">
+                    {% for error in form.non_field_errors %}
+                        <p class="text-sm text-red-100">{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            
+            <!-- Action Buttons -->
+            <div class="pt-8 border-t border-gray-600">
+                <div class="flex flex-col sm:flex-row sm:justify-end gap-4">
+                    <a href="{% url 'profiles:view' user.id %}" class="px-6 py-3 border border-gray-600 rounded-lg text-sm font-medium text-gray-300 hover:bg-gray-700 hover:border-gray-500 transition-colors text-center min-h-[44px] flex items-center justify-center">
+                        Cancel
+                    </a>
+                    <button type="submit" class="px-8 py-3 bg-lime text-black rounded-lg text-sm font-semibold hover:bg-lime-400 transition-all duration-200 shadow-lg hover:shadow-lime/20 min-h-[44px] flex items-center justify-center" id="save-btn">
+                        Save Changes
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Character counter for bio field
+    const bioField = document.querySelector('[name="bio"]');
+    const bioCounter = document.getElementById('bio-counter');
+    
+    if (bioField && bioCounter) {
+        function updateBioCounter() {
+            const length = bioField.value.length;
+            bioCounter.textContent = `${length} / 500 characters`;
+            if (length > 400) {
+                bioCounter.classList.add('text-yellow-400');
+                bioCounter.classList.remove('text-gray-500');
+            } else if (length > 450) {
+                bioCounter.classList.add('text-red-400');
+                bioCounter.classList.remove('text-yellow-400', 'text-gray-500');
+            } else {
+                bioCounter.classList.add('text-gray-500');
+                bioCounter.classList.remove('text-yellow-400', 'text-red-400');
+            }
+        }
+        
+        bioField.addEventListener('input', updateBioCounter);
+        updateBioCounter(); // Initialize
+    }
+    
+    // Character counter for tags field
+    const tagsField = document.querySelector('[name="tags"]');
+    const tagsCounter = document.getElementById('tags-counter');
+    
+    if (tagsField && tagsCounter) {
+        function updateTagsCounter() {
+            const length = tagsField.value.length;
+            tagsCounter.textContent = `${length} / 500 characters`;
+            if (length > 400) {
+                tagsCounter.classList.add('text-yellow-400');
+                tagsCounter.classList.remove('text-gray-500');
+            } else if (length > 450) {
+                tagsCounter.classList.add('text-red-400');
+                tagsCounter.classList.remove('text-yellow-400', 'text-gray-500');
+            } else {
+                tagsCounter.classList.add('text-gray-500');
+                tagsCounter.classList.remove('text-yellow-400', 'text-red-400');
+            }
+        }
+        
+        tagsField.addEventListener('input', updateTagsCounter);
+        updateTagsCounter(); // Initialize
+    }
+    
+    // Form submission loading state
+    const saveBtn = document.getElementById('save-btn');
+    const form = document.querySelector('form');
+    
+    if (form && saveBtn) {
+        form.addEventListener('submit', function() {
+            saveBtn.innerHTML = '<div class="flex items-center"><div class="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin mr-2"></div>Saving...</div>';
+            saveBtn.disabled = true;
+            saveBtn.classList.add('opacity-75');
+        });
+    }
+});
+</script>
+{% endblock %}
