@@ -1,6 +1,207 @@
 {% extends 'base.html' %}
 
-{% block title %}Invites & Referrals - GrowCommunity{% endblock %}
+{% block title %}Invites & Referrals - GrowComm{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Mobile Invites & Referrals Optimization */
+@media (max-width: 768px) {
+    /* Container adjustments */
+    .container {
+        padding: 0.25rem !important;
+    }
+    
+    /* Header section - smaller */
+    h1 {
+        font-size: 1.5rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+    
+    .text-gray-600 {
+        font-size: 0.6rem !important;
+    }
+    
+    /* Verification banner smaller */
+    .w-12.h-12 {
+        width: 1.5rem !important;
+        height: 1.5rem !important;
+    }
+    
+    .w-6.h-6 {
+        width: 0.75rem !important;
+        height: 0.75rem !important;
+    }
+    
+    /* Card padding smaller */
+    .card {
+        padding: 0.5rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+    
+    /* Tabs - fix overflow and make smaller */
+    .flex.space-x-8 {
+        flex-wrap: wrap !important;
+        gap: 0.1rem !important;
+        space: 0 !important;
+    }
+    
+    .invite-tab {
+        flex: 1 !important;
+        text-align: center !important;
+        padding: 0.3rem 0.1rem !important;
+        font-size: 0.5rem !important;
+        min-width: 0 !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+    }
+    
+    /* Alternative: Stack tabs in 2x2 grid for very small screens */
+    @media (max-width: 480px) {
+        .flex.space-x-8 {
+            display: grid !important;
+            grid-template-columns: 1fr 1fr !important;
+            gap: 0.1rem !important;
+        }
+        
+        .invite-tab {
+            flex: none !important;
+            padding: 0.25rem 0.1rem !important;
+            font-size: 0.45rem !important;
+            border-radius: 0.375rem !important;
+            border-bottom: none !important;
+            background: #f3f4f6 !important;
+        }
+        
+        .invite-tab.active {
+            background: black !important;
+            color: white !important;
+            border-bottom: none !important;
+        }
+        
+        .border-b.border-gray-200 {
+            border-bottom: none !important;
+        }
+    }
+    
+    /* Section headings smaller */
+    h2 {
+        font-size: 1.125rem !important;
+        margin-bottom: 0.75rem !important;
+    }
+    
+    h3 {
+        font-size: 1rem !important;
+        margin-bottom: 0.75rem !important;
+    }
+    
+    /* Form elements smaller */
+    .input, input, select {
+        padding: 0.5rem 0.75rem !important;
+        font-size: 0.875rem !important;
+    }
+    
+    /* Buttons smaller */
+    .btn {
+        padding: 0.5rem 1rem !important;
+        font-size: 0.875rem !important;
+    }
+    
+    .btn svg {
+        width: 1rem !important;
+        height: 1rem !important;
+    }
+    
+    /* Progress bar smaller */
+    .h-2 {
+        height: 0.375rem !important;
+    }
+    
+    /* Badge smaller */
+    .px-3.py-1 {
+        padding: 0.25rem 0.5rem !important;
+        font-size: 0.75rem !important;
+    }
+    
+    /* Invite cards smaller */
+    .space-y-4 > * + * {
+        margin-top: 0.75rem !important;
+    }
+    
+    /* Grid adjustments */
+    .grid.grid-cols-2.gap-4 {
+        grid-template-columns: 1fr !important;
+        gap: 0.5rem !important;
+    }
+    
+    /* Icons smaller */
+    .w-8.h-8 {
+        width: 1.5rem !important;
+        height: 1.5rem !important;
+    }
+    
+    .w-5.h-5 {
+        width: 1.125rem !important;
+        height: 1.125rem !important;
+    }
+    
+    /* Text sizes smaller */
+    .text-lg {
+        font-size: 1rem !important;
+    }
+    
+    .text-sm {
+        font-size: 0.75rem !important;
+    }
+    
+    .text-xs {
+        font-size: 0.625rem !important;
+    }
+    
+    /* Empty state smaller */
+    .w-12.h-12 {
+        width: 2.5rem !important;
+        height: 2.5rem !important;
+    }
+    
+    /* Spacing adjustments */
+    .space-x-4 > * + * {
+        margin-left: 0.5rem !important;
+    }
+    
+    .space-y-6 > * + * {
+        margin-top: 1rem !important;
+    }
+    
+    .mb-8 {
+        margin-bottom: 1.5rem !important;
+    }
+    
+    .mb-6 {
+        margin-bottom: 1rem !important;
+    }
+    
+    .mb-4 {
+        margin-bottom: 0.75rem !important;
+    }
+    
+    /* Form validation text smaller */
+    .text-red-600 {
+        font-size: 0.75rem !important;
+    }
+    
+    /* Copy button adjustments */
+    .flex.items-center.space-x-2 {
+        flex-wrap: wrap !important;
+        gap: 0.5rem !important;
+    }
+    
+    .flex.items-center.space-x-2 > * + * {
+        margin-left: 0 !important;
+    }
+}
+</style>
+{% endblock %}
 
 {% block content %}
 <div class="container py-8">
