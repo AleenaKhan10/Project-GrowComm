@@ -303,6 +303,175 @@ class MessagingApp {
             .message-enter {
                 animation: slideIn 0.3s ease-out;
             }
+            
+            /* Mobile WhatsApp-like UI */
+            @media (max-width: 768px) {
+                /* Make everything smaller */
+                body {
+                    font-size: 14px !important;
+                    overflow: visible !important;
+                }
+                
+                /* Override any base.html styles */
+                .messages-page {
+                    overflow: visible !important;
+                    height: auto !important;
+                }
+                
+                .messages-container {
+                    height: calc(100vh - 60px) !important;
+                    max-height: calc(100vh - 60px) !important;
+                    display: flex !important;
+                    flex-direction: row !important;
+                    background: #f9fafb !important;
+                    position: relative !important;
+                    z-index: 1 !important;
+                }
+                
+                /* Initially show only sidebar on mobile */
+                .sidebar {
+                    width: 100% !important;
+                    min-width: 100% !important;
+                    max-width: 100% !important;
+                    display: flex !important;
+                    flex-direction: column !important;
+                    flex: 1 !important;
+                    background: white !important;
+                    position: relative !important;
+                    z-index: 2 !important;
+                }
+                
+                .chat-area {
+                    display: none !important;
+                }
+                
+                /* When chat is active, hide sidebar and show chat */
+                .messages-container.chat-active .sidebar {
+                    display: none !important;
+                }
+                
+                .messages-container.chat-active .chat-area {
+                    display: flex !important;
+                    width: 100% !important;
+                    flex-direction: column !important;
+                    height: 100% !important;
+                }
+                
+                /* Chat area layout */
+                .messages-list {
+                    flex: 1 !important;
+                    overflow-y: auto !important;
+                    padding-bottom: 1rem !important;
+                }
+                
+                .message-input-area {
+                    position: sticky !important;
+                    bottom: 0 !important;
+                    background: white !important;
+                    border-top: 1px solid #e5e7eb !important;
+                    padding: 0.75rem !important;
+                    z-index: 10 !important;
+                }
+                
+                /* Force visibility and structure */
+                .sidebar-header, .conversation-list, #conversations-container {
+                    display: block !important;
+                    visibility: visible !important;
+                }
+                
+                /* Smaller elements */
+                .sidebar-header {
+                    padding: 1rem !important;
+                    background: white !important;
+                }
+                
+                .sidebar-header h2 {
+                    font-size: 1.125rem !important;
+                    margin-bottom: 0.75rem !important;
+                    color: black !important;
+                }
+                
+                .sidebar-header h2 svg {
+                    width: 1.25rem !important;
+                    height: 1.25rem !important;
+                    margin-right: 0.5rem !important;
+                }
+                
+                .conversation-list {
+                    flex: 1 !important;
+                    overflow-y: auto !important;
+                    padding: 0 1rem !important;
+                }
+                
+                .conversation-item {
+                    padding: 0.75rem !important;
+                    margin-bottom: 0.25rem !important;
+                    background: white !important;
+                    border-radius: 0.5rem !important;
+                    border: 1px solid #e5e7eb !important;
+                    display: block !important;
+                    cursor: pointer !important;
+                }
+                
+                .conversation-item h3 {
+                    font-size: 0.875rem !important;
+                    color: black !important;
+                }
+                
+                .conversation-item p {
+                    font-size: 0.75rem !important;
+                    color: #6b7280 !important;
+                }
+                
+                .avatar {
+                    width: 2.5rem !important;
+                    height: 2.5rem !important;
+                    font-size: 1rem !important;
+                }
+                
+                .chat-header {
+                    padding: 0.75rem !important;
+                    background: white !important;
+                    border-bottom: 1px solid #e5e7eb !important;
+                    flex-shrink: 0 !important;
+                }
+                
+                .chat-header h3 {
+                    font-size: 1rem !important;
+                }
+                
+                .chat-header p {
+                    font-size: 0.75rem !important;
+                }
+                
+                /* Message input specific styles are handled above */
+                .message-input-area textarea {
+                    padding: 0.5rem 0.75rem !important;
+                    font-size: 0.875rem !important;
+                    max-height: 60px !important;
+                }
+                
+                .btn {
+                    padding: 0.5rem !important;
+                }
+                
+                .btn svg {
+                    width: 1rem !important;
+                    height: 1rem !important;
+                }
+                
+                /* Make search smaller */
+                .input {
+                    padding: 0.5rem 0.75rem !important;
+                    font-size: 0.875rem !important;
+                }
+                
+                /* Message bubbles smaller */
+                .message-bubble {
+                    padding: 0.5rem 0.75rem !important;
+                    font-size: 0.875rem !important;
+                }
+            }
         `;
         document.head.appendChild(style);
     }
@@ -332,6 +501,14 @@ class MessagingApp {
                 this.searchTimeout = setTimeout(() => {
                     this.searchConversations(e.target.value);
                 }, 300);
+            });
+        }
+        
+        // Mobile back button functionality
+        const backButton = document.querySelector('.mobile-back-button');
+        if (backButton) {
+            backButton.addEventListener('click', () => {
+                this.goBackToConversationList();
             });
         }
     }
@@ -368,13 +545,16 @@ class MessagingApp {
     }
     
     autoSelectFirstConversation() {
-        const firstConversation = document.querySelector('.conversation-item');
-        if (firstConversation) {
-            const userId = parseInt(firstConversation.dataset.userId);
-            const userName = firstConversation.dataset.userName;
-            const messageTypeId = firstConversation.dataset.messageTypeId === 'null' ? null : parseInt(firstConversation.dataset.messageTypeId);
-            
-            this.selectConversation(firstConversation, userId, userName, messageTypeId);
+        // Only auto-select on desktop, not mobile (WhatsApp-like behavior)
+        if (window.innerWidth > 768) {
+            const firstConversation = document.querySelector('.conversation-item');
+            if (firstConversation) {
+                const userId = parseInt(firstConversation.dataset.userId);
+                const userName = firstConversation.dataset.userName;
+                const messageTypeId = firstConversation.dataset.messageTypeId === 'null' ? null : parseInt(firstConversation.dataset.messageTypeId);
+                
+                this.selectConversation(firstConversation, userId, userName, messageTypeId);
+            }
         }
     }
     
@@ -393,6 +573,11 @@ class MessagingApp {
         // Show chat interface
         this.showChatInterface();
         
+        // On mobile, hide sidebar and show chat area (WhatsApp style)
+        if (window.innerWidth <= 768) {
+            document.querySelector('.messages-container').classList.add('chat-active');
+        }
+        
         // Load messages
         this.currentUserId = userId;
         this.currentMessageTypeId = messageTypeId;
@@ -400,6 +585,18 @@ class MessagingApp {
         
         // Start polling for new messages
         this.startMessagePolling();
+    }
+    
+    goBackToConversationList() {
+        // Remove chat-active class to show sidebar on mobile
+        document.querySelector('.messages-container').classList.remove('chat-active');
+        
+        // Stop message polling
+        this.stopMessagePolling();
+        
+        // Clear current selection
+        this.currentUserId = null;
+        this.currentMessageTypeId = null;
     }
     
     updateChatHeader(userName, messageTypeId) {
