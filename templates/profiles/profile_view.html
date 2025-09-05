@@ -2,6 +2,139 @@
 
 {% block title %}{{ profile.display_name }} - Profile{% endblock %}
 
+{% block extra_css %}
+<style>
+/* Mobile Profile Optimization */
+@media (max-width: 768px) {
+    /* Container and card adjustments */
+    .container {
+        padding: 0.5rem !important;
+    }
+    
+    .card {
+        margin: 0 !important;
+        border-radius: 0.5rem !important;
+    }
+    
+    /* Header section - smaller */
+    .px-8.py-6 {
+        padding: 1rem !important;
+    }
+    
+    h1 {
+        font-size: 1.5rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+    
+    .text-base {
+        font-size: 0.875rem !important;
+    }
+    
+    /* Buttons smaller */
+    .btn {
+        padding: 0.5rem 1rem !important;
+        font-size: 0.875rem !important;
+    }
+    
+    .btn svg {
+        width: 1rem !important;
+        height: 1rem !important;
+        margin-right: 0.25rem !important;
+    }
+    
+    /* Content section - smaller padding */
+    .px-8.py-8 {
+        padding: 1rem !important;
+    }
+    
+    .space-y-9 > * + * {
+        margin-top: 1.5rem !important;
+    }
+    
+    /* Section headings smaller */
+    h2 {
+        font-size: 1.125rem !important;
+        margin-bottom: 1rem !important;
+    }
+    
+    h3 {
+        font-size: 1rem !important;
+        margin-bottom: 0.75rem !important;
+    }
+    
+    /* Form elements smaller */
+    .form-label {
+        font-size: 0.875rem !important;
+        margin-bottom: 0.25rem !important;
+    }
+    
+    .input {
+        padding: 0.5rem 0.75rem !important;
+        font-size: 0.875rem !important;
+    }
+    
+    /* Grid adjustments - single column on mobile */
+    .grid-cols-1.md\\:grid-cols-2 {
+        grid-template-columns: 1fr !important;
+    }
+    
+    .gap-4 {
+        gap: 0.75rem !important;
+    }
+    
+    /* Profile picture section */
+    .w-32.h-32 {
+        width: 5rem !important;
+        height: 5rem !important;
+    }
+    
+    .text-4xl {
+        font-size: 2rem !important;
+    }
+    
+    /* Border sections smaller */
+    .border-t.border-gray-700.pt-6 {
+        padding-top: 1rem !important;
+    }
+    
+    /* Text content smaller */
+    .text-sm {
+        font-size: 0.75rem !important;
+    }
+    
+    /* Verification badges smaller */
+    .px-3.py-1 {
+        padding: 0.25rem 0.5rem !important;
+        font-size: 0.75rem !important;
+    }
+    
+    /* Tags/chips smaller */
+    .px-2.py-1 {
+        padding: 0.25rem 0.5rem !important;
+        font-size: 0.75rem !important;
+    }
+    
+    /* Action buttons stack vertically on mobile */
+    .flex.gap-3 {
+        flex-direction: column !important;
+        gap: 0.5rem !important;
+    }
+    
+    .sm\\:flex-row {
+        flex-direction: column !important;
+    }
+    
+    .sm\\:items-center {
+        align-items: flex-start !important;
+    }
+    
+    .sm\\:justify-between {
+        justify-content: flex-start !important;
+    }
+}
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container py-8">
     <div class="card max-w-3xl mx-auto">
