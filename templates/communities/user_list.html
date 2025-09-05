@@ -24,6 +24,198 @@
     cursor: not-allowed;
     opacity: 0.6;
 }
+
+/* Mobile-specific styles - Ultra Compact */
+@media (max-width: 768px) {
+    /* Ultra small font sizes */
+    body {
+        font-size: 12px !important;
+    }
+    
+    h1 {
+        font-size: 1.125rem !important; /* 18px */
+        margin-bottom: 0.25rem;
+    }
+    
+    h2 {
+        font-size: 1rem !important; /* 16px */
+        margin-bottom: 0.25rem;
+    }
+    
+    h3 {
+        font-size: 0.875rem !important; /* 14px */
+        margin-bottom: 0.125rem;
+    }
+    
+    .container {
+        padding: 0.5rem !important;
+    }
+    
+    /* Ultra compact cards */
+    .card {
+        margin-bottom: 0.5rem;
+        padding: 0 !important;
+        border-radius: 0.5rem;
+    }
+    
+    /* Tiny avatars */
+    .avatar {
+        width: 2rem !important;
+        height: 2rem !important;
+        font-size: 0.75rem;
+    }
+    
+    /* 50% smaller buttons */
+    .btn {
+        padding: 4px 8px !important;
+        font-size: 11px !important;
+        min-height: 24px !important;
+        border-radius: 4px;
+    }
+    
+    .btn-sm {
+        padding: 3px 6px !important;
+        font-size: 10px !important;
+        min-height: 20px !important;
+    }
+    
+    /* Minimal spacing */
+    .mb-3 {
+        margin-bottom: 0.25rem !important;
+    }
+    
+    .mb-6 {
+        margin-bottom: 0.5rem !important;
+    }
+    
+    .p-4 {
+        padding: 0.5rem !important;
+    }
+    
+    .p-3 {
+        padding: 0.5rem !important;
+    }
+    
+    .py-2 {
+        padding-top: 0.5rem !important;
+        padding-bottom: 0.5rem !important;
+    }
+    
+    .px-3 {
+        padding-left: 0.75rem !important;
+        padding-right: 0.75rem !important;
+    }
+    
+    /* Ultra compact text */
+    .text-base {
+        font-size: 0.875rem !important; /* 14px */
+    }
+    
+    .text-sm {
+        font-size: 0.75rem !important; /* 12px */
+    }
+    
+    .text-xs {
+        font-size: 0.625rem !important; /* 10px */
+    }
+    
+    /* Minimal input fields */
+    .input {
+        min-height: 28px !important;
+        padding: 4px 8px !important;
+        font-size: 12px !important;
+    }
+    
+    /* Ultra small badges */
+    .badge {
+        padding: 1px 4px !important;
+        font-size: 0.625rem !important;
+        border-radius: 3px;
+    }
+    
+    /* Modal specific */
+    #userModal {
+        font-size: 12px;
+    }
+    
+    #modalContent {
+        border-radius: 12px 12px 0 0;
+    }
+    
+    /* Message type buttons in modal */
+    .msg-type-btn {
+        padding: 4px 6px !important;
+        font-size: 10px !important;
+        min-height: 24px !important;
+        border-radius: 4px;
+    }
+    
+    /* Ultra compact user list rows */
+    .user-row {
+        padding: 0.5rem 0.75rem !important;
+        min-height: 40px;
+    }
+    
+    .user-row img, .user-row > div > div:first-child {
+        width: 32px !important;
+        height: 32px !important;
+    }
+    
+    /* Modal sizes */
+    #modalAvatar {
+        width: 40px !important;
+        height: 40px !important;
+    }
+    
+    /* Search form compact */
+    form label {
+        font-size: 11px !important;
+        margin-bottom: 2px !important;
+    }
+    
+    /* Hide scroll indicator on ultra small */
+    .bg-blue-50.border-b {
+        display: none !important;
+    }
+}
+
+/* Animation for mobile forms */
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        max-height: 0;
+        padding-top: 0;
+        padding-bottom: 0;
+    }
+    to {
+        opacity: 1;
+        max-height: 500px;
+        padding-top: 0.75rem;
+        padding-bottom: 0.75rem;
+    }
+}
+
+/* Horizontal scroll for desktop table on smaller screens */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .table-container {
+        overflow-x: auto;
+    }
+}
+
+/* Loading spinner for better UX */
+.loading-spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+    border-top-color: transparent;
+    animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
 </style>
 {% endblock %}
 
@@ -37,7 +229,8 @@
 
     <!-- Search and Filter Form -->
     <div class="card mb-6">
-        <form method="GET" class="flex space-x-4">
+        <!-- Desktop search form -->
+        <form method="GET" class="hidden md:flex space-x-4">
             <div class="flex-1">
                 {{ form.search }}
             </div>
@@ -51,11 +244,42 @@
                 Search
             </button>
         </form>
+        
+        <!-- Mobile search form -->
+        <form method="GET" class="block md:hidden space-y-4">
+            <div>
+                <label class="form-label text-sm mb-1">Search Members</label>
+                {{ form.search }}
+                <p class="text-xs text-gray-500 mt-1">Search by name, company, skills, or interests</p>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="form-label text-sm mb-1">Organization Level</label>
+                    {{ form.organization_level }}
+                </div>
+                <div>
+                    <label class="form-label text-sm mb-1">Filter by Tags</label>
+                    {{ form.tags }}
+                </div>
+            </div>
+            
+            <button type="submit" class="btn btn-primary w-full">
+                Search Members
+            </button>
+        </form>
     </div>
 
     <!-- Community Table -->
     <div class="card overflow-hidden">
-        <table class="table">
+        <!-- Mobile scroll indicator -->
+        <div class="block md:hidden bg-blue-50 border-b border-blue-200 px-4 py-2 text-center">
+            <p class="text-sm text-blue-700">← Swipe to see more columns →</p>
+        </div>
+        
+        <!-- Desktop table view -->
+        <div class="hidden md:block table-container">
+            <table class="table">
             <thead>
                 <tr>
                     <th>Name</th>
@@ -211,7 +435,130 @@
                 </tr>
                 {% endfor %}
             </tbody>
-        </table>
+            </table>
+        </div>
+        
+        <!-- Mobile list view - Minimal -->
+        <div class="block md:hidden">
+            {% for user in page_obj %}
+                <div class="border-b border-gray-200 last:border-b-0">
+                    <!-- Minimal User Row -->
+                    <button 
+                        class="w-full px-3 py-2 flex items-center hover:bg-gray-50 transition-colors user-row"
+                        onclick="openUserModal({{ user.id }})"
+                        data-user-id="{{ user.id }}"
+                        data-user-name="{{ user.profile.display_name|default:'Anonymous' }}"
+                        data-user-location="{{ user.profile.location|default:'' }}"
+                        data-user-company="{{ user.profile.company|default:'' }}"
+                        data-user-team="{{ user.profile.team|default:'' }}"
+                        data-user-level="{{ user.profile.get_organization_level_display|default:'' }}"
+                        data-user-schools="{{ user.profile.schools|default:'' }}"
+                        data-user-tags="{{ user.profile.tag_list|join:', ' }}"
+                    >
+                        <div class="flex items-center flex-1">
+                            {% if user.profile.profile_picture %}
+                                <img src="{{ user.profile.profile_picture.url }}" alt="{{ user.profile.display_name }}" class="h-8 w-8 rounded-full object-cover mr-2">
+                            {% else %}
+                                <div class="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-medium text-gray-600 mr-2">
+                                    {{ user.first_name|first|default:user.username|first }}
+                                </div>
+                            {% endif %}
+                            <div class="text-left">
+                                <div class="text-sm font-medium text-gray-900">{{ user.profile.display_name|default:"Anonymous" }}</div>
+                                <div class="text-xs text-gray-500">{{ user.profile.location|default:"" }}{% if user.profile.company %} • {{ user.profile.company }}{% endif %}</div>
+                            </div>
+                        </div>
+                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </button>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <!-- Mobile User Modal -->
+    <div id="userModal" class="fixed inset-0 z-50 hidden">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-black bg-opacity-50" onclick="closeUserModal()"></div>
+        
+        <!-- Modal Content -->
+        <div class="absolute inset-x-0 bottom-0 bg-white rounded-t-xl max-h-[90vh] overflow-hidden transform transition-transform duration-300 translate-y-full" id="modalContent">
+            <!-- Modal Header -->
+            <div class="sticky top-0 bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
+                <h3 class="text-base font-semibold text-gray-900" id="modalUserName">User Details</h3>
+                <button onclick="closeUserModal()" class="p-1 rounded-full hover:bg-gray-100">
+                    <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            
+            <!-- Modal Body -->
+            <div class="overflow-y-auto" style="max-height: calc(90vh - 60px);">
+                <!-- User Info -->
+                <div class="px-4 py-3 space-y-2 border-b border-gray-100">
+                    <div class="flex items-center space-x-3">
+                        <div id="modalAvatar" class="h-12 w-12 rounded-full bg-gray-200 flex items-center justify-center text-sm font-medium text-gray-600">
+                            U
+                        </div>
+                        <div class="flex-1">
+                            <div class="text-sm font-medium text-gray-900" id="modalName">Name</div>
+                            <div class="text-xs text-gray-500" id="modalLocation">Location</div>
+                        </div>
+                    </div>
+                    
+                    <!-- User Details Grid -->
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <div>
+                            <span class="text-gray-500">Company:</span>
+                            <span class="text-gray-700" id="modalCompany">-</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-500">Team:</span>
+                            <span class="text-gray-700" id="modalTeam">-</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-500">Level:</span>
+                            <span class="text-gray-700" id="modalLevel">-</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-500">Education:</span>
+                            <span class="text-gray-700" id="modalSchools">-</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Tags -->
+                    <div id="modalTags" class="flex flex-wrap gap-1 pt-1"></div>
+                </div>
+                
+                <!-- Message Section -->
+                <div class="px-4 py-3">
+                    <div class="text-xs font-medium text-gray-700 mb-2">Send Message</div>
+                    
+                    <!-- Message Categories -->
+                    <div class="grid grid-cols-3 gap-1 mb-2" id="modalMessageTypes">
+                        <!-- Will be populated dynamically -->
+                    </div>
+                    
+                    <!-- Message Input -->
+                    <textarea 
+                        id="modalMessageText" 
+                        class="w-full px-2 py-1.5 text-xs border border-gray-200 rounded focus:outline-none focus:border-blue-400" 
+                        rows="3" 
+                        placeholder="Type your message..."
+                    ></textarea>
+                    
+                    <!-- Send Button -->
+                    <button 
+                        onclick="sendModalMessage()" 
+                        class="w-full mt-2 px-3 py-1.5 bg-blue-500 text-white text-xs font-medium rounded hover:bg-blue-600 transition-colors"
+                    >
+                        Send Message
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Pagination -->
@@ -232,10 +579,172 @@
 
 <script>
 let selectedMessageType = {};
+let currentUserId = null;
+let selectedMessageCategory = null;
 
+// Mobile Modal Functions
+function openUserModal(userId) {
+    currentUserId = userId;
+    const userRow = document.querySelector(`[data-user-id="${userId}"]`);
+    
+    if (!userRow) return;
+    
+    // Get user data from attributes
+    const userName = userRow.dataset.userName || 'Anonymous';
+    const userLocation = userRow.dataset.userLocation || '';
+    const userCompany = userRow.dataset.userCompany || '';
+    const userTeam = userRow.dataset.userTeam || '';
+    const userLevel = userRow.dataset.userLevel || '';
+    const userSchools = userRow.dataset.userSchools || '';
+    const userTags = userRow.dataset.userTags || '';
+    
+    // Update modal content
+    document.getElementById('modalUserName').textContent = userName;
+    document.getElementById('modalName').textContent = userName;
+    document.getElementById('modalLocation').textContent = userLocation || 'Location not provided';
+    document.getElementById('modalCompany').textContent = userCompany || '-';
+    document.getElementById('modalTeam').textContent = userTeam || '-';
+    document.getElementById('modalLevel').textContent = userLevel || '-';
+    document.getElementById('modalSchools').textContent = userSchools.substring(0, 20) || '-';
+    
+    // Update avatar
+    const avatarDiv = document.getElementById('modalAvatar');
+    avatarDiv.textContent = userName.charAt(0).toUpperCase();
+    
+    // Update tags
+    const tagsContainer = document.getElementById('modalTags');
+    tagsContainer.innerHTML = '';
+    if (userTags) {
+        const tagList = userTags.split(',').slice(0, 3);
+        tagList.forEach(tag => {
+            const tagSpan = document.createElement('span');
+            tagSpan.className = 'px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded';
+            tagSpan.textContent = tag.trim().substring(0, 10);
+            tagsContainer.appendChild(tagSpan);
+        });
+    }
+    
+    // Populate message types
+    populateMessageTypes(userId);
+    
+    // Show modal
+    const modal = document.getElementById('userModal');
+    const modalContent = document.getElementById('modalContent');
+    
+    modal.classList.remove('hidden');
+    setTimeout(() => {
+        modalContent.classList.remove('translate-y-full');
+    }, 10);
+}
+
+function closeUserModal() {
+    const modal = document.getElementById('userModal');
+    const modalContent = document.getElementById('modalContent');
+    
+    modalContent.classList.add('translate-y-full');
+    setTimeout(() => {
+        modal.classList.add('hidden');
+        currentUserId = null;
+        selectedMessageCategory = null;
+        document.getElementById('modalMessageText').value = '';
+    }, 300);
+}
+
+function populateMessageTypes(userId) {
+    const container = document.getElementById('modalMessageTypes');
+    container.innerHTML = '';
+    
+    // Message types with slot info
+    const messageTypes = [
+        {% for message_type in message_types %}
+        {
+            id: {{ message_type.id }},
+            name: "{{ message_type.name }}",
+            available: true // This would come from slot data
+        },
+        {% endfor %}
+    ];
+    
+    messageTypes.forEach(type => {
+        const btn = document.createElement('button');
+        btn.className = 'px-2 py-1.5 text-xs border border-gray-200 rounded hover:bg-blue-50 hover:border-blue-400 transition-colors msg-type-btn';
+        btn.innerHTML = `
+            <div class="font-medium">${type.name}</div>
+            <div class="text-xs text-green-600">Available</div>
+        `;
+        btn.onclick = () => selectMessageCategory(type.id, type.name);
+        container.appendChild(btn);
+    });
+}
+
+function selectMessageCategory(typeId, typeName) {
+    selectedMessageCategory = typeName;
+    
+    // Update button styles
+    const buttons = document.querySelectorAll('.msg-type-btn');
+    buttons.forEach(btn => {
+        if (btn.querySelector('div').textContent.includes(typeName)) {
+            btn.classList.add('bg-blue-50', 'border-blue-400');
+        } else {
+            btn.classList.remove('bg-blue-50', 'border-blue-400');
+        }
+    });
+}
+
+function sendModalMessage() {
+    const messageText = document.getElementById('modalMessageText').value;
+    
+    if (!selectedMessageCategory) {
+        alert('Please select a message category');
+        return;
+    }
+    
+    if (!messageText.trim()) {
+        alert('Please enter a message');
+        return;
+    }
+    
+    // Send message via existing sendMessage function
+    sendMessageFromModal(currentUserId, selectedMessageCategory, messageText);
+}
+
+function sendMessageFromModal(userId, messageType, messageText) {
+    fetch('/community/send-message/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}',
+        },
+        body: JSON.stringify({
+            'to_user_id': userId,
+            'message_type': messageType,
+            'message_content': messageText
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            closeUserModal();
+            showNotification('Message sent successfully!', 'success');
+            setTimeout(() => {
+                window.location.href = '/messages/';
+            }, 1500);
+        } else {
+            showNotification('Error: ' + (data.error || 'Failed to send'), 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('Error sending message', 'error');
+    });
+}
+
+// Legacy functions for desktop
 function toggleUserDetails(userId) {
     const messageForm = document.getElementById(`message-form-${userId}`);
-    messageForm.classList.toggle('hidden');
+    if (messageForm) {
+        messageForm.classList.toggle('hidden');
+    }
 }
 
 function selectMessageType(userId, type) {
@@ -339,7 +848,7 @@ function showNotification(message, type = 'info') {
     
     // Create notification
     const notification = document.createElement('div');
-    notification.className = `notification fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg text-black bg-white border border-gray-300 font-medium z-50 transform transition-all duration-300 translate-x-full`;
+    notification.className = `notification fixed top-4 right-4 px-4 py-3 rounded-lg shadow-lg text-white font-medium z-50 transform transition-all duration-300 translate-x-full max-w-sm mx-4 md:mx-0`;
     
     // Set color based on type
     switch(type) {
