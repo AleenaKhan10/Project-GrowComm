@@ -7,7 +7,7 @@
     <!-- Header -->
     <div class="mb-10">
         <h1 class="text-4xl font-light text-white mb-4">
-            Invite <span class="text-lime">Management</span>
+            Invite <span class="text-white">Management</span>
         </h1>
         <p class="mt-4 text-gray-300">
             Create and manage your community invites
@@ -15,7 +15,7 @@
     </div>
     
     <!-- Create New Invite -->
-    <div class="bg-card shadow rounded-lg p-6 mb-8 lime-border border-2 border-zinc-800">
+    <div class="bg-card shadow rounded-lg p-6 mb-8 white-border border-2 border-zinc-800">
         <h2 class="text-lg font-medium text-white mb-4">Create New Invite</h2>
         <form method="post" class="space-y-4">
             {% csrf_token %}
@@ -29,7 +29,7 @@
                 {% endif %}
                 <p class="mt-2 text-sm text-gray-400 opacity-70">{{ form.expires_in_days.help_text }}</p>
             </div>
-            <button type="submit" class="w-full bg-lime text-black px-6 py-3 rounded-lg font-medium hover:bg-lime-dark transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center space-x-2">
+            <button type="submit" class="btn btn-primary w-full">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
                 </svg>
@@ -40,7 +40,7 @@
     
     <!-- Invites List -->
     {% if invites %}
-    <div class="bg-card shadow rounded-lg overflow-hidden lime-border border-2 border-zinc-800">
+    <div class="bg-card shadow rounded-lg overflow-hidden white-border border-2 border-zinc-800">
         <div class="px-6 py-4 border-b border-gray-600">
             <h2 class="text-lg font-medium text-white">Your Invites</h2>
         </div>
@@ -60,8 +60,8 @@
                                         </svg>
                                     </div>
                                 {% elif invite.is_valid %}
-                                    <div class="h-8 w-8 rounded-full bg-lime bg-opacity-10 flex items-center justify-center">
-                                        <svg class="h-5 w-5 text-lime" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <div class="h-8 w-8 rounded-full bg-white bg-opacity-10 flex items-center justify-center">
+                                        <svg class="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                         </svg>
                                     </div>
@@ -83,7 +83,7 @@
                                             Used
                                         </span>
                                     {% elif invite.is_valid %}
-                                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-lime bg-opacity-10 text-lime-dark">
+                                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-white bg-opacity-10 text-white">
                                             Active
                                         </span>
                                     {% else %}
@@ -109,7 +109,7 @@
                     <!-- Actions -->
                     <div class="flex items-center space-x-3">
                         {% if invite.is_valid %}
-                            <button onclick="copyInviteLink('{{ invite.code }}')" class="text-lime hover:text-lime-dark text-sm font-medium">
+                            <button onclick="copyInviteLink('{{ invite.code }}')" class="text-white hover:text-gray-300 text-sm font-medium">
                                 Copy Link
                             </button>
                         {% endif %}
@@ -123,8 +123,8 @@
                 {% if invite.is_valid %}
                 <div id="invite-url-{{ invite.code }}" class="mt-4 p-3 bg-gray-800 rounded-lg hidden">
                     <div class="flex items-center justify-between">
-                        <input type="text" readonly value="{{ request.scheme }}://{{ request.get_host }}{% url 'accounts:register' invite.code %}" class="flex-1 bg-zinc-800 text-white border border-gray-600 rounded px-3 py-2 text-sm focus:outline-none focus:border-lime">
-                        <button onclick="copyToClipboard('invite-url-{{ invite.code }}')" class="ml-3 bg-lime text-black px-3 py-2 rounded text-sm hover:bg-lime-dark transition-colors">
+                        <input type="text" readonly value="{{ request.scheme }}://{{ request.get_host }}{% url 'accounts:register' invite.code %}" class="input flex-1">
+                        <button onclick="copyToClipboard('invite-url-{{ invite.code }}')" class="ml-3 bg-white text-black px-3 py-2 rounded text-sm hover:bg-gray-100 transition-colors">
                             Copy
                         </button>
                     </div>
@@ -173,7 +173,7 @@ function copyToClipboard(elementId) {
         setTimeout(() => {
             button.textContent = originalText;
             button.classList.remove('bg-green-600');
-            button.classList.add('bg-lime');
+            button.classList.add('bg-white');
         }, 2000);
     } catch (err) {
         console.error('Failed to copy text: ', err);

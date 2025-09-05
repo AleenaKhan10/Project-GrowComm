@@ -40,7 +40,7 @@
     </div>
 
     <!-- Search and Filter Form -->
-    <div class="mb-6 bg-card p-4 rounded-lg shadow-sm lime-border">
+    <div class="mb-6 bg-card p-4 rounded-lg shadow-sm white-border">
         <form method="GET" class="flex space-x-4">
             <div class="flex-1">
                 {{ form.search }}
@@ -51,14 +51,14 @@
             <div class="w-48">
                 {{ form.tags }}
             </div>
-            <button type="submit" class="px-4 py-2 bg-lime text-black rounded-lg hover:bg-lime-light font-light lime-glow transition-all duration-200">
+            <button type="submit" class="btn btn-primary">
                 Search
             </button>
         </form>
     </div>
 
     <!-- Community Table -->
-    <div class="bg-card rounded-lg shadow-sm lime-border overflow-hidden">
+    <div class="bg-card rounded-lg shadow-sm white-border overflow-hidden">
         <table class="min-w-full divide-y divide-gray-700">
             <thead class="bg-gray-900">
                 <tr>
@@ -80,7 +80,7 @@
                             {% if user.profile.profile_picture %}
                                 <img src="{{ user.profile.profile_picture.url }}" alt="{{ user.profile.display_name }}" class="h-8 w-8 rounded-full object-cover mr-3">
                             {% else %}
-                                <div class="h-8 w-8 rounded-full bg-lime flex items-center justify-center text-black text-sm font-medium mr-3 lime-glow">
+                                <div class="h-8 w-8 rounded-full bg-white flex items-center justify-center text-black text-sm font-medium mr-3 white-glow">
                                     {{ user.first_name|first|default:user.username|first }}
                                 </div>
                             {% endif %}
@@ -111,7 +111,7 @@
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
                         {% if user.profile.tag_list %}
                             {% for tag in user.profile.tag_list|slice:":2" %}
-                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-lime/20 text-lime mr-1">
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-white/20 text-white mr-1">
                                     {{ tag }}
                                 </span>
                             {% endfor %}
@@ -125,7 +125,7 @@
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <button 
                             onclick="toggleUserDetails({{ user.id }})" 
-                            class="text-gray-400 hover:text-lime"
+                            class="text-gray-400 hover:text-white"
                         >
                             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
@@ -164,7 +164,7 @@
                                 <label class="block text-sm font-medium text-gray-300 mb-2">Your Message:</label>
                                 <textarea 
                                     id="message-text-{{ user.id }}" 
-                                    class="w-full p-3 border border-gray-600 rounded-lg bg-gray-900 text-white placeholder-gray-400 focus:ring-2 focus:ring-lime focus:border-lime lime-border" 
+                                    class="input" 
                                     rows="3" 
                                     placeholder="Write your message here..."
                                 ></textarea>
@@ -178,8 +178,7 @@
                                 </button>
                                 <button 
                                     onclick="sendMessage({{ user.id }})" 
-                                    class="px-6 py-2 bg-lime text-black text-sm font-medium rounded-md hover:bg-lime-light transition-colors lime-glow">
-                                >
+                                    class="btn btn-primary text-sm">
                                     💬 Send Message
                                 </button>
                             </div>
@@ -198,7 +197,7 @@
             {% if page_obj.has_previous %}
                 <a href="?page={{ page_obj.previous_page_number }}" class="px-3 py-2 text-sm bg-gray-800 border border-gray-600 text-white rounded hover:bg-gray-700">Previous</a>
             {% endif %}
-            <span class="px-3 py-2 text-sm bg-lime/20 border border-lime text-lime rounded">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+            <span class="px-3 py-2 text-sm bg-white/20 border border-white text-white rounded">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
             {% if page_obj.has_next %}
                 <a href="?page={{ page_obj.next_page_number }}" class="px-3 py-2 text-sm bg-gray-800 border border-gray-600 text-white rounded hover:bg-gray-700">Next</a>
             {% endif %}
@@ -222,7 +221,7 @@ function selectMessageType(userId, type) {
     const buttons = parentRow.querySelectorAll('.message-type-btn');
     buttons.forEach(btn => {
         if (btn.textContent.trim().includes(type)) {
-            btn.className = 'message-type-btn px-3 py-2 text-sm bg-lime text-black rounded transition-all transform scale-105 lime-glow';
+            btn.className = 'message-type-btn px-3 py-2 text-sm bg-white text-black rounded transition-all transform scale-105 white-glow';
         } else {
             btn.className = 'message-type-btn px-3 py-2 text-sm bg-gray-700 hover:bg-gray-600 text-white rounded transition-all';
         }
@@ -288,7 +287,7 @@ function sendMessage(userId) {
         // Restore button state
         sendButton.disabled = false;
         sendButton.innerHTML = 'Send Message';
-        sendButton.className = 'px-6 py-2 bg-lime text-black text-sm font-medium rounded-md hover:bg-lime-light transition-colors lime-glow';
+        sendButton.className = 'btn btn-primary text-sm';
     });
 }
 

@@ -7,16 +7,16 @@
     <div class="max-w-md w-full space-y-8">
         <!-- Header -->
         <div>
-            <div class="mx-auto h-12 w-12 flex items-center justify-center rounded-full bg-lime lime-glow">
+            <div class="mx-auto h-12 w-12 flex items-center justify-center rounded-full bg-white white-glow">
                 <svg class="h-6 w-6 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
                 </svg>
             </div>
             <h2 class="mt-6 text-center text-3xl font-light text-white">
-                Join <span class="logo-text">Grow<span class="logo-accent lime-text">Community</span></span>
+                Join <span class="logo-text">Grow<span class="logo-accent white-text">Community</span></span>
             </h2>
             <p class="mt-2 text-center text-sm text-gray-300 font-light">
-                You've been invited by <span class="font-medium text-lime">{{ inviter_name }}</span>
+                You've been invited by <span class="font-medium text-white">{{ inviter_name }}</span>
             </p>
         </div>
         
@@ -29,7 +29,7 @@
                     <label for="{{ form.first_name.id_for_label }}" class="block text-sm font-light text-gray-300 mb-2">
                         First Name
                     </label>
-                    <input type="text" name="{{ form.first_name.name }}" id="{{ form.first_name.id_for_label }}" class="appearance-none relative block w-full px-3 py-3 border border-gray-600 bg-gray-900 text-white placeholder-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-lime focus:border-lime focus:z-10 text-sm font-light lime-border transition-all" placeholder="Enter your first name" {% if form.first_name.value %}value="{{ form.first_name.value }}"{% endif %}>
+                    <input type="text" name="{{ form.first_name.name }}" id="{{ form.first_name.id_for_label }}" class="input" placeholder="Enter your first name" {% if form.first_name.value %}value="{{ form.first_name.value }}"{% endif %}>
                     {% if form.first_name.errors %}
                         <p class="mt-1 text-sm text-red-400">{{ form.first_name.errors.0 }}</p>
                     {% endif %}
@@ -40,7 +40,7 @@
                     <label for="{{ form.last_name.id_for_label }}" class="block text-sm font-light text-gray-300 mb-2">
                         Last Name
                     </label>
-                    <input type="text" name="{{ form.last_name.name }}" id="{{ form.last_name.id_for_label }}" class="appearance-none relative block w-full px-3 py-3 border border-gray-600 bg-gray-900 text-white placeholder-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-lime focus:border-lime focus:z-10 text-sm font-light lime-border transition-all" placeholder="Enter your last name" {% if form.last_name.value %}value="{{ form.last_name.value }}"{% endif %}>
+                    <input type="text" name="{{ form.last_name.name }}" id="{{ form.last_name.id_for_label }}" class="input" placeholder="Enter your last name" {% if form.last_name.value %}value="{{ form.last_name.value }}"{% endif %}>
                     {% if form.last_name.errors %}
                         <p class="mt-1 text-sm text-red-400">{{ form.last_name.errors.0 }}</p>
                     {% endif %}
@@ -51,7 +51,7 @@
                     <label for="{{ form.username.id_for_label }}" class="block text-sm font-light text-gray-300 mb-2">
                         Username
                     </label>
-                    <input type="text" name="{{ form.username.name }}" id="{{ form.username.id_for_label }}" class="appearance-none relative block w-full px-3 py-3 border border-gray-600 bg-gray-900 text-white placeholder-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-lime focus:border-lime focus:z-10 text-sm font-light lime-border transition-all" placeholder="Choose a username" {% if form.username.value %}value="{{ form.username.value }}"{% endif %}>
+                    <input type="text" name="{{ form.username.name }}" id="{{ form.username.id_for_label }}" class="input" placeholder="Choose a username" {% if form.username.value %}value="{{ form.username.value }}"{% endif %}>
                     {% if form.username.errors %}
                         <p class="mt-1 text-sm text-red-400">{{ form.username.errors.0 }}</p>
                     {% endif %}
@@ -62,7 +62,7 @@
                     <label for="{{ form.email.id_for_label }}" class="block text-sm font-light text-gray-300 mb-2">
                         Email Address
                     </label>
-                    <input type="email" name="{{ form.email.name }}" id="{{ form.email.id_for_label }}" class="appearance-none relative block w-full px-3 py-3 border border-gray-600 bg-gray-900 text-white placeholder-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-lime focus:border-lime focus:z-10 text-sm font-light lime-border transition-all" placeholder="Enter your email address" {% if form.email.value %}value="{{ form.email.value }}"{% endif %}>
+                    <input type="email" name="{{ form.email.name }}" id="{{ form.email.id_for_label }}" class="input" placeholder="Enter your email address" {% if form.email.value %}value="{{ form.email.value }}"{% endif %}>
                     {% if form.email.errors %}
                         <p class="mt-1 text-sm text-red-400">{{ form.email.errors.0 }}</p>
                     {% endif %}
@@ -73,7 +73,7 @@
                     <label for="{{ form.password1.id_for_label }}" class="block text-sm font-light text-gray-300 mb-2">
                         Password
                     </label>
-                    <input type="password" name="{{ form.password1.name }}" id="{{ form.password1.id_for_label }}" class="appearance-none relative block w-full px-3 py-3 border border-gray-600 bg-gray-900 text-white placeholder-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-lime focus:border-lime focus:z-10 text-sm font-light lime-border transition-all" placeholder="Create a password">
+                    <input type="password" name="{{ form.password1.name }}" id="{{ form.password1.id_for_label }}" class="input" placeholder="Create a password">
                     {% if form.password1.errors %}
                         <p class="mt-1 text-sm text-red-400">{{ form.password1.errors.0 }}</p>
                     {% endif %}
@@ -84,7 +84,7 @@
                     <label for="{{ form.password2.id_for_label }}" class="block text-sm font-light text-gray-300 mb-2">
                         Confirm Password
                     </label>
-                    <input type="password" name="{{ form.password2.name }}" id="{{ form.password2.id_for_label }}" class="appearance-none relative block w-full px-3 py-3 border border-gray-600 bg-gray-900 text-white placeholder-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-lime focus:border-lime focus:z-10 text-sm font-light lime-border transition-all" placeholder="Confirm your password">
+                    <input type="password" name="{{ form.password2.name }}" id="{{ form.password2.id_for_label }}" class="input" placeholder="Confirm your password">
                     {% if form.password2.errors %}
                         <p class="mt-1 text-sm text-red-400">{{ form.password2.errors.0 }}</p>
                     {% endif %}
@@ -92,9 +92,9 @@
 
                 <!-- Terms Acceptance -->
                 <div class="flex items-center">
-                    <input type="checkbox" name="{{ form.accept_terms.name }}" id="{{ form.accept_terms.id_for_label }}" class="h-4 w-4 text-lime focus:ring-lime border-gray-600 bg-gray-800 rounded">
+                    <input type="checkbox" name="{{ form.accept_terms.name }}" id="{{ form.accept_terms.id_for_label }}" class="h-4 w-4 border-gray-600 bg-gray-800 rounded focus:ring-white">
                     <label for="{{ form.accept_terms.id_for_label }}" class="ml-2 block text-sm text-gray-300 font-light">
-                        I accept the <a href="#" class="text-lime hover:text-lime-light lime-text">Terms of Service</a> and <a href="#" class="text-lime hover:text-lime-light lime-text">Privacy Policy</a>
+                        I accept the <a href="#" class="text-white hover:text-gray-300">Terms of Service</a> and <a href="#" class="text-white hover:text-gray-300">Privacy Policy</a>
                     </label>
                 </div>
                 {% if form.accept_terms.errors %}
@@ -113,19 +113,17 @@
 
             <!-- Create Account Button -->
             <div>
-                <button type="submit" class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-light rounded-lg text-black bg-lime hover:bg-lime-light focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-lime ring-offset-black lime-glow transition-all duration-200">
-                    <span class="absolute left-0 inset-y-0 flex items-center pl-3">
-                        <svg class="h-5 w-5 text-black group-hover:text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
-                        </svg>
-                    </span>
+                <button type="submit" class="btn btn-primary w-full">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+                    </svg>
                     Create Account
                 </button>
             </div>
 
             <!-- Back to Login -->
             <div class="text-center">
-                <a href="{% url 'accounts:login' %}" class="font-light text-lime hover:text-lime-light lime-text">
+                <a href="{% url 'accounts:login' %}" class="font-light text-white hover:text-gray-300">
                     Already have an account? Sign in
                 </a>
             </div>
