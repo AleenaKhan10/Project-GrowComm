@@ -285,21 +285,6 @@
         </nav>
         {% endif %}
 
-        <!-- Superadmin Status Banner -->
-        {% if user.is_authenticated and user.is_superuser %}
-        <div class="bg-blue-50 border-b border-blue-200">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
-                <div class="flex items-center space-x-3">
-                    <svg class="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M9.504 1.132a1 1 0 01.992 0l1.75 1a1 1 0 11-.992 1.736L10 3.152l-1.254.716a1 1 0 11-.992-1.736l1.75-1zM5.618 4.504a1 1 0 01-.372 1.364L5.016 6l.23.132a1 1 0 11-.992 1.736L3.5 7.64a1 1 0 01-1.019-.007l-.75-.43a1 1 0 01.372-1.364l.75-.43a1 1 0 011.019.007l.746.428zm8.764 0a1 1 0 01.372 1.364l-.75.43a1 1 0 01-1.019-.007L12.5 5.86a1 1 0 01-.372-1.364l.75-.43a1 1 0 011.019.007l.484.277.23-.132a1 1 0 01.992 1.736L14.382 4.504z" clip-rule="evenodd"/>
-                    </svg>
-                    <p class="text-sm font-medium text-blue-800">
-                        Superadmin Access - All features unlocked
-                    </p>
-                </div>
-            </div>
-        </div>
-        {% endif %}
 
         <!-- Verification Status Banner (for unverified users) -->
         {% if user.is_authenticated and not user.is_superuser and not user.profile.is_verified and user.profile.needs_referrals %}

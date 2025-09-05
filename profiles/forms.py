@@ -139,21 +139,21 @@ class ProfileSearchForm(forms.Form):
     search = forms.CharField(
         required=False,
         widget=forms.TextInput(attrs={
-            'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent',
-            'placeholder': 'Search by name, company, skills, or interests...'
+            'class': 'w-full px-3 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-cyan-500 focus:border-transparent h-8',
+            'placeholder': 'Search by name, company, skills...'
         })
     )
     organization_level = forms.ChoiceField(
         required=False,
         choices=[('', 'All Levels')] + UserProfile.ORGANIZATION_LEVELS,
         widget=forms.Select(attrs={
-            'class': 'px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent'
+            'class': 'w-full px-3 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-cyan-500 focus:border-transparent h-8'
         })
     )
     tags = forms.CharField(
         required=False,
         widget=forms.TextInput(attrs={
-            'class': 'px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent',
+            'class': 'w-full px-3 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-cyan-500 focus:border-transparent h-8',
             'placeholder': 'Filter by tags...'
         })
     )

@@ -62,15 +62,34 @@ def user_list(request):
     message_types = MessageType.objects.filter(is_active=True)
     users_slot_data = {}
     
+    def make_json_safe(obj):
+        """Recursively convert objects to JSON-serializable types"""
+        from django.db import models
+        
+        if isinstance(obj, models.Model):
+            # Convert Django model instances to their name/string representation
+            return str(obj)
+        elif hasattr(obj, '__dict__') and not isinstance(obj, (str, int, float, bool, type(None))):
+            # Convert other objects with __dict__ to string
+            return str(obj)
+        elif isinstance(obj, dict):
+            return {str(key): make_json_safe(value) for key, value in obj.items()}
+        elif isinstance(obj, (list, tuple)):
+            return [make_json_safe(item) for item in obj]
+        else:
+            return obj
+
     for user in page_obj:
         if hasattr(user, 'message_settings'):
             try:
                 slot_availability = user.message_settings.get_slot_availability_for_user(request.user)
-                users_slot_data[user.id] = slot_availability
+                # Convert to JSON-serializable format recursively
+                users_slot_data[user.id] = make_json_safe(slot_availability)
             except:
                 users_slot_data[user.id] = {}
         else:
             users_slot_data[user.id] = {}
+    
     
     context = {
         'form': form,
@@ -79,6 +98,7 @@ def user_list(request):
         'user_is_verified': request.user.is_superuser or (hasattr(request.user, 'profile') and request.user.profile.is_verified),
         'message_types': message_types,
         'users_slot_data': users_slot_data,
+        'users_slot_data_json': json.dumps(users_slot_data, default=str),
     }
     return render(request, 'communities/user_list.html', context)
 
