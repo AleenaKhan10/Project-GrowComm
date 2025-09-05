@@ -481,17 +481,17 @@ class MessagingApp {
         const messageDiv = document.createElement('div');
         const isOwnMessage = message.sender_id == {{ user.id }};
         
-        messageDiv.className = `flex ${isOwnMessage ? 'justify-end' : 'justify-start'} mb-4 message-enter`;
+        messageDiv.className = `flex ${isOwnMessage ? 'justify-end' : 'justify-start'} mb-2 message-enter`;
         
         const timestamp = this.formatTime(message.timestamp);
-        const messageContent = this.escapeHtml(message.content);
+        const messageContent = this.escapeHtml(message.content.trim());
         
         messageDiv.innerHTML = `
-            <div class="max-w-[70%] group">
+            <div class="max-w-[85%] min-w-[60px] group">
                 <div class="message-bubble ${isOwnMessage ? 'message-sent' : 'message-received'}">
-                    <p class="text-sm leading-relaxed whitespace-pre-wrap">${messageContent}</p>
+                    <p class="text-sm break-words m-0 p-0" style="line-height: 1.25; white-space: normal;">${messageContent}</p>
                 </div>
-                <div class="flex ${isOwnMessage ? 'justify-end' : 'justify-start'} mt-1">
+                <div class="flex ${isOwnMessage ? 'justify-end' : 'justify-start'} mt-0.5">
                     <span class="text-xs text-gray-500 px-2 opacity-70 group-hover:opacity-100 transition-opacity">
                         ${timestamp}
                     </span>
