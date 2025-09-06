@@ -1,0 +1,50 @@
+services:
+  # Nginx reverse proxy with SSL
+  nginx:
+    image: nginx:alpine
+    container_name: growcomm-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+      - static_volume:/app/staticfiles:ro
+      - media_volume:/app/media:ro
+    depends_on:
+      - web
+    networks:
+      - growcomm-network
+    restart: unless-stopped
+
+  # Django application with SQLite
+  web:
+    build: .
+    container_name: growcomm-web
+    command: >
+      sh -c "
+      python manage.py collectstatic --noinput &&
+      python manage.py migrate &&
+      gunicorn growcommunity.wsgi:application --bind 0.0.0.0:8000 --workers 3
+      "
+    volumes:
+      - .:/app
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+      - db_volume:/app/data
+    expose:
+      - 8000
+    env_file:
+      - .env.production
+    networks:
+      - growcomm-network
+    restart: unless-stopped
+
+volumes:
+  static_volume:
+  media_volume:
+  db_volume:  # This will store the SQLite database file
+
+networks:
+  growcomm-network:
+    driver: bridge

@@ -1,0 +1,17 @@
+{% if custom_slots %}
+    <div class="space-y-3">
+        {% for slot in custom_slots %}
+            {% include 'profiles/custom_slot_item.html' with slot=slot can_edit=can_edit %}
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="text-center py-8">
+        <div class="text-gray-400 mb-2">
+            <svg class="h-12 w-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2M4 13h2m13-4h-2m-5 4h2m0 0V9m0 4v2"/>
+            </svg>
+        </div>
+        <p class="text-sm text-gray-500">No custom categories yet.</p>
+        <p class="text-xs text-gray-400 mt-1">Click "Add Category" to create your first custom message category.</p>
+    </div>
+{% endif %}

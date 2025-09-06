@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load invite_tags %}
 
 {% block title %}Invites & Referrals - GrowComm{% endblock %}
 
@@ -316,6 +317,13 @@
                     <div class="flex items-center justify-between">
                         <div class="flex-1">
                             <div class="flex items-center space-x-4">
+                                <!-- Counter Number -->
+                                <div class="flex-shrink-0">
+                                    <div class="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
+                                        <span class="text-sm font-bold text-gray-700">#{{ forloop.counter }}</span>
+                                    </div>
+                                </div>
+                                
                                 <!-- Status Indicator -->
                                 <div class="flex-shrink-0">
                                     {% if invite.is_used %}
@@ -342,7 +350,7 @@
                                 <!-- Invite Details -->
                                 <div class="flex-1">
                                     <div class="flex items-center space-x-2">
-                                        <h3 class="text-sm font-medium text-black">{{ invite.code }}</h3>
+                                        <h3 class="text-sm font-medium text-black">Invite Link #{{ forloop.counter }}</h3>
                                         {% if invite.is_used %}
                                             <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
                                                 Used
@@ -356,17 +364,32 @@
                                                 Expired
                                             </span>
                                         {% endif %}
+                                        {% if forloop.first %}
+                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                                New
+                                            </span>
+                                        {% endif %}
                                     </div>
                                     
                                     <div class="mt-1 text-sm text-gray-600">
-                                        <p>Created: {{ invite.created_date|date:"M d, Y" }}</p>
+                                        <p>Created: {{ invite.created_date|date:"M d, Y H:i" }}</p>
                                         {% if invite.expiry_date %}
-                                            <p>Expires: {{ invite.expiry_date|date:"M d, Y" }}</p>
+                                            <p>Expires: {{ invite.expiry_date|date:"M d, Y H:i" }}</p>
                                         {% endif %}
                                         {% if invite.is_used and invite.used_by %}
                                             <p>Used by: {{ invite.used_by.username }} on {{ invite.used_by.date_joined|date:"M d, Y" }}</p>
                                         {% endif %}
                                     </div>
+                                    
+                                    <!-- Direct URL Display for Active Invites -->
+                                    {% if invite.is_valid %}
+                                    <div class="mt-2 flex items-center space-x-2">
+                                        <input type="text" readonly id="invite-link-{{ forloop.counter }}" value="{% get_invite_url invite.code %}" class="text-xs text-gray-500 bg-gray-50 px-2 py-1 rounded border border-gray-200 flex-1">
+                                        <button onclick="copyDirectLink('invite-link-{{ forloop.counter }}')" class="text-xs text-blue-600 hover:text-blue-800 font-medium">
+                                            Copy
+                                        </button>
+                                    </div>
+                                    {% endif %}
                                 </div>
                             </div>
                         </div>
@@ -374,24 +397,15 @@
                         <!-- Actions -->
                         <div class="flex items-center space-x-3">
                             {% if invite.is_valid %}
-                                <button onclick="copyInviteLink('{{ invite.code }}')" class="text-black hover:text-gray-600 text-sm font-medium">
+                                <button onclick="copyDirectLink('invite-link-{{ forloop.counter }}')" class="btn btn-primary text-sm">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                                    </svg>
                                     Copy Link
                                 </button>
                             {% endif %}
                         </div>
                     </div>
-                    
-                    <!-- Full invite URL (initially hidden) -->
-                    {% if invite.is_valid %}
-                    <div id="invite-url-{{ invite.code }}" class="mt-4 p-3 bg-gray-100 rounded-lg hidden">
-                        <div class="flex items-center justify-between">
-                            <input type="text" readonly value="{{ request.scheme }}://{{ request.get_host }}{% url 'accounts:register' invite.code %}" class="input flex-1">
-                            <button onclick="copyToClipboard('invite-url-{{ invite.code }}')" class="ml-3 btn btn-primary">
-                                Copy
-                            </button>
-                        </div>
-                    </div>
-                    {% endif %}
                 </div>
                 {% endfor %}
             </div>
@@ -593,33 +607,59 @@ function showTab(tabName) {
     activeTab.classList.remove('border-transparent', 'text-gray-500');
 }
 
-function copyInviteLink(inviteCode) {
-    const urlDiv = document.getElementById('invite-url-' + inviteCode);
-    urlDiv.classList.toggle('hidden');
-}
-
-function copyToClipboard(elementId) {
-    const element = document.getElementById(elementId);
-    const input = element.querySelector('input');
+function copyDirectLink(inputId) {
+    const input = document.getElementById(inputId);
+    
+    // Select the text
     input.select();
     input.setSelectionRange(0, 99999);
     
     try {
-        document.execCommand('copy');
-        const button = element.querySelector('button');
-        const originalText = button.textContent;
-        button.textContent = 'Copied!';
-        button.classList.add('bg-green-600');
-        button.classList.remove('bg-white');
-        
-        setTimeout(() => {
-            button.textContent = originalText;
-            button.classList.remove('bg-green-600');
-            button.classList.add('btn', 'btn-primary');
-        }, 2000);
+        // Try modern clipboard API first
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(input.value).then(function() {
+                showCopySuccess(inputId);
+            }).catch(function(err) {
+                // Fallback to execCommand
+                document.execCommand('copy');
+                showCopySuccess(inputId);
+            });
+        } else {
+            // Fallback for older browsers
+            document.execCommand('copy');
+            showCopySuccess(inputId);
+        }
     } catch (err) {
         console.error('Failed to copy text: ', err);
+        alert('Failed to copy link. Please select and copy manually.');
     }
+}
+
+function showCopySuccess(inputId) {
+    // Find all buttons that might have triggered this
+    const buttons = document.querySelectorAll(`button[onclick*="${inputId}"]`);
+    buttons.forEach(button => {
+        const originalHTML = button.innerHTML;
+        button.innerHTML = '<svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>Copied!';
+        button.classList.add('bg-green-600');
+        
+        setTimeout(() => {
+            button.innerHTML = originalHTML;
+            button.classList.remove('bg-green-600');
+        }, 2000);
+    });
+    
+    // Also show a temporary tooltip
+    const input = document.getElementById(inputId);
+    const tooltip = document.createElement('div');
+    tooltip.className = 'absolute bg-green-600 text-white px-2 py-1 rounded text-xs -top-8 left-0';
+    tooltip.textContent = 'Link copied to clipboard!';
+    input.parentElement.style.position = 'relative';
+    input.parentElement.appendChild(tooltip);
+    
+    setTimeout(() => {
+        tooltip.remove();
+    }, 2000);
 }
 </script>
 {% endblock %}

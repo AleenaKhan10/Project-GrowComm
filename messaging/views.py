@@ -12,9 +12,13 @@ import json
 
 from .models import (
     Conversation, Message, MessageRequest, 
-    MessageType, UserMessageSettings, MessageSlotBooking, IdentityRevelation
+    MessageType, UserMessageSettings, MessageSlotBooking, IdentityRevelation,
+    CustomMessageSlot
 )
-from .forms import MessageRequestForm, MessageReplyForm, UserMessageSettingsForm
+from .forms import (
+    MessageRequestForm, MessageReplyForm, UserMessageSettingsForm,
+    CustomMessageSlotForm, CustomMessageSlotFormSet
+)
 from profiles.decorators import verified_user_required
 
 
@@ -567,21 +571,62 @@ def respond_to_request(request, request_id):
 
 @login_required
 def message_settings(request):
-    """Edit user's message settings"""
+    """Edit user's message settings and manage custom message categories"""
     settings, created = UserMessageSettings.objects.get_or_create(user=request.user)
     
+    # Get existing custom slots for the user
+    custom_slots = CustomMessageSlot.objects.filter(user=request.user)
+    
     if request.method == 'POST':
-        form = UserMessageSettingsForm(request.POST, instance=settings)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Your message settings have been updated!')
+        # Handle main settings form
+        if 'save_settings' in request.POST:
+            form = UserMessageSettingsForm(request.POST, instance=settings)
+            if form.is_valid():
+                form.save()
+                messages.success(request, 'Your message settings have been updated!')
+                return redirect('messaging:settings')
+        
+        # Handle adding new custom slot
+        elif 'add_slot' in request.POST:
+            slot_form = CustomMessageSlotForm(request.POST, user=request.user)
+            if slot_form.is_valid():
+                slot = slot_form.save(commit=False)
+                slot.user = request.user
+                slot.save()
+                messages.success(request, f'Custom category "{slot.name}" has been added!')
+                return redirect('messaging:settings')
+        
+        # Handle editing existing slot
+        elif 'edit_slot' in request.POST:
+            slot_id = request.POST.get('slot_id')
+            slot = get_object_or_404(CustomMessageSlot, id=slot_id, user=request.user)
+            slot_form = CustomMessageSlotForm(request.POST, instance=slot, user=request.user)
+            if slot_form.is_valid():
+                slot_form.save()
+                messages.success(request, 'Custom category has been updated!')
+                return redirect('messaging:settings')
+        
+        # Handle deleting slot
+        elif 'delete_slot' in request.POST:
+            slot_id = request.POST.get('slot_id')
+            slot = get_object_or_404(CustomMessageSlot, id=slot_id, user=request.user)
+            slot_name = slot.name
+            slot.delete()
+            messages.success(request, f'Custom category "{slot_name}" has been deleted!')
             return redirect('messaging:settings')
+        
+        else:
+            form = UserMessageSettingsForm(instance=settings)
+            slot_form = CustomMessageSlotForm(user=request.user)
     else:
         form = UserMessageSettingsForm(instance=settings)
+        slot_form = CustomMessageSlotForm(user=request.user)
     
     context = {
         'form': form,
         'settings': settings,
+        'slot_form': slot_form,
+        'custom_slots': custom_slots,
     }
     return render(request, 'messaging/settings.html', context)
 

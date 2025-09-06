@@ -282,7 +282,7 @@
                 </tr>
             </thead>
             <tbody>
-                {% for user in page_obj %}
+                {% for user in users %}
                 <tr>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <div class="flex items-center">
@@ -351,12 +351,10 @@
                             <div class="mb-4">
                                 <label class="form-label">Select Message Type:</label>
                                 <div class="flex flex-wrap gap-2 mb-4">
-                                    {% for message_type in message_types %}
-                                        {% with user_slots=users_slot_data|dict_get:user.id %}
-                                        {% with slot_key=message_type.name|lower|space_to_underscore %}
-                                        {% with slot_info=user_slots|dict_get:slot_key %}
+                                    {% with user_slots=users_slot_data|dict_get:user.id %}
+                                    {% for slot_key, slot_info in user_slots.items %}
                                         <button 
-                                            onclick="{% if request.user.is_superuser or user_is_verified %}selectMessageType({{ user.id }}, '{{ message_type.name }}'){% else %}showVerificationRequired(){% endif %}" 
+                                            onclick="{% if request.user.is_superuser or user_is_verified %}selectMessageType({{ user.id }}, '{{ slot_info.message_type.name }}'){% else %}showVerificationRequired(){% endif %}" 
                                             class="btn message-type-btn
                                                 {% if not user_is_verified and not request.user.is_superuser %}btn-ghost cursor-not-allowed
                                                 {% elif slot_info.status == 'available' %}btn-secondary
@@ -365,27 +363,23 @@
                                             {% if slot_info.status != 'available' or not user_is_verified and not request.user.is_superuser %}disabled{% endif %}
                                             title="{% if not user_is_verified and not request.user.is_superuser %}Get verified to send messages{% endif %}"
                                         >
-                                            {{ message_type.name }}
-                                            {% if slot_info %}
-                                                <span class="ml-1 text-xs
-                                                    {% if slot_info.status == 'available' %}text-green-600
-                                                    {% elif slot_info.status == 'already_sent' %}text-gray-500
-                                                    {% elif slot_info.status == 'full' %}text-red-600{% endif %}
-                                                ">
-                                                    {% if slot_info.status == 'available' %}
-                                                        ({{ slot_info.available_slots }}/{{ slot_info.total_slots }})
-                                                    {% elif slot_info.status == 'already_sent' %}
-                                                        ✓ Sent
-                                                    {% elif slot_info.status == 'full' %}
-                                                        (Full)
-                                                    {% endif %}
-                                                </span>
-                                            {% endif %}
+                                            {{ slot_info.message_type.name }}
+                                            <span class="ml-1 text-xs
+                                                {% if slot_info.status == 'available' %}text-green-600
+                                                {% elif slot_info.status == 'already_sent' %}text-gray-500
+                                                {% elif slot_info.status == 'full' %}text-red-600{% endif %}
+                                            ">
+                                                {% if slot_info.status == 'available' %}
+                                                    ({{ slot_info.available_slots }}/{{ slot_info.total_slots }})
+                                                {% elif slot_info.status == 'already_sent' %}
+                                                    ✓ Sent
+                                                {% elif slot_info.status == 'full' %}
+                                                    (Full)
+                                                {% endif %}
+                                            </span>
                                         </button>
-                                        {% endwith %}
-                                        {% endwith %}
-                                        {% endwith %}
                                     {% endfor %}
+                                    {% endwith %}
                                 </div>
                             </div>
                             <div class="mb-4">
@@ -422,7 +416,7 @@
         
         <!-- Mobile list view - Minimal -->
         <div class="block md:hidden">
-            {% for user in page_obj %}
+            {% for user in users %}
                 <div class="border-b border-gray-200 last:border-b-0">
                     <!-- Minimal User Row -->
                     <button 
@@ -543,20 +537,6 @@
         </div>
     </div>
 
-    <!-- Pagination -->
-    {% if page_obj.has_other_pages %}
-    <div class="flex justify-center mt-6">
-        <nav class="flex space-x-2">
-            {% if page_obj.has_previous %}
-                <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-secondary">Previous</a>
-            {% endif %}
-            <span class="px-3 py-2 text-sm bg-gray-100 border border-gray-300 text-black rounded">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
-            {% if page_obj.has_next %}
-                <a href="?page={{ page_obj.next_page_number }}" class="btn btn-secondary">Next</a>
-            {% endif %}
-        </nav>
-    </div>
-    {% endif %}
 </div>
 
 <script>
@@ -649,15 +629,21 @@ function populateMessageTypes(userId) {
         console.log('User Slot Data:', userSlotData);
     }
     
-    // Message types with actual slot info
-    const messageTypes = [
-        {% for message_type in message_types %}
-        {
-            id: {{ message_type.id }},
-            name: "{{ message_type.name }}"
-        },
-        {% endfor %}
-    ];
+    // Get message types from user's slot data (both default and custom)
+    const messageTypes = [];
+    
+    if (userSlotData) {
+        Object.keys(userSlotData).forEach(slotKey => {
+            const slotInfo = userSlotData[slotKey];
+            if (slotInfo.message_type) {
+                messageTypes.push({
+                    id: slotInfo.message_type.id || slotInfo.custom_slot_id,
+                    name: slotInfo.message_type.name,
+                    is_custom: slotInfo.is_custom || false
+                });
+            }
+        });
+    }
     
     messageTypes.forEach(type => {
         const btn = document.createElement('button');

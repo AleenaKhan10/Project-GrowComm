@@ -8,14 +8,21 @@ class UserProfile(models.Model):
     """Extended user profile with professional and community information"""
     
     ORGANIZATION_LEVELS = [
-        ('junior', 'Junior Level'),
-        ('mid', 'Mid Level'),
-        ('senior', 'Senior Level'),
-        ('lead', 'Lead/Manager'),
-        ('executive', 'Executive'),
-        ('founder', 'Founder/CEO'),
         ('student', 'Student'),
+        ('junior', 'Junior Level'),
+        ('senior', 'Senior Level'),
+        ('lead', 'Lead Level'),
+        ('director', 'Director Level'),
+        ('executive', 'Executive Level'),
+        ('founder', 'Startup Founder'),
+        ('owner', 'Business Owner'),
+    ]
+    
+    GENDER_CHOICES = [
+        ('male', 'Male'),
+        ('female', 'Female'),
         ('other', 'Other'),
+        ('prefer_not_to_say', 'Prefer not to say'),
     ]
     
     NAME_VISIBILITY_CHOICES = [
@@ -33,6 +40,24 @@ class UserProfile(models.Model):
         blank=True, 
         null=True,
         help_text="Upload a profile picture (max 5MB)"
+    )
+    
+    # Personal information
+    gender = models.CharField(
+        max_length=20,
+        choices=GENDER_CHOICES,
+        blank=True,
+        default='prefer_not_to_say'
+    )
+    city = models.CharField(
+        max_length=100,
+        blank=True,
+        help_text="Your city (e.g., New York)"
+    )
+    country = models.CharField(
+        max_length=100,
+        blank=True,
+        help_text="Your country (e.g., United States)"
     )
     
     # Professional information
@@ -54,11 +79,10 @@ class UserProfile(models.Model):
         blank=True
     )
     
-    # Education
-    schools = models.CharField(
-        max_length=200, 
+    # Education - Now supports multiple schools
+    schools = models.TextField(
         blank=True,
-        help_text="Schools, universities, or educational institutions"
+        help_text="Schools, universities, or educational institutions (one per line or comma-separated)"
     )
     
     # Skills and interests
@@ -85,7 +109,8 @@ class UserProfile(models.Model):
     created_date = models.DateTimeField(auto_now_add=True)
     updated_date = models.DateTimeField(auto_now=True)
     
-    # Message type slots for different conversation types
+    # Legacy fields - kept for backward compatibility
+    # Message slot limits are now handled through CustomMessageSlot and UserMessageSettings
     coffee_chat_slots = models.PositiveIntegerField(default=5)
     mentorship_slots = models.PositiveIntegerField(default=3)
     networking_slots = models.PositiveIntegerField(default=10)
@@ -189,6 +214,57 @@ class UserProfile(models.Model):
         return []
     
     @property
+    def school_list(self):
+        """Return schools as a list"""
+        if self.schools:
+            # Support both comma and newline separated
+            schools_text = self.schools.replace('\n', ',')
+            return [school.strip() for school in schools_text.split(',') if school.strip()]
+        return []
+    
+    @property
+    def current_slot_configuration(self):
+        """Return the current slot configuration based on user's settings"""
+        from messaging.models import CustomMessageSlot, UserMessageSettings
+        
+        # Get user's message settings
+        try:
+            settings = UserMessageSettings.objects.get(user=self.user)
+            use_custom = settings.use_custom_slots
+        except UserMessageSettings.DoesNotExist:
+            use_custom = False
+        
+        if use_custom:
+            # Return custom slots
+            custom_slots = CustomMessageSlot.objects.filter(
+                user=self.user, 
+                is_active=True
+            ).order_by('name')
+            
+            return {
+                'type': 'custom',
+                'slots': [
+                    {
+                        'name': slot.name,
+                        'limit': slot.slot_limit,
+                        'key': slot.name.lower().replace(' ', '_')
+                    }
+                    for slot in custom_slots
+                ]
+            }
+        else:
+            # Return default slots
+            return {
+                'type': 'default',
+                'slots': [
+                    {'name': 'Coffee Chat', 'limit': self.coffee_chat_slots, 'key': 'coffee_chat'},
+                    {'name': 'Mentorship', 'limit': self.mentorship_slots, 'key': 'mentorship'},
+                    {'name': 'Networking', 'limit': self.networking_slots, 'key': 'networking'},
+                    {'name': 'General', 'limit': self.general_slots, 'key': 'general'},
+                ]
+            }
+    
+    @property
     def available_slots(self):
         """Return available message slots for each type"""
         from messaging.models import Message
@@ -197,36 +273,25 @@ class UserProfile(models.Model):
         from datetime import datetime, timedelta
         thirty_days_ago = datetime.now() - timedelta(days=30)
         
-        used_coffee_slots = Message.objects.filter(
-            sender=self.user,
-            message_type__name='Coffee Chat',
-            timestamp__gte=thirty_days_ago
-        ).count()
+        config = self.current_slot_configuration
+        available = {}
         
-        used_mentorship_slots = Message.objects.filter(
-            sender=self.user,
-            message_type__name='Mentorship',
-            timestamp__gte=thirty_days_ago
-        ).count()
+        for slot in config['slots']:
+            # Count used slots for this category
+            used_count = Message.objects.filter(
+                sender=self.user,
+                message_type__name=slot['name'],
+                timestamp__gte=thirty_days_ago
+            ).count()
+            
+            available[slot['key']] = {
+                'name': slot['name'],
+                'total': slot['limit'],
+                'used': used_count,
+                'available': max(0, slot['limit'] - used_count)
+            }
         
-        used_networking_slots = Message.objects.filter(
-            sender=self.user,
-            message_type__name='Networking',
-            timestamp__gte=thirty_days_ago
-        ).count()
-        
-        used_general_slots = Message.objects.filter(
-            sender=self.user,
-            message_type__name='General',
-            timestamp__gte=thirty_days_ago
-        ).count()
-        
-        return {
-            'coffee_chat': max(0, self.coffee_chat_slots - used_coffee_slots),
-            'mentorship': max(0, self.mentorship_slots - used_mentorship_slots),
-            'networking': max(0, self.networking_slots - used_networking_slots),
-            'general': max(0, self.general_slots - used_general_slots),
-        }
+        return available
     
     @property
     def referral_count(self):
@@ -283,14 +348,24 @@ class Referral(models.Model):
             self.status = 'accepted'
             self.save()
             
-            # Check if user now has enough referrals
-            profile = self.recipient_user.profile
-            if profile.needs_referrals and profile.referral_count >= 3:
+            # Auto-verify if referral is from super admin
+            if self.sender.is_superuser:
+                profile = self.recipient_user.profile
                 profile.is_verified = True
+                profile.needs_referrals = False
                 profile.save()
                 
                 # Send verification complete email
                 self._send_verification_complete_email()
+            else:
+                # Check if user now has enough referrals
+                profile = self.recipient_user.profile
+                if profile.needs_referrals and profile.referral_count >= 3:
+                    profile.is_verified = True
+                    profile.save()
+                    
+                    # Send verification complete email
+                    self._send_verification_complete_email()
     
     def _send_verification_complete_email(self):
         """Send email notification when user becomes verified"""

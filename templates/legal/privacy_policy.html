@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% block title %}Privacy Policy - GrowComm{% endblock %}
+
+{% block content %}
+<div class="container py-8 max-w-4xl mx-auto">
+    <div class="card">
+        <div class="p-8">
+            <h1 class="text-3xl font-bold text-black mb-6">Privacy Policy</h1>
+            <p class="text-sm text-gray-600 mb-8">Effective Date: {{ today|date:"F d, Y" }}</p>
+            
+            <div class="prose prose-gray max-w-none">
+                <section class="mb-8">
+                    <h2 class="text-xl font-semibold text-black mb-4">1. Information We Collect</h2>
+                    <p class="text-gray-700 mb-4">
+                        <strong>Account Information:</strong> Name, email, referral code, or invite ID.
+                    </p>
+                    <p class="text-gray-700 mb-4">
+                        <strong>Usage Data:</strong> Messages, interactions, and referrals within the platform.
+                    </p>
+                    <p class="text-gray-700 mb-4">
+                        <strong>Device Data:</strong> Browser type, IP address, cookies for security and performance.
+                    </p>
+                </section>
+
+                <section class="mb-8">
+                    <h2 class="text-xl font-semibold text-black mb-4">2. How We Use Your Information</h2>
+                    <ul class="list-disc list-inside text-gray-700 mb-4 ml-4">
+                        <li>To provide access to invite-only communities.</li>
+                        <li>To verify referrals and manage account status.</li>
+                        <li>To maintain platform safety and enforce our Terms of Service.</li>
+                        <li>To send important service notifications (we do not sell your data).</li>
+                    </ul>
+                </section>
+
+                <section class="mb-8">
+                    <h2 class="text-xl font-semibold text-black mb-4">3. Sharing of Data</h2>
+                    <p class="text-gray-700 mb-4">We do not sell personal information.</p>
+                    <p class="text-gray-700 mb-4">We may share data with service providers (e.g., hosting, analytics).</p>
+                    <p class="text-gray-700 mb-4">We may disclose information if required by law or to prevent harm.</p>
+                </section>
+
+                <section class="mb-8">
+                    <h2 class="text-xl font-semibold text-black mb-4">4. Anonymity</h2>
+                    <p class="text-gray-700 mb-4">You may participate anonymously within communities.</p>
+                    <p class="text-gray-700 mb-4">Even anonymous activity may be logged for safety and compliance.</p>
+                </section>
+
+                <section class="mb-8">
+                    <h2 class="text-xl font-semibold text-black mb-4">5. Data Security</h2>
+                    <p class="text-gray-700 mb-4">We use encryption and secure storage to protect your data.</p>
+                    <p class="text-gray-700 mb-4">No system is 100% secure; you use the platform at your own risk.</p>
+                </section>
+
+                <section class="mb-8">
+                    <h2 class="text-xl font-semibold text-black mb-4">6. Your Rights</h2>
+                    <p class="text-gray-700 mb-4">You may request access, correction, or deletion of your data.</p>
+                    <p class="text-gray-700 mb-4">California residents may have additional rights under CCPA.</p>
+                </section>
+
+                <section class="mb-8">
+                    <h2 class="text-xl font-semibold text-black mb-4">7. Retention</h2>
+                    <p class="text-gray-700 mb-4">We keep your data only as long as needed to provide the service.</p>
+                </section>
+
+                <section class="mb-8">
+                    <h2 class="text-xl font-semibold text-black mb-4">8. Changes</h2>
+                    <p class="text-gray-700 mb-4">We may update this Privacy Policy from time to time. Continued use means you accept the updates.</p>
+                </section>
+
+                <section class="mb-8">
+                    <h2 class="text-xl font-semibold text-black mb-4">9. Contact</h2>
+                    <p class="text-gray-700 mb-4">
+                        If you have questions, contact us at: <a href="mailto:queries@grwcomm.com" class="text-blue-600 hover:text-blue-800">queries@grwcomm.com</a>
+                    </p>
+                </section>
+            </div>
+            
+            <div class="mt-8 pt-8 border-t border-gray-200">
+                <p class="text-sm text-gray-600 text-center">
+                    Last updated: {{ today|date:"F d, Y" }}
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

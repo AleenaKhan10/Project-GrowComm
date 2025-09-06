@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.urls import reverse
 from .models import InviteLink, ReferralApproval
 from .forms import CreateInviteForm
+from .utils import build_invite_url
 from profiles.decorators import verified_user_required
 from profiles.models import Referral
 from profiles.forms import SendReferralForm
@@ -34,9 +35,7 @@ def my_invites(request):
             invite_form = CreateInviteForm(request.POST)
             if invite_form.is_valid():
                 invite = invite_form.save(user=request.user)
-                invite_url = request.build_absolute_uri(
-                    reverse('accounts:register', kwargs={'invite_code': invite.code})
-                )
+                invite_url = build_invite_url(request, invite.code)
                 messages.success(
                     request, 
                     f'Invite link created successfully! Share this link: {invite_url}'
@@ -81,9 +80,7 @@ def invite_detail(request, invite_id):
     invite = get_object_or_404(InviteLink, id=invite_id, created_by=request.user)
     
     # Build the full invite URL
-    invite_url = request.build_absolute_uri(
-        reverse('accounts:register', kwargs={'invite_code': invite.code})
-    )
+    invite_url = build_invite_url(request, invite.code)
     
     context = {
         'invite': invite,

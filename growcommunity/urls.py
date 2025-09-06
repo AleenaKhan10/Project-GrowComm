@@ -22,6 +22,9 @@ urlpatterns = [
     path('profiles/', include('profiles.urls')),
     path('messages/', include('messaging.urls')),
     path('invites/', include('invites.urls')),
+    
+    # Legal pages
+    path('legal/', include('legal.urls')),
 ]
 
 # Serve media files in development

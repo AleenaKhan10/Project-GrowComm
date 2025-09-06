@@ -3,7 +3,6 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.db.models import Q
-from django.core.paginator import Paginator
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.utils import timezone
@@ -12,7 +11,7 @@ import json
 
 from .models import Community, CommunityMembership
 from profiles.forms import ProfileSearchForm
-from messaging.models import Message, MessageType, MessageSlotBooking
+from messaging.models import Message, MessageType, MessageSlotBooking, UserMessageSettings, CustomMessageSlot
 from messaging.forms import MessageRequestForm
 
 
@@ -68,13 +67,17 @@ def user_list(request):
     # Order by newest members first
     users = users.order_by('-profile__created_date')
     
-    # Paginate results
-    paginator = Paginator(users, 12)  # Show 12 users per page
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
+    # Only get the core default message types for the template
+    # Custom message types will be handled per-user in the slot data
+    default_message_types = ['Coffee Chat', 'Mentorship', 'Networking', 'General']
+    message_types = []
     
-    # Get message types and prepare slot availability data for each user
-    message_types = MessageType.objects.filter(is_active=True)
+    for name in default_message_types:
+        msg_type, created = MessageType.objects.get_or_create(
+            name=name,
+            defaults={'description': f'Default {name} message type', 'is_active': True}
+        )
+        message_types.append(msg_type)
     users_slot_data = {}
     
     def make_json_safe(obj):
@@ -94,22 +97,27 @@ def user_list(request):
         else:
             return obj
 
-    for user in page_obj:
-        if hasattr(user, 'message_settings'):
+    for user in users:
+        try:
+            # Get or create user message settings
+            from messaging.models import UserMessageSettings
+            settings, created = UserMessageSettings.objects.get_or_create(user=user)
+            slot_availability = settings.get_slot_availability_for_user(request.user)
+            # Convert to JSON-serializable format recursively
+            users_slot_data[user.id] = make_json_safe(slot_availability)
+        except Exception as e:
+            # Fallback to user profile's current slot configuration
             try:
-                slot_availability = user.message_settings.get_slot_availability_for_user(request.user)
-                # Convert to JSON-serializable format recursively
-                users_slot_data[user.id] = make_json_safe(slot_availability)
+                available_slots = user.profile.available_slots
+                users_slot_data[user.id] = make_json_safe(available_slots)
             except:
                 users_slot_data[user.id] = {}
-        else:
-            users_slot_data[user.id] = {}
     
     
     context = {
         'form': form,
         'search_query': search_query,
-        'page_obj': page_obj,
+        'users': users,
         'total_users': users.count(),
         'user_is_verified': request.user.is_superuser or (hasattr(request.user, 'profile') and request.user.profile.is_verified),
         'message_types': message_types,
@@ -124,8 +132,12 @@ def community_list(request):
     """List all communities"""
     communities = Community.objects.filter(is_active=True)
     
+    # Get total user count
+    total_users = User.objects.filter(is_active=True).count()
+    
     context = {
         'communities': communities,
+        'total_users': total_users,
     }
     return render(request, 'communities/community_list.html', context)
 
@@ -297,24 +309,51 @@ def send_inline_message(request):
             }, status=400)
         
         with transaction.atomic():
-            # Get or create the message type
+            # Get receiver's message settings to check if they use custom slots
+            receiver_settings, _ = UserMessageSettings.objects.get_or_create(user=to_user)
+            
             message_type = None
-            if message_type_name and message_type_name != 'General':
-                message_type, _ = MessageType.objects.get_or_create(
-                    name=message_type_name,
-                    defaults={
-                        'description': f'{message_type_name} message',
-                        'is_active': True
-                    }
-                )
+            if message_type_name:
+                # Check if this is for a custom slot
+                if receiver_settings.use_custom_slots:
+                    # For custom slots, use the special naming convention
+                    custom_slot = CustomMessageSlot.objects.filter(
+                        user=to_user,
+                        name=message_type_name,
+                        is_active=True
+                    ).first()
+                    
+                    if custom_slot:
+                        # Create/get message type with custom naming convention
+                        message_type, _ = MessageType.objects.get_or_create(
+                            name=f"CUSTOM_{to_user.id}_{message_type_name}",
+                            defaults={
+                                'description': f'Custom slot: {message_type_name} for {to_user.username}',
+                                'is_active': True
+                            }
+                        )
+                    else:
+                        return JsonResponse({
+                            'success': False,
+                            'error': f'Message category "{message_type_name}" not found for {to_user.username}'
+                        }, status=400)
+                else:
+                    # For default slots, use regular message types
+                    message_type, _ = MessageType.objects.get_or_create(
+                        name=message_type_name,
+                        defaults={
+                            'description': f'{message_type_name} message',
+                            'is_active': True
+                        }
+                    )
             
             # Check slot availability if message type is provided
             if message_type:
                 can_send, reason = MessageSlotBooking.can_user_send_message(request.user, to_user, message_type)
                 if not can_send:
                     error_messages = {
-                        'already_sent': f'You have already sent a {message_type.name} message to {to_user.username}. Please wait 3 days before sending another.',
-                        'slots_full': f'{to_user.username}\'s {message_type.name} slots are currently full. Please try again later.'
+                        'already_sent': f'You have already sent a {message_type_name} message to {to_user.username}. Please wait 3 days before sending another.',
+                        'slots_full': f'{to_user.username}\'s {message_type_name} slots are currently full. Please try again later.'
                     }
                     return JsonResponse({
                         'success': False,

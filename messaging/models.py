@@ -339,6 +339,23 @@ class MessageSlotBooking(models.Model):
     def _get_receiver_slot_limit(cls, receiver, message_type):
         """Get the slot limit for a receiver based on message type"""
         try:
+            # Check if user has custom slots enabled
+            settings, created = UserMessageSettings.objects.get_or_create(user=receiver)
+            if settings.use_custom_slots:
+                # For custom slots, extract the actual slot name from the message type name
+                if message_type.name.startswith(f'CUSTOM_{receiver.id}_'):
+                    actual_slot_name = message_type.name.replace(f'CUSTOM_{receiver.id}_', '')
+                    custom_slot = CustomMessageSlot.objects.filter(
+                        user=receiver,
+                        name=actual_slot_name,
+                        is_active=True
+                    ).first()
+                    if custom_slot:
+                        return custom_slot.slot_limit
+                # If no custom slot found for this type, return 0
+                return 0
+            
+            # Use default profile slots
             profile = receiver.profile
             type_mapping = {
                 'Coffee Chat': profile.coffee_chat_slots,
@@ -347,7 +364,8 @@ class MessageSlotBooking(models.Model):
                 'General': profile.general_slots,
             }
             return type_mapping.get(message_type.name, 0)
-        except:
+        except Exception as e:
+            print(f"Error getting slot limit: {e}")
             return 0
     
     @classmethod
@@ -402,6 +420,23 @@ class IdentityRevelation(models.Model):
         return revelation, created
 
 
+class CustomMessageSlot(models.Model):
+    """Model for custom message slot types defined by users"""
+    
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='custom_message_slots')
+    name = models.CharField(max_length=50, help_text="Name for the custom slot type")
+    slot_limit = models.PositiveIntegerField(default=5, help_text="Maximum number of slots for this type")
+    is_active = models.BooleanField(default=True)
+    created_date = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        unique_together = ['user', 'name']
+        ordering = ['name']
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.name} ({self.slot_limit} slots)"
+
+
 class UserMessageSettings(models.Model):
     """Model for user's message settings and preferences"""
     
@@ -412,6 +447,9 @@ class UserMessageSettings(models.Model):
     mentorship_enabled = models.BooleanField(default=True)
     networking_enabled = models.BooleanField(default=True)
     general_enabled = models.BooleanField(default=True)
+    
+    # Allow custom slot types
+    use_custom_slots = models.BooleanField(default=False, help_text="Use custom message slot types instead of default")
     
     # Auto-accept messages from certain roles
     auto_accept_from_moderators = models.BooleanField(default=False)
@@ -440,42 +478,101 @@ class UserMessageSettings(models.Model):
         """Get slot availability information for all message types when requesting_user wants to message this user"""
         from datetime import timedelta
         
-        message_types = MessageType.objects.filter(is_active=True)
         availability = {}
         
-        for msg_type in message_types:
-            # Get user's slot limit for this message type
-            slot_limit = MessageSlotBooking._get_receiver_slot_limit(self.user, msg_type)
+        # Check if user uses custom slots
+        if self.use_custom_slots:
+            # Get custom slots for this user ONLY
+            custom_slots = CustomMessageSlot.objects.filter(user=self.user, is_active=True)
             
-            # Count active bookings
-            active_bookings = MessageSlotBooking.get_active_bookings_for_receiver(self.user, msg_type).count()
+            for custom_slot in custom_slots:
+                # Don't create global MessageType objects - handle custom slots separately
+                # Count active bookings using custom slot name directly
+                active_bookings = MessageSlotBooking.objects.filter(
+                    receiver=self.user,
+                    expires_date__gt=timezone.now()
+                ).filter(
+                    # For custom slots, we'll match on a naming convention
+                    message_type__name=f"CUSTOM_{self.user.id}_{custom_slot.name}"
+                ).count()
+                
+                # Check if requesting user already sent a message
+                already_sent = MessageSlotBooking.objects.filter(
+                    sender=requesting_user,
+                    receiver=self.user,
+                    expires_date__gt=timezone.now()
+                ).filter(
+                    message_type__name=f"CUSTOM_{self.user.id}_{custom_slot.name}"
+                ).exists()
+                
+                # Calculate status
+                available_slots = custom_slot.slot_limit - active_bookings
+                
+                if already_sent:
+                    status = "already_sent"
+                elif available_slots <= 0:
+                    status = "full"
+                else:
+                    status = "available"
+                
+                availability[custom_slot.name.lower().replace(' ', '_')] = {
+                    'message_type': {'name': custom_slot.name, 'id': f'custom_{custom_slot.id}'},
+                    'total_slots': custom_slot.slot_limit,
+                    'used_slots': active_bookings,
+                    'available_slots': max(0, available_slots),
+                    'status': status,
+                    'already_sent': already_sent,
+                    'is_custom': True,
+                    'custom_slot_id': custom_slot.id
+                }
+        else:
+            # Use ONLY the 4 default message types, don't include any custom ones
+            default_message_types = ['Coffee Chat', 'Mentorship', 'Networking', 'General']
             
-            # Check if requesting user already sent a message
-            already_sent = MessageSlotBooking.objects.filter(
-                sender=requesting_user,
-                receiver=self.user,
-                message_type=msg_type,
-                expires_date__gt=timezone.now()
-            ).exists()
-            
-            # Calculate status
-            available_slots = slot_limit - active_bookings
-            
-            if already_sent:
-                status = "already_sent"
-            elif available_slots <= 0:
-                status = "full"
-            else:
-                status = "available"
-            
-            availability[msg_type.name.lower().replace(' ', '_')] = {
-                'message_type': msg_type,
-                'total_slots': slot_limit,
-                'used_slots': active_bookings,
-                'available_slots': max(0, available_slots),
-                'status': status,
-                'already_sent': already_sent
-            }
+            for msg_type_name in default_message_types:
+                # Get or create the default message type
+                try:
+                    msg_type = MessageType.objects.get(name=msg_type_name)
+                except MessageType.DoesNotExist:
+                    msg_type = MessageType.objects.create(
+                        name=msg_type_name,
+                        description=f'Default {msg_type_name} message type',
+                        is_active=True
+                    )
+                
+                # Get user's slot limit for this message type from profile
+                slot_limit = MessageSlotBooking._get_receiver_slot_limit(self.user, msg_type)
+                
+                # Count active bookings
+                active_bookings = MessageSlotBooking.get_active_bookings_for_receiver(self.user, msg_type).count()
+                
+                # Check if requesting user already sent a message
+                already_sent = MessageSlotBooking.objects.filter(
+                    sender=requesting_user,
+                    receiver=self.user,
+                    message_type=msg_type,
+                    expires_date__gt=timezone.now()
+                ).exists()
+                
+                # Calculate status
+                available_slots = slot_limit - active_bookings
+                
+                if already_sent:
+                    status = "already_sent"
+                elif available_slots <= 0:
+                    status = "full"
+                else:
+                    status = "available"
+                
+                availability[msg_type_name.lower().replace(' ', '_')] = {
+                    'message_type': msg_type,
+                    'total_slots': slot_limit,
+                    'used_slots': active_bookings,
+                    'available_slots': max(0, available_slots),
+                    'status': status,
+                    'already_sent': already_sent,
+                    'is_custom': False
+                }
         
         return availability
 

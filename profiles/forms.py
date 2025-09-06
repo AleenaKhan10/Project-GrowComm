@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib.auth.models import User
 from .models import UserProfile, Referral
+from messaging.models import CustomMessageSlot, UserMessageSettings
 
 
 class UserProfileForm(forms.ModelForm):
@@ -34,7 +35,7 @@ class UserProfileForm(forms.ModelForm):
     class Meta:
         model = UserProfile
         fields = [
-            'profile_picture', 'bio', 'company', 'team', 'organization_level',
+            'profile_picture', 'gender', 'city', 'country', 'bio', 'company', 'team', 'organization_level',
             'schools', 'tags', 'phone_number', 'name_visibility',
             'coffee_chat_slots', 'mentorship_slots', 'networking_slots', 'general_slots'
         ]
@@ -59,9 +60,21 @@ class UserProfileForm(forms.ModelForm):
             'organization_level': forms.Select(attrs={
                 'class': 'w-full px-4 py-3 bg-white border border-gray-300 rounded text-black focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors'
             }),
-            'schools': forms.TextInput(attrs={
+            'gender': forms.Select(attrs={
+                'class': 'w-full px-4 py-3 bg-white border border-gray-300 rounded text-black focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors'
+            }),
+            'city': forms.TextInput(attrs={
                 'class': 'w-full px-4 py-3 bg-white border border-gray-300 rounded text-black placeholder-gray-500 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors',
-                'placeholder': 'Universities, schools, or educational institutions'
+                'placeholder': 'Enter your city'
+            }),
+            'country': forms.TextInput(attrs={
+                'class': 'w-full px-4 py-3 bg-white border border-gray-300 rounded text-black placeholder-gray-500 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors',
+                'placeholder': 'Enter your country'
+            }),
+            'schools': forms.Textarea(attrs={
+                'class': 'w-full px-4 py-3 bg-white border border-gray-300 rounded text-black placeholder-gray-500 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors min-h-[100px]',
+                'rows': 3,
+                'placeholder': 'Enter schools/universities (one per line or comma-separated)\nExample: Harvard University, MIT, Stanford Business School'
             }),
             'tags': forms.Textarea(attrs={
                 'class': 'w-full px-4 py-3 bg-white border border-gray-300 rounded text-black placeholder-gray-500 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors min-h-[100px]',
@@ -76,25 +89,25 @@ class UserProfileForm(forms.ModelForm):
                 'class': 'w-3/5 px-4 py-3 bg-white border border-gray-300 rounded text-black focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors'
             }),
             'coffee_chat_slots': forms.NumberInput(attrs={
-                'class': 'w-full px-4 py-3 bg-white border border-gray-300 rounded text-black placeholder-gray-500 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors',
+                'class': 'w-full px-2 py-2 text-sm bg-white border border-gray-300 rounded text-black placeholder-gray-500 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors text-center',
                 'min': 0,
                 'max': 50,
                 'placeholder': '5'
             }),
             'mentorship_slots': forms.NumberInput(attrs={
-                'class': 'w-full px-4 py-3 bg-white border border-gray-300 rounded text-black placeholder-gray-500 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors',
+                'class': 'w-full px-2 py-2 text-sm bg-white border border-gray-300 rounded text-black placeholder-gray-500 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors text-center',
                 'min': 0,
                 'max': 20,
-                'placeholder': '2'
+                'placeholder': '3'
             }),
             'networking_slots': forms.NumberInput(attrs={
-                'class': 'w-full px-4 py-3 bg-white border border-gray-300 rounded text-black placeholder-gray-500 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors',
+                'class': 'w-full px-2 py-2 text-sm bg-white border border-gray-300 rounded text-black placeholder-gray-500 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors text-center',
                 'min': 0,
                 'max': 100,
                 'placeholder': '10'
             }),
             'general_slots': forms.NumberInput(attrs={
-                'class': 'w-full px-4 py-3 bg-white border border-gray-300 rounded text-black placeholder-gray-500 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors',
+                'class': 'w-full px-2 py-2 text-sm bg-white border border-gray-300 rounded text-black placeholder-gray-500 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors text-center',
                 'min': 0,
                 'max': 100,
                 'placeholder': '15'
@@ -233,6 +246,13 @@ class SendReferralForm(forms.ModelForm):
             # If recipient exists, automatically accept the referral
             if referral.recipient_user:
                 referral.accept_referral()
+            
+            # If sender is super admin, mark for auto-verification
+            if self.user.is_superuser and referral.recipient_user:
+                profile = referral.recipient_user.profile
+                profile.is_verified = True
+                profile.needs_referrals = False
+                profile.save()
         
         return referral
     
@@ -296,3 +316,74 @@ class SendReferralForm(forms.ModelForm):
             import logging
             logger = logging.getLogger(__name__)
             logger.error(f"Failed to send referral email: {e}")
+
+
+class CustomMessageSlotForm(forms.ModelForm):
+    """Form for creating/editing custom message slot categories"""
+    
+    class Meta:
+        model = CustomMessageSlot
+        fields = ['name', 'slot_limit', 'is_active']
+        widgets = {
+            'name': forms.TextInput(attrs={
+                'class': 'w-full px-2 py-2 text-sm bg-white border border-gray-300 rounded text-black placeholder-gray-400 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors',
+                'placeholder': 'Enter category name (e.g., Career Advice)'
+            }),
+            'slot_limit': forms.NumberInput(attrs={
+                'class': 'w-full px-2 py-2 text-sm bg-white border border-gray-300 rounded text-black placeholder-gray-400 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors text-center',
+                'min': 0,
+                'max': 100,
+                'placeholder': '10'
+            }),
+            'is_active': forms.CheckboxInput(attrs={
+                'class': 'rounded border-gray-300 text-cyan-600 focus:ring-cyan-500'
+            })
+        }
+    
+    def __init__(self, user=None, *args, **kwargs):
+        self.user = user
+        super().__init__(*args, **kwargs)
+        if not self.instance.pk:
+            self.fields['is_active'].initial = True
+    
+    def clean_name(self):
+        name = self.cleaned_data.get('name')
+        if self.user:
+            # Check for duplicate names for this user
+            existing = CustomMessageSlot.objects.filter(
+                user=self.user,
+                name=name
+            )
+            if self.instance.pk:
+                existing = existing.exclude(pk=self.instance.pk)
+            if existing.exists():
+                raise forms.ValidationError("You already have a category with this name.")
+        return name
+    
+    def save(self, commit=True):
+        slot = super().save(commit=False)
+        if self.user:
+            slot.user = self.user
+        if commit:
+            slot.save()
+        return slot
+
+
+class UserMessageSettingsForm(forms.ModelForm):
+    """Form for user message settings"""
+    
+    class Meta:
+        model = UserMessageSettings
+        fields = ['use_custom_slots']
+        widgets = {
+            'use_custom_slots': forms.CheckboxInput(attrs={
+                'class': 'rounded border-gray-300 text-cyan-600 focus:ring-cyan-500',
+                'onchange': 'toggleSlotMode(this)'
+            })
+        }
+        labels = {
+            'use_custom_slots': 'Use custom message categories'
+        }
+        help_texts = {
+            'use_custom_slots': 'Enable to create your own message categories instead of using the default ones'
+        }

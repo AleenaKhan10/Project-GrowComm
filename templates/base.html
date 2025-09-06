@@ -142,8 +142,8 @@
         }
     </style>
 </head>
-<body class="h-full bg-white text-black">
-    <div class="min-h-full">
+<body class="bg-white text-black flex flex-col min-h-screen">
+    <div class="flex flex-col flex-1">
         {% if user.is_authenticated %}
         <!-- Navigation Header -->
         <nav class="bg-black shadow-lg border-b border-gray-800 white-border sticky top-0 z-50">
@@ -346,10 +346,31 @@
         {% endif %}
 
         <!-- Main Content -->
-        <main>
+        <main class="flex-1 flex flex-col">
             {% block content %}
             {% endblock %}
         </main>
+        
+        
+        <!-- Footer - Fixed to bottom -->
+        <footer class="bg-black border-t border-gray-800 mt-auto">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                <div class="flex flex-col sm:flex-row justify-between items-center">
+                    <div class="text-sm text-gray-400 mb-4 sm:mb-0">
+                        © 2024 GrowComm. All rights reserved.
+                    </div>
+                    <div class="flex space-x-6">
+                        <a href="{% url 'legal:terms' %}" class="text-sm text-gray-400 hover:text-white transition-colors">
+                            Terms of Service
+                        </a>
+                        <a href="{% url 'legal:privacy' %}" class="text-sm text-gray-400 hover:text-white transition-colors">
+                            Privacy Policy
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </footer>
+        
     </div>
 
     <!-- Alpine.js for interactive components -->
