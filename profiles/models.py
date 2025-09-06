@@ -103,6 +103,13 @@ class UserProfile(models.Model):
     )
     needs_referrals = models.BooleanField(default=True, help_text="True if user needs 3 referrals to be verified")
     
+    # Anonymous messaging system
+    anonymous_name = models.CharField(
+        max_length=100, 
+        blank=True, 
+        help_text="Anonymous name displayed to other users in community"
+    )
+    
     class Meta:
         ordering = ['-created_date']
     
@@ -110,6 +117,10 @@ class UserProfile(models.Model):
         return f"{self.user.username}'s Profile"
     
     def save(self, *args, **kwargs):
+        # Generate anonymous name if not set
+        if not self.anonymous_name:
+            self.anonymous_name = self._generate_anonymous_name()
+        
         super().save(*args, **kwargs)
         
         # Resize profile picture if it exists
@@ -133,6 +144,42 @@ class UserProfile(models.Model):
             return f"{first_initial}{last_initial}".strip() or self.user.username[0]
         else:  # anonymous
             return "Anonymous User"
+    
+    @property
+    def real_name(self):
+        """Return the real full name of the user"""
+        full_name = f"{self.user.first_name} {self.user.last_name}".strip()
+        return full_name or self.user.username
+    
+    @property
+    def anonymous_display_name(self):
+        """Return anonymous name for community display"""
+        return self.anonymous_name or "Anonymous User"
+    
+    def _generate_anonymous_name(self):
+        """Generate a unique anonymous name"""
+        import random
+        
+        # List of anonymous name patterns
+        adjectives = [
+            'Curious', 'Bright', 'Creative', 'Thoughtful', 'Ambitious', 'Dynamic', 
+            'Innovative', 'Strategic', 'Visionary', 'Talented', 'Focused', 'Driven',
+            'Inspiring', 'Bold', 'Smart', 'Clever', 'Wise', 'Sharp', 'Quick', 'Keen'
+        ]
+        
+        nouns = [
+            'Explorer', 'Builder', 'Innovator', 'Creator', 'Thinker', 'Leader',
+            'Analyst', 'Designer', 'Developer', 'Strategist', 'Visionary', 'Pioneer',
+            'Entrepreneur', 'Professional', 'Expert', 'Specialist', 'Consultant', 
+            'Manager', 'Director', 'Founder'
+        ]
+        
+        # Generate a random combination
+        adjective = random.choice(adjectives)
+        noun = random.choice(nouns)
+        number = random.randint(100, 999)
+        
+        return f"{adjective} {noun} #{number}"
     
     @property
     def tag_list(self):

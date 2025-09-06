@@ -39,7 +39,7 @@ document.body.classList.add('messages-page');
                     {% for conversation in conversations %}
                         <div class="conversation-item {% if forloop.first %}active{% endif %}" 
                              data-user-id="{{ conversation.other_user.id }}"
-                             data-user-name="{{ conversation.other_user.profile.display_name|default:conversation.other_user.username|escapejs }}"
+                             data-user-name="{{ conversation.display_name|escapejs }}"
                              data-message-type-id="{% if conversation.message_type %}{{ conversation.message_type.id }}{% else %}null{% endif %}"
                              data-message-type-name="{% if conversation.message_type %}{{ conversation.message_type.name|escapejs }}{% else %}General{% endif %}">
                             
@@ -48,7 +48,7 @@ document.body.classList.add('messages-page');
                                 <div class="relative flex-shrink-0">
                                     {% if conversation.other_user.profile.avatar_url %}
                                         <img src="{{ conversation.other_user.profile.avatar_url }}" 
-                                             alt="{{ conversation.other_user.profile.display_name|default:conversation.other_user.username }}" 
+                                             alt="{{ conversation.display_name }}" 
                                              class="avatar">
                                     {% else %}
                                         {% if conversation.other_user.id|divisibleby:5 %}
@@ -64,7 +64,7 @@ document.body.classList.add('messages-page');
                                         {% else %}
                                             <div class="avatar avatar-white">
                                         {% endif %}
-                                            {{ conversation.other_user.profile.display_name.0|default:conversation.other_user.username.0|upper }}
+                                            {{ conversation.display_name.0|upper }}
                                         </div>
                                     {% endif %}
                                     
@@ -76,7 +76,7 @@ document.body.classList.add('messages-page');
                                 <div class="flex-1 min-w-0">
                                     <div class="flex items-center justify-between">
                                         <h3 class="text-sm font-semibold text-black truncate">
-                                            {{ conversation.other_user.profile.display_name|default:conversation.other_user.username }}
+                                            {{ conversation.display_name }}
                                         </h3>
                                         <span class="text-xs text-gray-500">
                                             {{ conversation.latest_message.timestamp|timesince }} ago
@@ -147,6 +147,17 @@ document.body.classList.add('messages-page');
                         <span class="w-2 h-2 bg-gray-600 rounded-full mr-2 inline-block"></span>
                         Online
                     </p>
+                </div>
+
+                <!-- Reveal Identity Button -->
+                <div class="flex-shrink-0">
+                    <button id="reveal-identity-btn" class="hidden flex items-center space-x-2 px-3 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors mr-2" onclick="revealIdentity()">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                        </svg>
+                        <span class="hidden sm:inline">Reveal Identity</span>
+                    </button>
                 </div>
 
                 <!-- Schedule Meeting Button -->
@@ -602,6 +613,13 @@ class MessagingApp {
         // Load messages
         this.currentUserId = userId;
         this.currentMessageTypeId = messageTypeId;
+        
+        // Set global variable for reveal identity function
+        currentChatUserId = userId;
+        
+        // Show reveal identity button (async)
+        this.showRevealIdentityButton();
+        
         this.loadMessages(userId, messageTypeId);
         
         // Start polling for new messages
@@ -615,9 +633,16 @@ class MessagingApp {
         // Stop message polling
         this.stopMessagePolling();
         
+        // Hide reveal identity button
+        const revealButton = document.getElementById('reveal-identity-btn');
+        if (revealButton) {
+            revealButton.classList.add('hidden');
+        }
+        
         // Clear current selection
         this.currentUserId = null;
         this.currentMessageTypeId = null;
+        currentChatUserId = null;
     }
     
     updateChatHeader(userName, messageTypeId) {
@@ -659,6 +684,41 @@ class MessagingApp {
         if (chatHeader) chatHeader.classList.remove('hidden');
         if (messageInputArea) messageInputArea.classList.remove('hidden');
         if (emptyState) emptyState.classList.add('hidden');
+    }
+    
+    async showRevealIdentityButton() {
+        const revealButton = document.getElementById('reveal-identity-btn');
+        if (!revealButton || !this.currentUserId) return;
+        
+        try {
+            // Get messages to check who sent the first message
+            let url = `/messages/api/messages/${this.currentUserId}/`;
+            if (this.currentMessageTypeId !== null && this.currentMessageTypeId !== undefined) {
+                url += `?message_type_id=${this.currentMessageTypeId}`;
+            }
+            
+            const response = await fetch(url);
+            const data = await response.json();
+            
+            if (data.success && data.messages && data.messages.length > 0) {
+                // Get the first message in the conversation
+                const firstMessage = data.messages[0];
+                
+                // Only show reveal button if current user received the first message
+                // (i.e., the other user sent the first message)
+                if (firstMessage.receiver_id == {{ user.id }}) {
+                    revealButton.classList.remove('hidden');
+                } else {
+                    revealButton.classList.add('hidden');
+                }
+            } else {
+                // No messages, hide the button
+                revealButton.classList.add('hidden');
+            }
+        } catch (error) {
+            console.error('Error checking first message:', error);
+            revealButton.classList.add('hidden');
+        }
     }
     
     async loadMessages(userId, messageTypeId = null) {
@@ -924,6 +984,53 @@ document.addEventListener('visibilitychange', function() {
 function scheduleMeeting() {
     // Open Google Meet in a new tab/window
     window.open('https://meet.google.com/', '_blank');
+}
+
+// Global variable to track current chat user ID
+let currentChatUserId = null;
+
+// Reveal identity function
+function revealIdentity() {
+    if (!currentChatUserId) {
+        alert('No conversation selected');
+        return;
+    }
+    
+    if (confirm('Are you sure you want to reveal your real identity to this person for this conversation? This action cannot be undone.')) {
+        // Get the current message type from the messaging app
+        const messageTypeId = window.messagingApp ? window.messagingApp.currentMessageTypeId : null;
+        
+        fetch(`/messages/api/reveal-identity/${currentChatUserId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                'message_type_id': messageTypeId
+            }),
+            credentials: 'same-origin'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                // Hide the reveal identity button since identity is now revealed
+                document.getElementById('reveal-identity-btn').classList.add('hidden');
+                
+                // Reload messages to reflect the identity change
+                if (window.messagingApp && window.messagingApp.currentUserId) {
+                    window.messagingApp.loadMessages(window.messagingApp.currentUserId, window.messagingApp.currentMessageTypeId);
+                }
+            } else {
+                alert('Error: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while revealing identity');
+        });
+    }
 }
 </script>
 {% endblock %}

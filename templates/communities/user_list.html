@@ -301,10 +301,10 @@
                                 <img src="{{ user.profile.profile_picture.url }}" alt="{{ user.profile.display_name }}" class="h-8 w-8 rounded-full object-cover mr-3">
                             {% else %}
                                 <div class="avatar avatar-white avatar-sm mr-3">
-                                    {{ user.first_name|first|default:user.username|first }}
+                                    {{ user.profile.display_name|first }}
                                 </div>
                             {% endif %}
-                            <div class="text-sm font-medium text-black">{{ user.profile.display_name|default:"Anonymous" }}</div>
+                            <div class="text-sm font-medium text-black">{{ user.profile.display_name }}</div>
                         </div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
@@ -447,7 +447,7 @@
                         class="w-full px-3 py-2 flex items-center hover:bg-gray-50 transition-colors user-row"
                         onclick="openUserModal({{ user.id }})"
                         data-user-id="{{ user.id }}"
-                        data-user-name="{{ user.profile.display_name|default:'Anonymous' }}"
+                        data-user-name="{{ user.profile.display_name }}"
                         data-user-location="{{ user.profile.location|default:'' }}"
                         data-user-company="{{ user.profile.company|default:'' }}"
                         data-user-team="{{ user.profile.team|default:'' }}"
@@ -460,11 +460,11 @@
                                 <img src="{{ user.profile.profile_picture.url }}" alt="{{ user.profile.display_name }}" class="h-8 w-8 rounded-full object-cover mr-2">
                             {% else %}
                                 <div class="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-medium text-gray-600 mr-2">
-                                    {{ user.first_name|first|default:user.username|first }}
+                                    {{ user.profile.display_name|first }}
                                 </div>
                             {% endif %}
                             <div class="text-left">
-                                <div class="text-sm font-medium text-gray-900">{{ user.profile.display_name|default:"Anonymous" }}</div>
+                                <div class="text-sm font-medium text-gray-900">{{ user.profile.display_name }}</div>
                                 <div class="text-xs text-gray-500">{{ user.profile.location|default:"" }}{% if user.profile.company %} • {{ user.profile.company }}{% endif %}</div>
                             </div>
                         </div>

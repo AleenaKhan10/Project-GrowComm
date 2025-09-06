@@ -61,6 +61,10 @@ class Message(models.Model):
     message_type = models.ForeignKey(MessageType, on_delete=models.SET_NULL, related_name='messages', null=True, blank=True)
     read_date = models.DateTimeField(null=True, blank=True)
     
+    # Anonymous messaging system
+    receiver_identity_revealed = models.BooleanField(default=False, help_text="True if receiver revealed their identity to sender")
+    identity_revealed_at = models.DateTimeField(null=True, blank=True, help_text="When identity was revealed")
+    
     # Legacy field mapping for compatibility
     @property
     def recipient(self):
@@ -361,6 +365,41 @@ class MessageSlotBooking(models.Model):
             message=message
         )
         return booking, "booked"
+
+
+class IdentityRevelation(models.Model):
+    """Model to track when users reveal their real identity to others for specific message types"""
+    
+    revealer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='identity_revelations_made', help_text="User who revealed their identity")
+    revealed_to = models.ForeignKey(User, on_delete=models.CASCADE, related_name='identity_revelations_received', help_text="User who can now see the real identity")
+    message_type = models.ForeignKey(MessageType, on_delete=models.CASCADE, null=True, blank=True, help_text="Message type for which identity was revealed")
+    revealed_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        unique_together = ['revealer', 'revealed_to', 'message_type']
+        ordering = ['-revealed_at']
+    
+    def __str__(self):
+        return f"{self.revealer.username} revealed identity to {self.revealed_to.username}"
+    
+    @classmethod
+    def has_revealed_identity(cls, revealer, revealed_to, message_type=None):
+        """Check if revealer has revealed their identity to revealed_to for specific message type"""
+        return cls.objects.filter(
+            revealer=revealer, 
+            revealed_to=revealed_to,
+            message_type=message_type
+        ).exists()
+    
+    @classmethod
+    def reveal_identity(cls, revealer, revealed_to, message_type=None):
+        """Reveal identity from revealer to revealed_to for specific message type"""
+        revelation, created = cls.objects.get_or_create(
+            revealer=revealer,
+            revealed_to=revealed_to,
+            message_type=message_type
+        )
+        return revelation, created
 
 
 class UserMessageSettings(models.Model):

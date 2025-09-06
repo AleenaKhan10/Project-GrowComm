@@ -12,7 +12,7 @@ import json
 
 from .models import (
     Conversation, Message, MessageRequest, 
-    MessageType, UserMessageSettings, MessageSlotBooking
+    MessageType, UserMessageSettings, MessageSlotBooking, IdentityRevelation
 )
 from .forms import MessageRequestForm, MessageReplyForm, UserMessageSettingsForm
 from profiles.decorators import verified_user_required
@@ -26,6 +26,25 @@ def inbox(request):
     """
     # Get conversations using the optimized method
     conversations = Message.get_conversations_for_user(request.user)
+    
+    # Enhance conversations with identity revelation info
+    for conversation in conversations:
+        other_user = conversation['other_user']
+        message_type = conversation.get('message_type')
+        # Check if other user revealed their identity to current user for this message type
+        conversation['identity_revealed'] = IdentityRevelation.has_revealed_identity(other_user, request.user, message_type)
+        
+        # Determine display name for inbox based on identity revelation
+        if conversation['identity_revealed']:
+            # Identity revealed - show their real name (first + last name)
+            conversation['display_name'] = other_user.profile.real_name if hasattr(other_user, 'profile') else other_user.username
+        else:
+            # Identity not revealed - show anonymous name only if they chose anonymous visibility
+            if hasattr(other_user, 'profile') and other_user.profile.name_visibility == 'anonymous':
+                conversation['display_name'] = "Anonymous User"
+            else:
+                # For non-anonymous users, show their chosen display name
+                conversation['display_name'] = other_user.profile.display_name if hasattr(other_user, 'profile') else other_user.username
     
     # Get pending message requests
     pending_requests = MessageRequest.objects.filter(
@@ -279,13 +298,48 @@ def get_messages(request, user_id):
     # Format messages for JSON response
     messages_data = []
     for msg in messages_list:
+        # Determine display name based on identity revelation and user preferences
+        if msg.sender == request.user:
+            # Current user's message - always show their chosen display name
+            sender_display_name = msg.sender.profile.display_name if hasattr(msg.sender, 'profile') else msg.sender.username
+        else:
+            # Other user's message - check identity revelation and user preferences
+            if IdentityRevelation.has_revealed_identity(msg.sender, request.user, msg.message_type):
+                # Identity revealed - show their real name (first + last name)
+                sender_display_name = msg.sender.profile.real_name if hasattr(msg.sender, 'profile') else msg.sender.username
+            else:
+                # Identity not revealed - check user's visibility preference
+                if hasattr(msg.sender, 'profile') and msg.sender.profile.name_visibility == 'anonymous':
+                    # User chose to be anonymous - show "Anonymous User"
+                    sender_display_name = "Anonymous User"
+                else:
+                    # User didn't choose anonymous - show their chosen display name
+                    sender_display_name = msg.sender.profile.display_name if hasattr(msg.sender, 'profile') else msg.sender.username
+        
+        # For receiver display name (in case needed)
+        if msg.receiver == request.user:
+            receiver_display_name = msg.receiver.profile.display_name if hasattr(msg.receiver, 'profile') else msg.receiver.username
+        else:
+            # Other user as receiver - check identity revelation and user preferences
+            if IdentityRevelation.has_revealed_identity(msg.receiver, request.user, msg.message_type):
+                # Identity revealed - show their real name (first + last name)
+                receiver_display_name = msg.receiver.profile.real_name if hasattr(msg.receiver, 'profile') else msg.receiver.username
+            else:
+                # Identity not revealed - check user's visibility preference
+                if hasattr(msg.receiver, 'profile') and msg.receiver.profile.name_visibility == 'anonymous':
+                    # User chose to be anonymous - show "Anonymous User"
+                    receiver_display_name = "Anonymous User"
+                else:
+                    # User didn't choose anonymous - show their chosen display name
+                    receiver_display_name = msg.receiver.profile.display_name if hasattr(msg.receiver, 'profile') else msg.receiver.username
+        
         messages_data.append({
             'id': msg.id,
             'content': msg.content,
             'sender_id': msg.sender.id,
-            'sender_name': msg.sender.username,
+            'sender_name': sender_display_name,
             'receiver_id': msg.receiver.id,
-            'receiver_name': msg.receiver.username,
+            'receiver_name': receiver_display_name,
             'timestamp': msg.timestamp.isoformat(),
             'is_read': msg.is_read,
             'is_mine': msg.sender == request.user,
@@ -295,13 +349,35 @@ def get_messages(request, user_id):
             } if msg.message_type else None
         })
     
+    # Determine other user's display name based on identity revelation and user preferences
+    # Need to determine the message_type for this conversation
+    if filter_by_message_type and message_type:
+        check_message_type = message_type
+    else:
+        check_message_type = None
+    
+    if IdentityRevelation.has_revealed_identity(other_user, request.user, check_message_type):
+        # Identity revealed - show their real name (first + last name)
+        other_user_display_name = other_user.profile.real_name if hasattr(other_user, 'profile') else other_user.username
+        identity_revealed = True
+    else:
+        # Identity not revealed - check user's visibility preference
+        if hasattr(other_user, 'profile') and other_user.profile.name_visibility == 'anonymous':
+            # User chose to be anonymous - show "Anonymous User"
+            other_user_display_name = "Anonymous User"
+        else:
+            # User didn't choose anonymous - show their chosen display name
+            other_user_display_name = other_user.profile.display_name if hasattr(other_user, 'profile') else other_user.username
+        identity_revealed = False
+    
     return JsonResponse({
         'success': True,
         'messages': messages_data,
         'other_user': {
             'id': other_user.id,
             'username': other_user.username,
-            'display_name': getattr(other_user.profile, 'display_name', other_user.username) if hasattr(other_user, 'profile') else other_user.username
+            'display_name': other_user_display_name,
+            'identity_revealed': identity_revealed
         },
         'message_type': {
             'id': message_type.id,
@@ -659,4 +735,67 @@ def unread_count(request):
     return JsonResponse({
         'success': True,
         'unread_count': count
+    })
+
+
+@login_required
+@require_POST
+def reveal_identity(request, user_id):
+    """
+    AJAX endpoint for user to reveal their identity to another user for a specific message type.
+    """
+    try:
+        # Get the user to reveal identity to
+        revealed_to_user = User.objects.get(id=user_id)
+    except User.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'error': 'User not found'
+        }, status=404)
+    
+    if revealed_to_user == request.user:
+        return JsonResponse({
+            'success': False,
+            'error': 'You cannot reveal identity to yourself'
+        }, status=400)
+    
+    # Get message_type_id from request body
+    try:
+        import json
+        body = json.loads(request.body) if request.body else {}
+        message_type_id = body.get('message_type_id')
+    except:
+        message_type_id = None
+    
+    # Get message type if provided
+    message_type = None
+    if message_type_id:
+        try:
+            message_type = MessageType.objects.get(id=message_type_id)
+        except MessageType.DoesNotExist:
+            pass
+    
+    # Check if there are any messages between these users for this message type
+    message_filter = Q(sender=request.user, receiver=revealed_to_user) | Q(sender=revealed_to_user, receiver=request.user)
+    if message_type:
+        message_filter &= Q(message_type=message_type)
+    else:
+        message_filter &= Q(message_type__isnull=True)
+    
+    messages_exist = Message.objects.filter(message_filter).exists()
+    
+    if not messages_exist:
+        return JsonResponse({
+            'success': False,
+            'error': 'No conversation exists with this user for this message type'
+        }, status=400)
+    
+    # Reveal identity for specific message type
+    revelation, created = IdentityRevelation.reveal_identity(request.user, revealed_to_user, message_type)
+    
+    return JsonResponse({
+        'success': True,
+        'message': 'Your identity has been revealed!' if created else 'Identity was already revealed.',
+        'already_revealed': not created,
+        'revealed_name': request.user.profile.display_name if hasattr(request.user, 'profile') else request.user.username
     })

@@ -16,6 +16,7 @@ urlpatterns = [
     path('api/mark-read/<int:message_id>/', views.mark_as_read, name='mark_as_read'),
     path('api/unread-count/', views.unread_count, name='unread_count'),
     path('api/search-users/', views.search_users, name='search_users'),
+    path('api/reveal-identity/<int:user_id>/', views.reveal_identity, name='reveal_identity'),
     
     # Message requests (kept for backward compatibility)
     path('requests/', views.message_requests, name='message_requests'),
