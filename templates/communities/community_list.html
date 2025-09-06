@@ -15,63 +15,31 @@
     </div>
 
     <!-- Communities Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <!-- Main GrowComm Community Card -->
-        <div class="col-span-full md:col-span-2 lg:col-span-3 max-w-2xl mx-auto">
-            <div class="card hover:shadow-lg transition-shadow cursor-pointer" onclick="location.href='{% url 'communities:user_list' %}'">
-                <div class="p-8">
-                    <!-- Community Icon -->
-                    <div class="mb-6 flex justify-center">
-                        <div class="w-20 h-20 bg-black rounded-full flex items-center justify-center">
-                            <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
-                            </svg>
-                        </div>
+        <div class="card hover:shadow-lg transition-shadow cursor-pointer" onclick="location.href='{% url 'communities:user_list' %}'">
+            <div class="p-6">
+                <!-- Community Info -->
+                <div class="flex items-center mb-4">
+                    <div class="w-12 h-12 bg-black rounded-full flex items-center justify-center mr-4">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                        </svg>
                     </div>
-
-                    <!-- Community Info -->
-                    <div class="text-center">
-                        <h2 class="text-2xl font-semibold text-black mb-3">
-                            GrowComm Community
-                        </h2>
-                        <p class="text-gray-600 mb-6 text-lg leading-relaxed">
-                            Connect with professionals, entrepreneurs, and innovators. Share opportunities, 
-                            get mentorship, and grow your network in our main community.
-                        </p>
-
-                        <!-- Stats -->
-                        <div class="grid grid-cols-3 gap-4 mb-6 py-4 border-t border-b border-gray-200">
-                            <div class="text-center">
-                                <div class="text-2xl font-bold text-black">250+</div>
-                                <div class="text-sm text-gray-500">Members</div>
-                            </div>
-                            <div class="text-center">
-                                <div class="text-2xl font-bold text-black">1.2k</div>
-                                <div class="text-sm text-gray-500">Messages</div>
-                            </div>
-                            <div class="text-center">
-                                <div class="text-2xl font-bold text-black">Active</div>
-                                <div class="text-sm text-gray-500">Community</div>
-                            </div>
-                        </div>
-
-                        <!-- Tags -->
-                        <div class="flex flex-wrap justify-center gap-2 mb-6">
-                            <span class="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-full">Networking</span>
-                            <span class="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-full">Professional</span>
-                            <span class="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-full">Growth</span>
-                            <span class="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-full">Opportunities</span>
-                        </div>
-
-                        <!-- Enter Button -->
-                        <button class="btn btn-primary w-full text-lg py-4">
-                            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
-                            </svg>
-                            Enter Community
-                        </button>
+                    <div>
+                        <h2 class="text-lg font-semibold text-black">GrowComm Community</h2>
+                        <p class="text-sm text-gray-600">250+ Members</p>
                     </div>
                 </div>
+
+                <p class="text-gray-600 mb-4 text-sm">
+                    Connect with professionals and grow your network
+                </p>
+
+                <!-- Enter Button -->
+                <button class="btn btn-primary w-full">
+                    Enter Community
+                </button>
             </div>
         </div>
 
@@ -141,21 +109,12 @@
         }
 
         h2 {
-            font-size: 1.5rem !important;
-            margin-bottom: 1rem !important;
+            font-size: 1rem !important;
+            margin-bottom: 0.5rem !important;
         }
 
         .card {
             padding: 1rem !important;
-        }
-
-        .grid.grid-cols-3 {
-            grid-template-columns: repeat(3, 1fr) !important;
-        }
-
-        .w-20.h-20 {
-            width: 4rem !important;
-            height: 4rem !important;
         }
 
         .w-12.h-12 {
@@ -163,17 +122,17 @@
             height: 2.5rem !important;
         }
 
-        .text-2xl {
-            font-size: 1.25rem !important;
+        .w-6.h-6 {
+            width: 1.25rem !important;
+            height: 1.25rem !important;
         }
 
         .text-lg {
             font-size: 0.9rem !important;
         }
 
-        .py-4 {
-            padding-top: 1rem !important;
-            padding-bottom: 1rem !important;
+        .text-sm {
+            font-size: 0.75rem !important;
         }
 
         .btn {
@@ -181,9 +140,12 @@
             font-size: 0.9rem !important;
         }
 
-        .px-3.py-1 {
-            padding: 0.25rem 0.5rem !important;
-            font-size: 0.75rem !important;
+        .mb-4 {
+            margin-bottom: 0.75rem !important;
+        }
+
+        .p-6 {
+            padding: 1rem !important;
         }
     }
 </style>

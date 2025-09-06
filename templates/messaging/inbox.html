@@ -148,6 +148,16 @@ document.body.classList.add('messages-page');
                         Online
                     </p>
                 </div>
+
+                <!-- Schedule Meeting Button -->
+                <div class="flex-shrink-0">
+                    <button id="schedule-meeting-btn" class="flex items-center space-x-2 px-3 py-2 bg-black text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-colors" onclick="scheduleMeeting()">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                        </svg>
+                        <span class="hidden sm:inline">Meeting</span>
+                    </button>
+                </div>
             </div>
         </div>
         
@@ -470,6 +480,17 @@ class MessagingApp {
                 .message-bubble {
                     padding: 0.5rem 0.75rem !important;
                     font-size: 0.875rem !important;
+                }
+
+                /* Schedule Meeting Button Mobile Styles */
+                #schedule-meeting-btn {
+                    padding: 0.5rem 0.75rem !important;
+                    font-size: 0.75rem !important;
+                }
+
+                #schedule-meeting-btn svg {
+                    width: 1rem !important;
+                    height: 1rem !important;
                 }
             }
         `;
@@ -898,5 +919,11 @@ document.addEventListener('visibilitychange', function() {
         document.body.classList.remove('messages-page');
     }
 });
+
+// Schedule meeting function
+function scheduleMeeting() {
+    // Open Google Meet in a new tab/window
+    window.open('https://meet.google.com/', '_blank');
+}
 </script>
 {% endblock %}
