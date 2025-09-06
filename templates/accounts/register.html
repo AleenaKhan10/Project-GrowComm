@@ -7,13 +7,12 @@
     <div class="max-w-md w-full space-y-8">
         <!-- Header -->
         <div>
-            <div class="mx-auto h-12 w-12 flex items-center justify-center rounded-full bg-gray-100 border border-gray-300">
-                <svg class="h-6 w-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
-                </svg>
+            <div class="mx-auto h-20 w-auto flex items-center justify-center">
+                {% load static %}
+                <img src="{% static 'images/growcomm-logo.svg' %}" alt="GrowComm" class="h-16 w-auto">
             </div>
             <h2 class="mt-6 text-center text-3xl font-light text-black">
-                Join <span class="font-semibold">GrowComm</span>
+                Join the Community
             </h2>
             <p class="mt-2 text-center text-sm text-gray-600 font-light">
                 You've been invited by <span class="font-medium text-black">{{ inviter_name }}</span>
