@@ -224,45 +224,26 @@ class UserProfile(models.Model):
     
     @property
     def current_slot_configuration(self):
-        """Return the current slot configuration based on user's settings"""
-        from messaging.models import CustomMessageSlot, UserMessageSettings
+        """Return the current slot configuration - only custom slots"""
+        from messaging.models import CustomMessageSlot
         
-        # Get user's message settings
-        try:
-            settings = UserMessageSettings.objects.get(user=self.user)
-            use_custom = settings.use_custom_slots
-        except UserMessageSettings.DoesNotExist:
-            use_custom = False
+        # Return only custom slots
+        custom_slots = CustomMessageSlot.objects.filter(
+            user=self.user, 
+            is_active=True
+        ).order_by('name')
         
-        if use_custom:
-            # Return custom slots
-            custom_slots = CustomMessageSlot.objects.filter(
-                user=self.user, 
-                is_active=True
-            ).order_by('name')
-            
-            return {
-                'type': 'custom',
-                'slots': [
-                    {
-                        'name': slot.name,
-                        'limit': slot.slot_limit,
-                        'key': slot.name.lower().replace(' ', '_')
-                    }
-                    for slot in custom_slots
-                ]
-            }
-        else:
-            # Return default slots
-            return {
-                'type': 'default',
-                'slots': [
-                    {'name': 'Coffee Chat', 'limit': self.coffee_chat_slots, 'key': 'coffee_chat'},
-                    {'name': 'Mentorship', 'limit': self.mentorship_slots, 'key': 'mentorship'},
-                    {'name': 'Networking', 'limit': self.networking_slots, 'key': 'networking'},
-                    {'name': 'General', 'limit': self.general_slots, 'key': 'general'},
-                ]
-            }
+        return {
+            'type': 'custom',
+            'slots': [
+                {
+                    'name': slot.name,
+                    'limit': slot.slot_limit,
+                    'key': slot.name.lower().replace(' ', '_')
+                }
+                for slot in custom_slots
+            ]
+        }
     
     @property
     def available_slots(self):
