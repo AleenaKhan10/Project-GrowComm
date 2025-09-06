@@ -45,6 +45,21 @@ SECURE_HSTS_SECONDS = int(os.getenv('SECURE_HSTS_SECONDS', '0'))
 SECURE_HSTS_INCLUDE_SUBDOMAINS = os.getenv('SECURE_HSTS_INCLUDE_SUBDOMAINS', 'False').lower() == 'true'
 SECURE_HSTS_PRELOAD = os.getenv('SECURE_HSTS_PRELOAD', 'False').lower() == 'true'
 
+CSRF_TRUSTED_ORIGINS = [
+    'http://grwcomm.com',
+    'https://grwcomm.com',
+    'http://www.grwcomm.com',
+    'https://www.grwcomm.com',
+    'http://51.20.31.158',
+    'https://51.20.31.158',
+]
+CSRF_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_HTTPONLY = False
+CSRF_USE_SESSIONS = False
+CSRF_COOKIE_AGE = 31449600  # 1 year
+CSRF_FAILURE_VIEW = 'accounts.views.csrf_failure_view'
+
 # For proper HTTPS behind proxy/load balancer
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 USE_X_FORWARDED_HOST = True

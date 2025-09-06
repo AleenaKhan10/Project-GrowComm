@@ -5,10 +5,12 @@ from django.contrib.auth.views import LoginView
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse_lazy
 from django.views.generic import CreateView
-from django.http import Http404
 from .forms import AdminLoginForm, UserLoginForm, InviteRegistrationForm, UnifiedLoginForm
 from invites.models import InviteLink
 from profiles.decorators import verified_user_required
+from django.http import Http404, HttpResponseForbidden
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 
 
 class UnifiedLoginView(LoginView):
@@ -149,4 +151,9 @@ def home_view(request):
     """Home page view - redirects based on authentication status"""
     if request.user.is_authenticated:
         return redirect('communities:community_list')
+    return redirect('accounts:login')
+
+def csrf_failure_view(request, reason=""):
+    """Custom CSRF failure view with better error handling"""
+    messages.error(request, 'Security verification failed. Please try again.')
     return redirect('accounts:login')
