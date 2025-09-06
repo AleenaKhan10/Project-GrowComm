@@ -180,7 +180,7 @@ class SendReferralForm(forms.ModelForm):
             'class': 'input',
             'placeholder': 'Enter email address to refer'
         }),
-        help_text="Email address of the person you want to refer to GrowCommunity"
+        help_text="Email address of the person you want to refer to GrwCommunity"
     )
     
     message = forms.CharField(
@@ -275,13 +275,13 @@ class SendReferralForm(forms.ModelForm):
             }
             
             # Subject and message
-            subject = f"{context['sender_name']} referred you to join GrowCommunity!"
+            subject = f"{context['sender_name']} referred you to join GrwCommunity!"
             
             # Plain text message
             message_lines = [
                 f"Hi!",
                 f"",
-                f"{context['sender_name']} has referred you to join GrowCommunity - a platform for professional networking and growth.",
+                f"{context['sender_name']} has referred you to join GrwCommunity - a platform for professional networking and growth.",
                 f"",
             ]
             
@@ -293,12 +293,12 @@ class SendReferralForm(forms.ModelForm):
                 ])
             
             message_lines.extend([
-                f"GrowCommunity is an invite-only professional networking platform where members connect, share opportunities, and grow their careers together.",
+                f"GrwCommunity is an invite-only professional networking platform where members connect, share opportunities, and grow their careers together.",
                 f"",
                 f"To join, you'll need an invite link from {context['sender_name']} or another community member.",
                 f"",
                 f"Best regards,",
-                f"The GrowCommunity Team"
+                f"The GrwCommunity Team"
             ])
             
             message = '\n'.join(message_lines)

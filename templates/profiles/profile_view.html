@@ -227,6 +227,33 @@
                             {{ profile.phone_number|default:"Not provided" }}
                         </div>
                     </div>
+                    
+                    <div>
+                        <label class="form-label">
+                            Gender
+                        </label>
+                        <div class="input bg-gray-50 text-gray-700">
+                            {{ profile.get_gender_display|default:"Not specified" }}
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="form-label">
+                            City
+                        </label>
+                        <div class="input bg-gray-50 text-gray-700">
+                            {{ profile.city|default:"Not provided" }}
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="form-label">
+                            Country
+                        </label>
+                        <div class="input bg-gray-50 text-gray-700">
+                            {{ profile.country|default:"Not provided" }}
+                        </div>
+                    </div>
                 </div>
                 
                 <!-- Verification Status -->
@@ -312,7 +339,7 @@
                     
                     <div class="md:col-span-2">
                         <label class="form-label">
-                            Organization Level
+                            Career Level
                         </label>
                         <div class="input bg-gray-50 text-gray-700">
                             {{ profile.get_organization_level_display|default:"Not specified" }}

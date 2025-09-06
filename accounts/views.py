@@ -107,12 +107,12 @@ def register_view(request, invite_code):
                 # Superadmin invite - verify immediately
                 profile.is_verified = True
                 profile.needs_referrals = False
-                messages.success(request, f'Welcome to GrowComm, {user.first_name}! Your account is fully verified.')
+                messages.success(request, f'Welcome to GrwComm, {user.first_name}! Your account is fully verified.')
             else:
                 # Regular user invite - needs referrals
                 profile.is_verified = False
                 profile.needs_referrals = True
-                messages.info(request, f'Welcome to GrowComm, {user.first_name}! You need 3 referrals to unlock all features.')
+                messages.info(request, f'Welcome to GrwComm, {user.first_name}! You need 3 referrals to unlock all features.')
             
             profile.save()
             

@@ -5,7 +5,7 @@ from communities.models import Community
 
 
 class Command(BaseCommand):
-    help = 'Create initial data for GrowCommunity'
+    help = 'Create initial data for GrwCommunity'
 
     def handle(self, *args, **options):
         # Create message types
@@ -34,9 +34,9 @@ class Command(BaseCommand):
         
         # Create default community
         community, created = Community.objects.get_or_create(
-            name='GrowCommunity',
+            name='GrwCommunity',
             defaults={
-                'description': 'The main GrowCommunity where all members connect and share knowledge.',
+                'description': 'The main GrwCommunity where all members connect and share knowledge.',
                 'is_active': True,
                 'is_private': False,
                 'created_by': User.objects.filter(is_superuser=True).first() or User.objects.first()

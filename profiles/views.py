@@ -194,7 +194,7 @@ def delete_profile(request):
             # Log the user out
             logout(request)
             
-            messages.success(request, f'Your profile has been permanently deleted. Thank you for being part of GrowComm, {username}.')
+            messages.success(request, f'Your profile has been permanently deleted. Thank you for being part of GrwComm, {username}.')
             return redirect('accounts:login')
         else:
             messages.error(request, 'Profile deletion was not confirmed.')

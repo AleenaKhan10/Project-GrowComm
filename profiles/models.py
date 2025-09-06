@@ -374,12 +374,12 @@ class Referral(models.Model):
         
         try:
             user = self.recipient_user
-            subject = "🎉 Your GrowCommunity account is now verified!"
+            subject = "🎉 Your GrwCommunity account is now verified!"
             
             message_lines = [
                 f"Congratulations {user.first_name or user.username}!",
                 f"",
-                f"You've received 3 referrals from community members and your GrowCommunity account is now fully verified!",
+                f"You've received 3 referrals from community members and your GrwCommunity account is now fully verified!",
                 f"",
                 f"You can now:",
                 f"• Send messages to other community members",
@@ -387,10 +387,10 @@ class Referral(models.Model):
                 f"• Send referrals to help others get verified",
                 f"• Access all community features",
                 f"",
-                f"Welcome to the verified GrowCommunity family!",
+                f"Welcome to the verified GrwCommunity family!",
                 f"",
                 f"Best regards,",
-                f"The GrowCommunity Team"
+                f"The GrwCommunity Team"
             ]
             
             message = '\n'.join(message_lines)
