@@ -280,41 +280,27 @@
             <h2 class="text-lg font-medium text-black mb-4">Create Invite Links</h2>
             <p class="text-gray-600 mb-6">Generate invite links to bring new people to the community.</p>
             
-            {% if verification_status.is_verified %}
-                <form method="post" class="space-y-4">
-                    {% csrf_token %}
-                    <input type="hidden" name="create_invite" value="1">
-                    <div class="form-group">
-                        <label for="{{ invite_form.expires_in_days.id_for_label }}" class="form-label">
-                            Expires In (Days)
-                        </label>
-                        {{ invite_form.expires_in_days }}
-                        {% if invite_form.expires_in_days.errors %}
-                            <p class="mt-1 text-sm text-red-600">{{ invite_form.expires_in_days.errors.0 }}</p>
-                        {% endif %}
-                        <p class="mt-2 text-sm text-gray-500">{{ invite_form.expires_in_days.help_text }}</p>
-                    </div>
-                    <button type="submit" class="btn btn-primary">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-                        </svg>
-                        Create Invite Link
-                    </button>
-                </form>
-            {% else %}
-                <div class="text-center py-8 bg-yellow-50 border border-yellow-200 rounded-lg">
-                    <svg class="mx-auto h-12 w-12 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/>
-                    </svg>
-                    <h3 class="mt-4 text-lg font-medium text-yellow-800">Verification Required</h3>
-                    <p class="mt-2 text-sm text-yellow-700">
-                        You need {{ verification_status.referrals_needed }} more referrals to create invite links.
-                    </p>
-                    <a href="#" onclick="showTab('received'); return false;" class="mt-4 inline-flex items-center px-4 py-2 bg-yellow-600 text-white text-sm font-medium rounded-lg hover:bg-yellow-700">
-                        View Referrals Progress
-                    </a>
+            <!-- Allow all users to create invites - no verification required -->
+            <form method="post" class="space-y-4">
+                {% csrf_token %}
+                <input type="hidden" name="create_invite" value="1">
+                <div class="form-group">
+                    <label for="{{ invite_form.expires_in_days.id_for_label }}" class="form-label">
+                        Expires In (Days)
+                    </label>
+                    {{ invite_form.expires_in_days }}
+                    {% if invite_form.expires_in_days.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ invite_form.expires_in_days.errors.0 }}</p>
+                    {% endif %}
+                    <p class="mt-2 text-sm text-gray-500">{{ invite_form.expires_in_days.help_text }}</p>
                 </div>
-            {% endif %}
+                <button type="submit" class="btn btn-primary">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                    </svg>
+                    Create Invite Link
+                </button>
+            </form>
         </div>
         
         <!-- Invite Links List -->

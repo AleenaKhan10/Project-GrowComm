@@ -30,11 +30,7 @@ def my_invites(request):
     
     if request.method == 'POST':
         if 'create_invite' in request.POST:
-            # Check if user is verified before creating invite (superadmins bypass)
-            if not request.user.is_superuser and not request.user.profile.is_verified:
-                messages.error(request, f"You need {request.user.profile.referrals_needed} more referrals to create invite links.")
-                return redirect('invites:my_invites')
-            
+            # Allow all users to create invites (no verification required)
             invite_form = CreateInviteForm(request.POST)
             if invite_form.is_valid():
                 invite = invite_form.save(user=request.user)

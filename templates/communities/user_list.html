@@ -227,47 +227,36 @@
         <div class="text-sm text-gray-600">{{ total_users }} members</div>
     </div>
 
-    <!-- Search and Filter Form -->
+    <!-- Unified Search Bar -->
     <div class="card mb-6">
-        <!-- Desktop search form -->
-        <form method="GET" class="hidden md:flex space-x-4">
-            <div class="flex-1">
-                {{ form.search }}
+        <form method="GET" class="flex space-x-3">
+            <div class="flex-1 relative">
+                <input 
+                    type="text" 
+                    name="q" 
+                    value="{{ search_query }}"
+                    placeholder="Search by name, company, location, tags, skills, or any combination..."
+                    class="input w-full pl-10 pr-4"
+                    autofocus
+                >
+                <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                </svg>
             </div>
-            <div class="w-48">
-                {{ form.organization_level }}
-            </div>
-            <div class="w-48">
-                {{ form.tags }}
-            </div>
-            <button type="submit" class="px-4 py-1.5 bg-cyan-600 text-white text-sm rounded hover:bg-cyan-700 transition-colors h-8">
+            <button type="submit" class="px-6 py-2 bg-black text-white text-sm font-medium rounded hover:bg-gray-800 transition-colors">
                 Search
             </button>
+            {% if search_query %}
+            <a href="{% url 'communities:user_list' %}" class="px-4 py-2 bg-gray-200 text-gray-700 text-sm font-medium rounded hover:bg-gray-300 transition-colors">
+                Clear
+            </a>
+            {% endif %}
         </form>
-        
-        <!-- Mobile search form -->
-        <form method="GET" class="block md:hidden space-y-4">
-            <div>
-                <label class="form-label text-sm mb-1">Search Members</label>
-                {{ form.search }}
-                <p class="text-xs text-gray-500 mt-1">Search by name, company, skills, or interests</p>
-            </div>
-            
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="form-label text-sm mb-1">Organization Level</label>
-                    {{ form.organization_level }}
-                </div>
-                <div>
-                    <label class="form-label text-sm mb-1">Filter by Tags</label>
-                    {{ form.tags }}
-                </div>
-            </div>
-            
-            <button type="submit" class="px-4 py-1.5 bg-black text-white text-sm rounded hover:bg-black transition-colors w-full h-8">
-                Search Members
-            </button>
-        </form>
+        {% if search_query %}
+        <div class="mt-2 text-sm text-gray-600">
+            Searching for: <span class="font-medium text-black">{{ search_query }}</span>
+        </div>
+        {% endif %}
     </div>
 
     <!-- Community Table -->

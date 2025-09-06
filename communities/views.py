@@ -18,37 +18,52 @@ from messaging.forms import MessageRequestForm
 
 @login_required
 def user_list(request):
-    """Main community page showing all users with search and filter functionality"""
-    form = ProfileSearchForm(request.GET)
+    """Main community page showing all users with unified search functionality"""
+    # Get the unified search query
+    search_query = request.GET.get('q', '').strip()
     
     # Get all users except current user
     users = User.objects.exclude(id=request.user.id).select_related('profile')
     
-    # Apply filters if form is valid
-    if form.is_valid():
-        search = form.cleaned_data.get('search')
-        organization_level = form.cleaned_data.get('organization_level')
-        tags = form.cleaned_data.get('tags')
+    # Apply unified search if provided
+    if search_query:
+        # Split search query into words for better matching
+        search_words = search_query.split()
         
-        if search:
-            users = users.filter(
-                Q(first_name__icontains=search) |
-                Q(last_name__icontains=search) |
-                Q(username__icontains=search) |
-                Q(profile__company__icontains=search) |
-                Q(profile__team__icontains=search) |
-                Q(profile__bio__icontains=search) |
-                Q(profile__tags__icontains=search) |
-                Q(profile__schools__icontains=search)
+        # Build search filter using OR logic - users matching ANY word will be returned
+        search_filter = Q()
+        for word in search_words:
+            word_lower = word.lower()
+            
+            # Create basic field searches
+            word_filter = (
+                Q(first_name__icontains=word) |
+                Q(last_name__icontains=word) |
+                Q(username__icontains=word) |
+                Q(profile__company__icontains=word) |
+                Q(profile__team__icontains=word) |
+                Q(profile__location__icontains=word) |
+                Q(profile__bio__icontains=word) |
+                Q(profile__tags__icontains=word) |
+                Q(profile__schools__icontains=word) |
+                Q(profile__organization_level__icontains=word)
             )
+            
+            # Add special handling for organization level display names
+            from profiles.models import UserProfile
+            org_level_matches = Q()
+            for key, display_name in UserProfile.ORGANIZATION_LEVELS:
+                if word_lower in display_name.lower():
+                    org_level_matches |= Q(profile__organization_level=key)
+            
+            word_filter |= org_level_matches
+            # Use OR logic - users matching ANY search word will be included
+            search_filter |= word_filter
         
-        if organization_level:
-            users = users.filter(profile__organization_level=organization_level)
-        
-        if tags:
-            tag_list = [tag.strip().lower() for tag in tags.split(',') if tag.strip()]
-            for tag in tag_list:
-                users = users.filter(profile__tags__icontains=tag)
+        users = users.filter(search_filter).distinct()
+    
+    # Keep the old form for backward compatibility but hidden
+    form = ProfileSearchForm(request.GET)
     
     # Order by newest members first
     users = users.order_by('-profile__created_date')
@@ -93,6 +108,7 @@ def user_list(request):
     
     context = {
         'form': form,
+        'search_query': search_query,
         'page_obj': page_obj,
         'total_users': users.count(),
         'user_is_verified': request.user.is_superuser or (hasattr(request.user, 'profile') and request.user.profile.is_verified),
