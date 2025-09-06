@@ -11,7 +11,7 @@ class UserProfileForm(forms.ModelForm):
         max_length=30,
         required=True,
         widget=forms.TextInput(attrs={
-            'class': 'w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded text-white placeholder-gray-400 focus:ring-2 focus:ring-lime-400 focus:border-lime-400 transition-colors',
+            'class': 'w-full px-4 py-3 bg-white border border-gray-300 rounded text-black placeholder-gray-500 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors',
             'placeholder': 'Enter your first name'
         })
     )
@@ -19,14 +19,14 @@ class UserProfileForm(forms.ModelForm):
         max_length=30,
         required=True,
         widget=forms.TextInput(attrs={
-            'class': 'w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded text-white placeholder-gray-400 focus:ring-2 focus:ring-lime-400 focus:border-lime-400 transition-colors',
+            'class': 'w-full px-4 py-3 bg-white border border-gray-300 rounded text-black placeholder-gray-500 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors',
             'placeholder': 'Enter your last name'
         })
     )
     email = forms.EmailField(
         required=True,
         widget=forms.EmailInput(attrs={
-            'class': 'w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded text-white placeholder-gray-400 focus:ring-2 focus:ring-lime-400 focus:border-lime-400 transition-colors',
+            'class': 'w-full px-4 py-3 bg-white border border-gray-300 rounded text-black placeholder-gray-500 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors',
             'placeholder': 'Enter your email address'
         })
     )
@@ -40,61 +40,61 @@ class UserProfileForm(forms.ModelForm):
         ]
         widgets = {
             'profile_picture': forms.ClearableFileInput(attrs={
-                'class': 'block w-full text-sm text-gray-300 file:mr-4 file:py-3 file:px-4 file:rounded file:border file:border-gray-600 file:text-sm file:font-medium file:bg-gray-800 file:text-white hover:file:bg-gray-700 transition-colors',
+                'class': 'block w-full text-sm text-gray-700 file:mr-4 file:py-3 file:px-4 file:rounded file:border file:border-gray-300 file:text-sm file:font-medium file:bg-white file:text-gray-700 hover:file:bg-gray-50 transition-colors',
                 'accept': 'image/*'
             }),
             'bio': forms.Textarea(attrs={
-                'class': 'w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded text-white placeholder-gray-400 focus:ring-2 focus:ring-lime-400 focus:border-lime-400 transition-colors min-h-[100px]',
+                'class': 'w-full px-4 py-3 bg-white border border-gray-300 rounded text-black placeholder-gray-500 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors min-h-[100px]',
                 'rows': 4,
                 'placeholder': 'Tell us about yourself, your interests, and what you bring to the community...'
             }),
             'company': forms.TextInput(attrs={
-                'class': 'w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded text-white placeholder-gray-400 focus:ring-2 focus:ring-lime-400 focus:border-lime-400 transition-colors',
+                'class': 'w-full px-4 py-3 bg-white border border-gray-300 rounded text-black placeholder-gray-500 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors',
                 'placeholder': 'Your current company or organization'
             }),
             'team': forms.TextInput(attrs={
-                'class': 'w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded text-white placeholder-gray-400 focus:ring-2 focus:ring-lime-400 focus:border-lime-400 transition-colors',
+                'class': 'w-full px-4 py-3 bg-white border border-gray-300 rounded text-black placeholder-gray-500 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors',
                 'placeholder': 'Your team or department'
             }),
             'organization_level': forms.Select(attrs={
-                'class': 'w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded text-white focus:ring-2 focus:ring-lime-400 focus:border-lime-400 transition-colors'
+                'class': 'w-full px-4 py-3 bg-white border border-gray-300 rounded text-black focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors'
             }),
             'schools': forms.TextInput(attrs={
-                'class': 'w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded text-white placeholder-gray-400 focus:ring-2 focus:ring-lime-400 focus:border-lime-400 transition-colors',
+                'class': 'w-full px-4 py-3 bg-white border border-gray-300 rounded text-black placeholder-gray-500 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors',
                 'placeholder': 'Universities, schools, or educational institutions'
             }),
             'tags': forms.Textarea(attrs={
-                'class': 'w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded text-white placeholder-gray-400 focus:ring-2 focus:ring-lime-400 focus:border-lime-400 transition-colors min-h-[100px]',
+                'class': 'w-full px-4 py-3 bg-white border border-gray-300 rounded text-black placeholder-gray-500 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors min-h-[100px]',
                 'rows': 3,
                 'placeholder': 'Enter skills, interests, or expertise areas (comma-separated)\nExample: Python, Data Science, Startup, Machine Learning, Product Management'
             }),
             'phone_number': forms.TextInput(attrs={
-                'class': 'w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded text-white placeholder-gray-400 focus:ring-2 focus:ring-lime-400 focus:border-lime-400 transition-colors',
+                'class': 'w-full px-4 py-3 bg-white border border-gray-300 rounded text-black placeholder-gray-500 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors',
                 'placeholder': 'Your phone number (optional)'
             }),
             'name_visibility': forms.Select(attrs={
-                'class': 'w-3/5 px-4 py-3 bg-gray-800 border border-gray-600 rounded text-white focus:ring-2 focus:ring-lime-400 focus:border-lime-400 transition-colors'
+                'class': 'w-3/5 px-4 py-3 bg-white border border-gray-300 rounded text-black focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors'
             }),
             'coffee_chat_slots': forms.NumberInput(attrs={
-                'class': 'w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded text-white placeholder-gray-400 focus:ring-2 focus:ring-lime-400 focus:border-lime-400 transition-colors',
+                'class': 'w-full px-4 py-3 bg-white border border-gray-300 rounded text-black placeholder-gray-500 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors',
                 'min': 0,
                 'max': 50,
                 'placeholder': '5'
             }),
             'mentorship_slots': forms.NumberInput(attrs={
-                'class': 'w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded text-white placeholder-gray-400 focus:ring-2 focus:ring-lime-400 focus:border-lime-400 transition-colors',
+                'class': 'w-full px-4 py-3 bg-white border border-gray-300 rounded text-black placeholder-gray-500 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors',
                 'min': 0,
                 'max': 20,
                 'placeholder': '2'
             }),
             'networking_slots': forms.NumberInput(attrs={
-                'class': 'w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded text-white placeholder-gray-400 focus:ring-2 focus:ring-lime-400 focus:border-lime-400 transition-colors',
+                'class': 'w-full px-4 py-3 bg-white border border-gray-300 rounded text-black placeholder-gray-500 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors',
                 'min': 0,
                 'max': 100,
                 'placeholder': '10'
             }),
             'general_slots': forms.NumberInput(attrs={
-                'class': 'w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded text-white placeholder-gray-400 focus:ring-2 focus:ring-lime-400 focus:border-lime-400 transition-colors',
+                'class': 'w-full px-4 py-3 bg-white border border-gray-300 rounded text-black placeholder-gray-500 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors',
                 'min': 0,
                 'max': 100,
                 'placeholder': '15'
