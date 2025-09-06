@@ -92,12 +92,18 @@ def conversation_view(request, user_id):
         is_read=False
     ).update(is_read=True, read_date=timezone.now())
     
-    # Handle message sending via POST (check verification)
+    # Handle message sending via POST
     if request.method == 'POST':
-        # Check if user is verified before allowing message sending (superadmins bypass)
-        if not request.user.is_superuser and not request.user.profile.is_verified:
-            messages.warning(request, f"You need {request.user.profile.referrals_needed} more referrals to send messages.")
-            return redirect('profiles:referrals')
+        # Check if there's an existing conversation between these users
+        existing_messages = Message.objects.filter(
+            (Q(sender=request.user, receiver=other_user) | Q(sender=other_user, receiver=request.user))
+        ).exists()
+        
+        # Only require verification for NEW conversations, not for replies in existing conversations
+        if not existing_messages:
+            if not request.user.is_superuser and not request.user.profile.is_verified:
+                messages.warning(request, f"You need {request.user.profile.referrals_needed} more referrals to start new conversations.")
+                return redirect('profiles:referrals')
         
         content = request.POST.get('content', '').strip()
         if content:
@@ -127,12 +133,14 @@ def conversation_view(request, user_id):
 
 
 @login_required
-@verified_user_required
 @require_http_methods(["POST"])
 def send_message(request):
     """
     AJAX endpoint to send a message.
     Expects JSON with receiver_id, content, and optionally message_type_id.
+    
+    For NEW conversations: Requires verification and respects slot limits
+    For EXISTING conversations: No verification required, no slot limits
     """
     try:
         data = json.loads(request.body)
@@ -168,49 +176,71 @@ def send_message(request):
                 'error': 'You cannot message yourself'
             }, status=400)
         
-        # Get message type if provided
-        message_type = None
-        if message_type_id:
-            try:
-                message_type = MessageType.objects.get(id=message_type_id)
-            except MessageType.DoesNotExist:
+        # Check if there's an existing conversation between these users
+        existing_conversation = Message.objects.filter(
+            (Q(sender=request.user, receiver=receiver) | Q(sender=receiver, receiver=request.user))
+        ).exists()
+        
+        # For NEW conversations, apply slot restrictions and verification
+        if not existing_conversation:
+            # Check verification for new conversations
+            if not request.user.is_superuser and not request.user.profile.is_verified:
                 return JsonResponse({
                     'success': False,
-                    'error': 'Invalid message type'
-                }, status=400)
+                    'error': f'You need {request.user.profile.referrals_needed} more referrals to start new conversations.'
+                }, status=403)
             
-            # Check slot availability if message type is provided
-            can_send, reason = MessageSlotBooking.can_user_send_message(request.user, receiver, message_type)
-            if not can_send:
-                error_messages = {
-                    'already_sent': f'You have already sent a {message_type.name} message to {receiver.username}. Please wait 3 days before sending another.',
-                    'slots_full': f'{receiver.username}\'s {message_type.name} slots are currently full. Please try again later.'
-                }
-                return JsonResponse({
-                    'success': False,
-                    'error': error_messages.get(reason, 'Cannot send message at this time')
-                }, status=400)
-        
-        # Create the message
-        message = Message.objects.create(
-            sender=request.user,
-            receiver=receiver,
-            content=content,
-            message_type=message_type
-        )
-        
-        # Book slot if message type is provided
-        if message_type:
-            booking, booking_reason = MessageSlotBooking.book_slot(
-                request.user, receiver, message_type, message
+            # Get message type if provided (required for new conversations from community)
+            message_type = None
+            if message_type_id:
+                try:
+                    message_type = MessageType.objects.get(id=message_type_id)
+                except MessageType.DoesNotExist:
+                    return JsonResponse({
+                        'success': False,
+                        'error': 'Invalid message type'
+                    }, status=400)
+                
+                # Check slot availability for new conversations
+                can_send, reason = MessageSlotBooking.can_user_send_message(request.user, receiver, message_type)
+                if not can_send:
+                    error_messages = {
+                        'already_sent': f'You have already sent a {message_type.name} message to {receiver.username}. Please wait 3 days before sending another.',
+                        'slots_full': f'{receiver.username}\'s {message_type.name} slots are currently full. Please try again later.'
+                    }
+                    return JsonResponse({
+                        'success': False,
+                        'error': error_messages.get(reason, 'Cannot send message at this time')
+                    }, status=400)
+            
+            # Create the message for new conversation
+            message = Message.objects.create(
+                sender=request.user,
+                receiver=receiver,
+                content=content,
+                message_type=message_type
             )
-            if not booking:
-                # If booking failed, delete the message and return error
-                message.delete()
-                return JsonResponse({
-                    'success': False,
-                    'error': f'Failed to send message: {booking_reason}'
-                }, status=400)
+            
+            # Book slot if message type is provided
+            if message_type:
+                booking, booking_reason = MessageSlotBooking.book_slot(
+                    request.user, receiver, message_type, message
+                )
+                if not booking:
+                    # If booking failed, delete the message and return error
+                    message.delete()
+                    return JsonResponse({
+                        'success': False,
+                        'error': f'Failed to send message: {booking_reason}'
+                    }, status=400)
+        else:
+            # For EXISTING conversations, no restrictions - just create the message
+            message = Message.objects.create(
+                sender=request.user,
+                receiver=receiver,
+                content=content,
+                # No message_type for replies in existing conversations
+            )
         
         # Return success with message data
         return JsonResponse({
@@ -223,9 +253,9 @@ def send_message(request):
                 'timestamp': message.timestamp.isoformat(),
                 'is_read': message.is_read,
                 'message_type': {
-                    'id': message_type.id,
-                    'name': message_type.name
-                } if message_type else None
+                    'id': message.message_type.id,
+                    'name': message.message_type.name
+                } if message.message_type else None
             }
         })
         
