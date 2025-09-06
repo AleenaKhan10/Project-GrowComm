@@ -32,7 +32,7 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-h_%#ss$#i$peguhau6-nk!$xrg
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'True').lower() == 'true'
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,51.20.31.158,www.grwcomm.com,grwcomm.com,127.0.0.1').split(',')
 
 # HTTPS/Security Settings for Production
 SECURE_SSL_REDIRECT = os.getenv('SECURE_SSL_REDIRECT', 'False').lower() == 'true'
@@ -52,7 +52,7 @@ USE_X_FORWARDED_PORT = True
 
 # Site URL Configuration for invite links and emails
 # Examples: 'http://localhost:8000', 'https://example.com'
-SITE_URL = os.getenv('SITE_URL', None)  # If None, will build from request
+SITE_URL = os.getenv('SITE_URL', 'http://www.grwcomm.com')  # If None, will build from request
 
 
 # Application definition
