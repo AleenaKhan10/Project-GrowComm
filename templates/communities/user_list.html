@@ -332,27 +332,16 @@
                         {% endif %}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        {% if request.user.is_superuser or user_is_verified %}
-                            <button 
-                                onclick="toggleUserDetails({{ user.id }})" 
-                                class="text-gray-600 hover:text-black"
-                                title="Send message"
-                            >
-                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
-                                </svg>
-                            </button>
-                        {% else %}
-                            <button 
-                                onclick="showVerificationRequired()" 
-                                class="text-gray-400 cursor-not-allowed"
-                                title="Get verified to send messages"
-                            >
-                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/>
-                                </svg>
-                            </button>
-                        {% endif %}
+                        <!-- Always show dropdown button for all users -->
+                        <button 
+                            onclick="toggleUserDetails({{ user.id }})" 
+                            class="text-gray-600 hover:text-black"
+                            title="{% if request.user.is_superuser or user_is_verified %}Send message{% else %}View messaging options{% endif %}"
+                        >
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                            </svg>
+                        </button>
                     </td>
                 </tr>
                 <!-- Expandable message form row -->
@@ -367,12 +356,14 @@
                                         {% with slot_key=message_type.name|lower|space_to_underscore %}
                                         {% with slot_info=user_slots|dict_get:slot_key %}
                                         <button 
-                                            onclick="selectMessageType({{ user.id }}, '{{ message_type.name }}')" 
+                                            onclick="{% if request.user.is_superuser or user_is_verified %}selectMessageType({{ user.id }}, '{{ message_type.name }}'){% else %}showVerificationRequired(){% endif %}" 
                                             class="btn message-type-btn
-                                                {% if slot_info.status == 'available' %}btn-secondary
+                                                {% if not user_is_verified and not request.user.is_superuser %}btn-ghost cursor-not-allowed
+                                                {% elif slot_info.status == 'available' %}btn-secondary
                                                 {% elif slot_info.status == 'already_sent' %}btn-ghost cursor-not-allowed
                                                 {% elif slot_info.status == 'full' %}btn-ghost cursor-not-allowed{% endif %}"
-                                            {% if slot_info.status != 'available' %}disabled{% endif %}
+                                            {% if slot_info.status != 'available' or not user_is_verified and not request.user.is_superuser %}disabled{% endif %}
+                                            title="{% if not user_is_verified and not request.user.is_superuser %}Get verified to send messages{% endif %}"
                                         >
                                             {{ message_type.name }}
                                             {% if slot_info %}
@@ -401,9 +392,10 @@
                                 <label class="form-label">Your Message:</label>
                                 <textarea 
                                     id="message-text-{{ user.id }}" 
-                                    class="input" 
+                                    class="input {% if not user_is_verified and not request.user.is_superuser %}bg-gray-100 cursor-not-allowed{% endif %}" 
                                     rows="3" 
-                                    placeholder="Write your message here..."
+                                    placeholder="{% if request.user.is_superuser or user_is_verified %}Write your message here...{% else %}Get verified to send messages...{% endif %}"
+                                    {% if not user_is_verified and not request.user.is_superuser %}disabled readonly{% endif %}
                                 ></textarea>
                             </div>
                             <div class="flex justify-end space-x-2">
@@ -414,9 +406,10 @@
                                     Cancel
                                 </button>
                                 <button 
-                                    onclick="sendMessage({{ user.id }})" 
-                                    class="btn btn-primary text-sm">
-                                    Send Message
+                                    onclick="{% if request.user.is_superuser or user_is_verified %}sendMessage({{ user.id }}){% else %}showVerificationRequired(){% endif %}" 
+                                    class="btn {% if request.user.is_superuser or user_is_verified %}btn-primary{% else %}btn-ghost cursor-not-allowed{% endif %} text-sm"
+                                    {% if not user_is_verified and not request.user.is_superuser %}disabled title="Get verified to send messages"{% endif %}>
+                                    {% if request.user.is_superuser or user_is_verified %}Send Message{% else %}🔒 Get Verified to Send{% endif %}
                                 </button>
                             </div>
                         </div>
