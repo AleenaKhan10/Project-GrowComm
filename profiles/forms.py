@@ -36,8 +36,7 @@ class UserProfileForm(forms.ModelForm):
         model = UserProfile
         fields = [
             'profile_picture', 'gender', 'city', 'country', 'bio', 'company', 'team', 'organization_level',
-            'schools', 'tags', 'phone_number', 'name_visibility',
-            'coffee_chat_slots', 'mentorship_slots', 'networking_slots', 'general_slots'
+            'schools', 'tags', 'phone_number', 'name_visibility'
         ]
         widgets = {
             'profile_picture': forms.ClearableFileInput(attrs={
@@ -87,30 +86,6 @@ class UserProfileForm(forms.ModelForm):
             }),
             'name_visibility': forms.Select(attrs={
                 'class': 'w-3/5 px-4 py-3 bg-white border border-gray-300 rounded text-black focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors'
-            }),
-            'coffee_chat_slots': forms.NumberInput(attrs={
-                'class': 'w-full px-2 py-2 text-sm bg-white border border-gray-300 rounded text-black placeholder-gray-500 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors text-center',
-                'min': 0,
-                'max': 50,
-                'placeholder': '5'
-            }),
-            'mentorship_slots': forms.NumberInput(attrs={
-                'class': 'w-full px-2 py-2 text-sm bg-white border border-gray-300 rounded text-black placeholder-gray-500 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors text-center',
-                'min': 0,
-                'max': 20,
-                'placeholder': '3'
-            }),
-            'networking_slots': forms.NumberInput(attrs={
-                'class': 'w-full px-2 py-2 text-sm bg-white border border-gray-300 rounded text-black placeholder-gray-500 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors text-center',
-                'min': 0,
-                'max': 100,
-                'placeholder': '10'
-            }),
-            'general_slots': forms.NumberInput(attrs={
-                'class': 'w-full px-2 py-2 text-sm bg-white border border-gray-300 rounded text-black placeholder-gray-500 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors text-center',
-                'min': 0,
-                'max': 100,
-                'placeholder': '15'
             }),
         }
     
