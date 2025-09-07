@@ -336,6 +336,44 @@ class MessagingApp {
                     padding: 0 !important;
                 }
                 
+                /* SELECTIVE OVERFLOW FIXES - PRESERVE FUNCTIONALITY */
+                
+                /* ONLY TARGET VISUAL ELEMENTS THAT CAUSE SCROLLBAR ISSUES */
+                .message-bubble,
+                .message-bubble *,
+                .conversation-item,
+                .conversation-item *,
+                .chat-header,
+                .chat-header *:not(button):not(svg),
+                .sidebar-header,
+                .sidebar-header *:not(input):not(button):not(svg) {
+                    overflow: hidden !important;
+                    overflow-x: hidden !important;
+                    overflow-y: hidden !important;
+                }
+                
+                /* PRESERVE INTERACTIVE ELEMENTS */
+                button, input, textarea, select,
+                .conversation-item[data-user-id],
+                #message-input,
+                #send-button,
+                .mobile-back-button {
+                    overflow: visible !important;
+                }
+                
+                /* MAIN SCROLLABLE CONTAINERS */
+                .messages-list, .conversation-list {
+                    overflow-y: auto !important;
+                    overflow-x: hidden !important;
+                }
+                
+                /* PREVENT HORIZONTAL SCROLL ONLY ON MAIN CONTAINERS */
+                .messages-container,
+                .sidebar,
+                .chat-area {
+                    overflow-x: hidden !important;
+                }
+                
                 .messages-page {
                     overflow: hidden !important;
                     height: 100vh !important;
@@ -452,7 +490,7 @@ class MessagingApp {
                     gap: 0.25rem !important;
                 }
                 
-                /* CONVERSATION ITEMS - SINGLE LINE FORCED */
+                /* CONVERSATION ITEMS - SINGLE LINE FORCED BUT INTERACTIVE */
                 .conversation-item {
                     display: flex !important;
                     align-items: center !important;
@@ -469,6 +507,10 @@ class MessagingApp {
                     flex-shrink: 0 !important;
                     width: 100% !important;
                     box-sizing: border-box !important;
+                    /* PRESERVE CLICK FUNCTIONALITY */
+                    pointer-events: auto !important;
+                    position: relative !important;
+                    z-index: 1 !important;
                 }
                 
                 .conversation-item:hover {
@@ -755,7 +797,7 @@ class MessagingApp {
                     gap: 0.375rem !important;
                 }
                 
-                /* MESSAGE BUBBLES - Compact */
+                /* MESSAGE BUBBLES - NO INDIVIDUAL SCROLLING */
                 .message-bubble {
                     padding: 0.375rem 0.5rem !important;
                     font-size: 0.75rem !important;
@@ -764,9 +806,42 @@ class MessagingApp {
                     max-width: 100% !important;
                     word-wrap: break-word !important;
                     overflow-wrap: break-word !important;
+                    overflow: hidden !important;
+                    overflow-x: hidden !important;
+                    overflow-y: hidden !important;
                 }
                 
-                /* MESSAGE INPUT AREA - Fixed bottom */
+                /* FORCE NO SCROLLING ON ANY MESSAGE ELEMENTS */
+                .message-bubble *,
+                .message-bubble p,
+                .message-bubble div,
+                .message-bubble span {
+                    overflow: hidden !important;
+                    overflow-x: hidden !important;
+                    overflow-y: hidden !important;
+                }
+                
+                /* MESSAGE CONTAINERS - NO SCROLLING */
+                .flex.justify-end,
+                .flex.justify-start,
+                .max-w-\\[85\\%\\],
+                .min-w-\\[60px\\],
+                .group {
+                    overflow: hidden !important;
+                    overflow-x: hidden !important;
+                    overflow-y: hidden !important;
+                }
+                
+                /* MESSAGE TEXT - FORCE NO SCROLL */
+                .message-bubble .text-sm {
+                    overflow: hidden !important;
+                    text-overflow: ellipsis !important;
+                    white-space: pre-wrap !important;
+                    word-break: break-word !important;
+                    overflow-wrap: break-word !important;
+                }
+                
+                /* MESSAGE INPUT AREA - PRESERVE FUNCTIONALITY */
                 .message-input-container {
                     flex-shrink: 0 !important;
                     background: white !important;
@@ -775,12 +850,18 @@ class MessagingApp {
                     display: flex !important;
                     align-items: flex-end !important;
                     gap: 0.375rem !important;
+                    overflow-x: hidden !important;
+                    /* PRESERVE VERTICAL INTERACTION FOR INPUT RESIZE */
+                    overflow-y: visible !important;
+                    pointer-events: auto !important;
+                    z-index: 10 !important;
                 }
                 
                 .message-input-container .flex.items-center.space-x-3 {
                     width: 100% !important;
                     gap: 0.375rem !important;
                     align-items: flex-end !important;
+                    overflow: hidden !important;
                 }
                 
                 .message-input-container .flex.items-center.space-x-3 > * + * {
@@ -804,10 +885,12 @@ class MessagingApp {
                     height: 0.875rem !important;
                 }
                 
-                /* MESSAGE INPUT FIELD */
+                /* MESSAGE INPUT FIELD - PRESERVE FUNCTIONALITY */
                 .message-input-container .flex-1 {
                     flex: 1 !important;
                     min-width: 0 !important;
+                    overflow: visible !important;
+                    position: relative !important;
                 }
                 
                 .message-input-container textarea {
@@ -818,9 +901,14 @@ class MessagingApp {
                     max-height: 3rem !important;
                     border-radius: 1rem !important;
                     resize: none !important;
+                    overflow: hidden !important;
+                    overflow-y: auto !important;
+                    pointer-events: auto !important;
+                    position: relative !important;
+                    z-index: 5 !important;
                 }
                 
-                /* SEND BUTTON - Compact circle */
+                /* SEND BUTTON - PRESERVE CLICK FUNCTIONALITY */
                 .message-input-container .btn.btn-primary {
                     padding: 0.375rem !important;
                     width: 2rem !important;
@@ -830,11 +918,24 @@ class MessagingApp {
                     align-items: center !important;
                     justify-content: center !important;
                     flex-shrink: 0 !important;
+                    pointer-events: auto !important;
+                    position: relative !important;
+                    z-index: 10 !important;
+                    overflow: visible !important;
                 }
                 
                 .message-input-container .btn.btn-primary svg {
                     width: 0.875rem !important;
                     height: 0.875rem !important;
+                    pointer-events: none !important;
+                }
+                
+                /* ENSURE ALL BUTTONS ARE CLICKABLE */
+                button, .btn {
+                    pointer-events: auto !important;
+                    position: relative !important;
+                    z-index: 5 !important;
+                    overflow: visible !important;
                 }
                 
                 /* EMPTY STATE - Compact */
@@ -947,7 +1048,16 @@ class MessagingApp {
                     e.preventDefault();
                     const userId = parseInt(conversationItem.dataset.userId);
                     const userName = conversationItem.dataset.userName;
-                    const messageTypeId = conversationItem.dataset.messageTypeId === 'null' ? null : parseInt(conversationItem.dataset.messageTypeId);
+                    const messageTypeIdStr = conversationItem.dataset.messageTypeId;
+                    const messageTypeId = messageTypeIdStr === 'null' || messageTypeIdStr === null || messageTypeIdStr === undefined ? null : parseInt(messageTypeIdStr);
+                    
+                    console.log('Selecting conversation:', {
+                        userId: userId,
+                        userName: userName,
+                        messageTypeIdStr: messageTypeIdStr,
+                        messageTypeId: messageTypeId,
+                        element: conversationItem
+                    });
                     
                     this.selectConversation(conversationItem, userId, userName, messageTypeId);
                 }
@@ -1042,6 +1152,11 @@ class MessagingApp {
         // Load messages
         this.currentUserId = userId;
         this.currentMessageTypeId = messageTypeId;
+        
+        console.log('Set current context in selectConversation:', {
+            userId: this.currentUserId,
+            messageTypeId: this.currentMessageTypeId
+        });
         
         // Set global variable for reveal identity function
         currentChatUserId = userId;
@@ -1156,11 +1271,20 @@ class MessagingApp {
         this.isLoading = true;
         const messagesList = document.getElementById('messages-list');
         
+        console.log('Loading messages for:', {
+            userId: userId,
+            messageTypeId: messageTypeId,
+            currentUserId: this.currentUserId,
+            currentMessageTypeId: this.currentMessageTypeId
+        });
+        
         try {
             let url = `/messages/api/messages/${userId}/`;
-            if (messageTypeId !== null && messageTypeId !== undefined) {
+            if (messageTypeId !== null && messageTypeId !== undefined && messageTypeId !== 'null') {
                 url += `?message_type_id=${messageTypeId}`;
             }
+            
+            console.log('Loading messages from URL:', url);
             
             const response = await fetch(url);
             const data = await response.json();
@@ -1246,9 +1370,15 @@ class MessagingApp {
                 'content': messageText
             };
             
-            if (this.currentMessageTypeId && this.currentMessageTypeId !== 'null') {
+            if (this.currentMessageTypeId && this.currentMessageTypeId !== 'null' && this.currentMessageTypeId !== null) {
                 messageData.message_type_id = this.currentMessageTypeId;
             }
+            
+            console.log('Sending message with data:', messageData);
+            console.log('Current context:', {
+                userId: this.currentUserId,
+                messageTypeId: this.currentMessageTypeId
+            });
             
             const response = await fetch('/messages/api/send/', {
                 method: 'POST',

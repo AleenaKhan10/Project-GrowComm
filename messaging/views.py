@@ -180,14 +180,23 @@ def send_message(request):
                 'error': 'You cannot message yourself'
             }, status=400)
         
-        # Check if there's an existing conversation between these users
-        # Also get the message type from the existing conversation if it exists
-        existing_conversation = Message.objects.filter(
-            (Q(sender=request.user, receiver=receiver) | Q(sender=receiver, receiver=request.user))
-        ).first()
+        # Check if there's an existing conversation between these users FOR THE SAME MESSAGE TYPE
+        # Different message types should create separate conversations
+        message_type = None
+        if message_type_id:
+            try:
+                message_type = MessageType.objects.get(id=message_type_id)
+            except MessageType.DoesNotExist:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Invalid message type'
+                }, status=400)
         
-        # If existing conversation found, use its message_type
-        existing_message_type = existing_conversation.message_type if existing_conversation else None
+        # Check for existing conversation with the SAME message type (or both None)
+        existing_conversation = Message.objects.filter(
+            (Q(sender=request.user, receiver=receiver) | Q(sender=receiver, receiver=request.user)),
+            message_type=message_type  # SAME message type only
+        ).first()
         
         # For NEW conversations, apply slot restrictions and verification
         if not existing_conversation:
@@ -198,18 +207,8 @@ def send_message(request):
                     'error': f'You need {request.user.profile.referrals_needed} more referrals to start new conversations.'
                 }, status=403)
             
-            # Get message type if provided (required for new conversations from community)
-            message_type = None
-            if message_type_id:
-                try:
-                    message_type = MessageType.objects.get(id=message_type_id)
-                except MessageType.DoesNotExist:
-                    return JsonResponse({
-                        'success': False,
-                        'error': 'Invalid message type'
-                    }, status=400)
-                
-                # Check slot availability for new conversations
+            # Check slot availability for new conversations with message type
+            if message_type:
                 can_send, reason = MessageSlotBooking.can_user_send_message(request.user, receiver, message_type)
                 if not can_send:
                     error_messages = {
@@ -242,13 +241,13 @@ def send_message(request):
                         'error': f'Failed to send message: {booking_reason}'
                     }, status=400)
         else:
-            # For EXISTING conversations, no restrictions - just create the message
-            # Use the same message_type as the existing conversation to keep messages grouped
+            # For EXISTING conversations with same message type, no restrictions
+            # Use the same message_type to keep messages in the same conversation
             message = Message.objects.create(
                 sender=request.user,
                 receiver=receiver,
                 content=content,
-                message_type=existing_message_type  # Use the same message type as the conversation
+                message_type=message_type  # Use the message type from the request (same as existing)
             )
         
         # Return success with message data
