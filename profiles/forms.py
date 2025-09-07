@@ -219,15 +219,9 @@ class SendReferralForm(forms.ModelForm):
             self._send_referral_email(referral)
             
             # If recipient exists, automatically accept the referral
+            # (The accept_referral method will handle superadmin auto-verification)
             if referral.recipient_user:
                 referral.accept_referral()
-            
-            # If sender is super admin, mark for auto-verification
-            if self.user.is_superuser and referral.recipient_user:
-                profile = referral.recipient_user.profile
-                profile.is_verified = True
-                profile.needs_referrals = False
-                profile.save()
         
         return referral
     
