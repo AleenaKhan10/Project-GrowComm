@@ -670,6 +670,35 @@ textarea::placeholder {
   animation: fadeIn var(--transition-slow);
 }
 
+/* Mobile Navigation Menu Fix */
+@media (max-width: 768px) {
+  #mobile-menu {
+    display: none !important;
+    position: relative;
+    z-index: 9999 !important;
+    width: 100%;
+    background-color: #000000 !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.2) !important;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.05) !important;
+  }
+  
+  #mobile-menu:not(.hidden) {
+    display: block !important;
+  }
+  
+  #mobile-menu a {
+    color: #d1d5db !important;
+    padding: 0.5rem 0.75rem !important;
+    border-radius: 0.375rem !important;
+    transition: all 0.2s !important;
+  }
+  
+  #mobile-menu a:hover {
+    color: #ffffff !important;
+    background-color: #374151 !important;
+  }
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .messages-container {

@@ -378,70 +378,124 @@
 
     <!-- Custom JavaScript -->
     <script>
-        // Simple mobile menu toggle
+        // ULTRA AGGRESSIVE Mobile menu toggle with extensive debugging
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, initializing mobile menu...');
+            
             const mobileMenuButton = document.getElementById('mobile-menu-button');
             const mobileMenu = document.getElementById('mobile-menu');
             const hamburgerIcon = document.getElementById('hamburger-icon');
             const closeIcon = document.getElementById('close-icon');
             
+            console.log('Elements found:', {
+                button: !!mobileMenuButton,
+                menu: !!mobileMenu,
+                hamburger: !!hamburgerIcon,
+                close: !!closeIcon
+            });
+            
             if (mobileMenuButton && mobileMenu) {
                 let isOpen = false;
+                
+                // Force initial state
+                mobileMenu.classList.add('hidden');
+                mobileMenu.style.display = 'none';
+                hamburgerIcon.classList.remove('hidden');
+                closeIcon.classList.add('hidden');
+                
+                console.log('Mobile menu initialized in closed state');
                 
                 mobileMenuButton.addEventListener('click', function(e) {
                     e.preventDefault();
                     e.stopPropagation();
                     
+                    console.log('Mobile menu button clicked, current state:', isOpen);
+                    
                     isOpen = !isOpen;
                     
                     if (isOpen) {
-                        // Show menu
+                        // AGGRESSIVE SHOW - Multiple methods
                         mobileMenu.classList.remove('hidden');
-                        mobileMenu.style.display = 'block';
+                        mobileMenu.style.display = 'block !important';
+                        mobileMenu.style.visibility = 'visible';
+                        mobileMenu.style.opacity = '1';
+                        mobileMenu.style.zIndex = '9999';
                         
                         // Switch icons
                         hamburgerIcon.classList.add('hidden');
+                        hamburgerIcon.style.display = 'none';
                         closeIcon.classList.remove('hidden');
+                        closeIcon.style.display = 'block';
                         
-                        console.log('Mobile menu opened');
+                        console.log('Mobile menu OPENED - forced visible with multiple CSS properties');
                     } else {
-                        // Hide menu
+                        // AGGRESSIVE HIDE
                         mobileMenu.classList.add('hidden');
-                        mobileMenu.style.display = 'none';
+                        mobileMenu.style.display = 'none !important';
+                        mobileMenu.style.visibility = 'hidden';
+                        mobileMenu.style.opacity = '0';
                         
                         // Switch icons
                         hamburgerIcon.classList.remove('hidden');
+                        hamburgerIcon.style.display = 'block';
                         closeIcon.classList.add('hidden');
+                        closeIcon.style.display = 'none';
                         
-                        console.log('Mobile menu closed');
+                        console.log('Mobile menu CLOSED');
                     }
                 });
                 
                 // Close menu when clicking outside
                 document.addEventListener('click', function(e) {
                     if (isOpen && !mobileMenuButton.contains(e.target) && !mobileMenu.contains(e.target)) {
+                        console.log('Closing mobile menu - outside click');
                         isOpen = false;
                         mobileMenu.classList.add('hidden');
-                        mobileMenu.style.display = 'none';
+                        mobileMenu.style.display = 'none !important';
+                        mobileMenu.style.visibility = 'hidden';
                         hamburgerIcon.classList.remove('hidden');
+                        hamburgerIcon.style.display = 'block';
                         closeIcon.classList.add('hidden');
-                        console.log('Mobile menu closed (outside click)');
+                        closeIcon.style.display = 'none';
                     }
                 });
                 
                 // Close menu when clicking on links
                 mobileMenu.addEventListener('click', function(e) {
                     if (e.target.tagName === 'A') {
+                        console.log('Closing mobile menu - link click');
                         isOpen = false;
                         mobileMenu.classList.add('hidden');
-                        mobileMenu.style.display = 'none';
+                        mobileMenu.style.display = 'none !important';
                         hamburgerIcon.classList.remove('hidden');
+                        hamburgerIcon.style.display = 'block';
                         closeIcon.classList.add('hidden');
-                        console.log('Mobile menu closed (link click)');
+                        closeIcon.style.display = 'none';
                     }
                 });
+                
+                // Debug info every 2 seconds
+                setInterval(function() {
+                    if (window.innerWidth <= 768) {
+                        const computedStyle = window.getComputedStyle(mobileMenu);
+                        console.log('Mobile menu debug:', {
+                            isOpen: isOpen,
+                            hasHiddenClass: mobileMenu.classList.contains('hidden'),
+                            inlineDisplay: mobileMenu.style.display,
+                            computedDisplay: computedStyle.display,
+                            computedVisibility: computedStyle.visibility,
+                            zIndex: computedStyle.zIndex
+                        });
+                    }
+                }, 2000);
+                
             } else {
-                console.error('Mobile menu elements not found');
+                console.error('CRITICAL: Mobile menu elements not found!', {
+                    button: mobileMenuButton,
+                    menu: mobileMenu,
+                    hamburger: hamburgerIcon,
+                    close: closeIcon
+                });
             }
         });
         
