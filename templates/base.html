@@ -6,6 +6,40 @@
     <title>{% block title %}GrwComm{% endblock %}</title>
     
     {% load static %}
+    
+    <!-- Favicon and App Icons for Homescreen Installation -->
+    <link rel="icon" type="image/svg+xml" href="{% static 'images/growcomm-logo.svg' %}">
+    <link rel="icon" type="image/svg+xml" sizes="32x32" href="{% static 'images/growcomm-logo.svg' %}">
+    <link rel="icon" type="image/svg+xml" sizes="16x16" href="{% static 'images/growcomm-logo.svg' %}">
+    <link rel="apple-touch-icon" href="{% static 'images/growcomm-logo.svg' %}">
+    
+    <!-- Web App Manifest for Android/Chrome -->
+    <link rel="manifest" href="{% static 'manifest.json' %}">
+    
+    <!-- PWA Meta Tags for App-like Experience -->
+    <meta name="application-name" content="GrwComm">
+    <meta name="apple-mobile-web-app-title" content="GrwComm">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#000000">
+    <meta name="msapplication-TileColor" content="#000000">
+    <meta name="msapplication-TileImage" content="{% static 'images/growcomm-logo.svg' %}">
+    
+    <!-- Open Graph / Social Media Meta Tags -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="{% block og_title %}GrwComm - Professional Community Platform{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}Connect with professionals, build meaningful relationships, and grow your network in our verified community platform.{% endblock %}">
+    <meta property="og:image" content="{% static 'images/growcomm-logo.svg' %}">
+    <meta property="og:url" content="{{ request.build_absolute_uri }}">
+    <meta property="og:site_name" content="GrwComm">
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{% block twitter_title %}GrwComm - Professional Community Platform{% endblock %}">
+    <meta name="twitter:description" content="{% block twitter_description %}Connect with professionals, build meaningful relationships, and grow your network in our verified community platform.{% endblock %}">
+    <meta name="twitter:image" content="{% static 'images/growcomm-logo.svg' %}">
+    
     <!-- Base Design System CSS -->
     <link rel="stylesheet" href="{% static 'css/base.css' %}">
     

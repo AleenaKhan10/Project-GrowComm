@@ -1,0 +1,64 @@
+{
+  "name": "GrwComm - Professional Community",
+  "short_name": "GrwComm",
+  "description": "Connect with professionals, build meaningful relationships, and grow your network in our verified community platform.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "orientation": "portrait-primary",
+  "categories": ["social", "business", "networking"],
+  "lang": "en-US",
+  "dir": "ltr",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/static/images/growcomm-logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Messages",
+      "short_name": "Messages",
+      "description": "Access your messages",
+      "url": "/messaging/inbox/",
+      "icons": [
+        {
+          "src": "/static/images/growcomm-logo.svg",
+          "sizes": "any"
+        }
+      ]
+    },
+    {
+      "name": "Profile",
+      "short_name": "Profile",
+      "description": "View and edit your profile",
+      "url": "/profiles/edit/",
+      "icons": [
+        {
+          "src": "/static/images/growcomm-logo.svg",
+          "sizes": "any"
+        }
+      ]
+    },
+    {
+      "name": "Community",
+      "short_name": "Community", 
+      "description": "Browse community members",
+      "url": "/communities/users/",
+      "icons": [
+        {
+          "src": "/static/images/growcomm-logo.svg",
+          "sizes": "any"
+        }
+      ]
+    }
+  ],
+  "prefer_related_applications": false,
+  "edge_side_panel": {
+    "preferred_width": 400
+  }
+}
