@@ -510,7 +510,7 @@
         <!-- Mobile list view - Minimal -->
         <div class="block md:hidden">
             {% for user in users %}
-                <div class="border-b border-gray-200 last:border-b-0">
+                <div class="border-b border-gray-200 last:border-b-0 mb-2 px-3 py-2">
                     <!-- Minimal User Row -->
                     <button 
                         class="w-full flex items-center hover:bg-gray-50 transition-colors user-row"
@@ -527,9 +527,9 @@
                     >
                         <div class="flex items-center flex-1">
                             {% if user.profile.profile_picture %}
-                                <img src="{{ user.profile.profile_picture.url }}" alt="{{ user.profile.display_name }}" class="w-10 h-10 rounded-full object-cover mr-3 border border-gray-200">
+                                <img src="{{ user.profile.profile_picture.url }}" alt="{{ user.profile.display_name }}" class="w-8 h-8 rounded-full object-cover mr-3 border border-gray-200">
                             {% else %}
-                                <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-sm font-medium text-gray-600 mr-3 border border-gray-200">
+                                <div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-medium text-gray-600 mr-3 border border-gray-200">
                                     {{ user.profile.display_name|first }}
                                 </div>
                             {% endif %}
