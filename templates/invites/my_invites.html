@@ -104,13 +104,24 @@
     
     /* Buttons smaller */
     .btn {
-        padding: 0.5rem 1rem !important;
-        font-size: 0.875rem !important;
+        padding: 0.375rem 0.75rem !important;
+        font-size: 0.75rem !important;
     }
     
     .btn svg {
-        width: 1rem !important;
-        height: 1rem !important;
+        width: 0.75rem !important;
+        height: 0.75rem !important;
+    }
+    
+    /* Extra small buttons */
+    .btn.text-xs {
+        padding: 0.25rem 0.5rem !important;
+        font-size: 0.625rem !important;
+    }
+    
+    .btn.text-xs svg {
+        width: 0.625rem !important;
+        height: 0.625rem !important;
     }
     
     /* Progress bar smaller */
@@ -135,16 +146,50 @@
         gap: 0.5rem !important;
     }
     
-    /* Icons smaller */
-    .w-8.h-8 {
-        width: 1.5rem !important;
+    /* Icons smaller - ULTRA COMPACT */
+    .w-16.h-16 {
+        width: 2rem !important; /* 32px instead of 64px */
+        height: 2rem !important;
+    }
+    
+    .w-12.h-12 {
+        width: 1.5rem !important; /* 24px instead of 48px */
         height: 1.5rem !important;
     }
     
-    .w-5.h-5 {
-        width: 1.125rem !important;
-        height: 1.125rem !important;
+    .w-10.h-10 {
+        width: 1.25rem !important; /* 20px instead of 40px */
+        height: 1.25rem !important;
     }
+    
+    .w-8.h-8 {
+        width: 1rem !important; /* 16px instead of 32px */
+        height: 1rem !important;
+    }
+    
+    .w-6.h-6 {
+        width: 0.875rem !important; /* 14px instead of 24px */
+        height: 0.875rem !important;
+    }
+    
+    .w-5.h-5 {
+        width: 0.75rem !important; /* 12px instead of 20px */
+        height: 0.75rem !important;
+    }
+    
+    .w-4.h-4 {
+        width: 0.625rem !important; /* 10px instead of 16px */
+        height: 0.625rem !important;
+    }
+    
+    /* SVG icons specifically */
+    svg.w-16, svg.h-16 { width: 2rem !important; height: 2rem !important; }
+    svg.w-12, svg.h-12 { width: 1.5rem !important; height: 1.5rem !important; }
+    svg.w-10, svg.h-10 { width: 1.25rem !important; height: 1.25rem !important; }
+    svg.w-8, svg.h-8 { width: 1rem !important; height: 1rem !important; }
+    svg.w-6, svg.h-6 { width: 0.875rem !important; height: 0.875rem !important; }
+    svg.w-5, svg.h-5 { width: 0.75rem !important; height: 0.75rem !important; }
+    svg.w-4, svg.h-4 { width: 0.625rem !important; height: 0.625rem !important; }
     
     /* Text sizes smaller */
     .text-lg {
@@ -191,13 +236,31 @@
         font-size: 0.75rem !important;
     }
     
-    /* Copy button adjustments */
+    /* Copy button and alignment fixes */
     .flex.items-center.space-x-2 {
         flex-wrap: wrap !important;
-        gap: 0.5rem !important;
+        gap: 0.25rem !important;
+        align-items: center !important;
     }
     
     .flex.items-center.space-x-2 > * + * {
+        margin-left: 0 !important;
+    }
+    
+    .flex.items-center.space-x-3 {
+        gap: 0.5rem !important;
+    }
+    
+    .flex.items-center.space-x-3 > * + * {
+        margin-left: 0 !important;
+    }
+    
+    .flex.items-center.space-x-4 {
+        gap: 0.5rem !important;
+        align-items: flex-start !important;
+    }
+    
+    .flex.items-center.space-x-4 > * + * {
         margin-left: 0 !important;
     }
 }
@@ -314,7 +377,8 @@
             <div class="divide-y divide-gray-200">
                 {% for invite in invites %}
                 <div class="p-6">
-                    <div class="flex items-center justify-between">
+                    <!-- Desktop Layout -->
+                    <div class="hidden sm:flex items-center justify-between">
                         <div class="flex-1">
                             <div class="flex items-center space-x-4">
                                 <!-- Counter Number -->
@@ -385,9 +449,6 @@
                                     {% if invite.is_valid %}
                                     <div class="mt-2 flex items-center space-x-2">
                                         <input type="text" readonly id="invite-link-{{ forloop.counter }}" value="{% get_invite_url invite.code %}" class="text-xs text-gray-500 bg-gray-50 px-2 py-1 rounded border border-gray-200 flex-1">
-                                        <button onclick="copyDirectLink('invite-link-{{ forloop.counter }}')" class="text-xs text-blue-600 hover:text-blue-800 font-medium">
-                                            Copy
-                                        </button>
                                     </div>
                                     {% endif %}
                                 </div>
@@ -395,16 +456,64 @@
                         </div>
                         
                         <!-- Actions -->
-                        <div class="flex items-center space-x-3">
+                        <div class="flex items-center space-x-2">
                             {% if invite.is_valid %}
-                                <button onclick="copyDirectLink('invite-link-{{ forloop.counter }}')" class="btn btn-primary text-sm">
-                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <button onclick="copyDirectLink('invite-link-{{ forloop.counter }}')" class="btn btn-primary text-xs px-2 py-1">
+                                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
                                     </svg>
-                                    Copy Link
+                                    Copy
                                 </button>
                             {% endif %}
                         </div>
+                    </div>
+
+                    <!-- Mobile Layout - Vertical, No Icons -->
+                    <div class="sm:hidden space-y-3">
+                        <!-- Date and Status -->
+                        <div class="flex items-start justify-between">
+                            <div class="text-xs text-gray-600 flex-1">
+                                <div>Created: {{ invite.created_date|date:"M d, Y H:i" }}</div>
+                                {% if invite.expiry_date %}
+                                <div>Expires: {{ invite.expiry_date|date:"M d, Y H:i" }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="flex items-center ml-2">
+                                {% if invite.is_used %}
+                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800" style="font-size: 10px;">Used</span>
+                                {% elif invite.is_valid %}
+                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800" style="font-size: 10px;">Active</span>
+                                {% else %}
+                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800" style="font-size: 10px;">Expired</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Invite Link -->
+                        {% if invite.is_valid %}
+                        <div>
+                            <input type="text" readonly id="invite-link-mobile-{{ forloop.counter }}" value="{% get_invite_url invite.code %}" class="w-full text-xs text-gray-700 bg-gray-50 px-3 py-2 rounded border border-gray-200">
+                        </div>
+                        {% else %}
+                        <div class="text-xs text-gray-500 bg-gray-100 px-3 py-2 rounded border">
+                            {% if invite.is_used %}Invite link has been used{% else %}Invite link has expired{% endif %}
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Copy Button -->
+                        {% if invite.is_valid %}
+                        <div>
+                            <button onclick="copyDirectLink('invite-link-mobile-{{ forloop.counter }}')" class="w-full btn btn-primary text-sm py-2">
+                                Copy Invite Link
+                            </button>
+                        </div>
+                        {% endif %}
+                        
+                        {% if invite.is_used and invite.used_by %}
+                        <div class="text-xs text-gray-500 text-center">
+                            Used by: {{ invite.used_by.username }} on {{ invite.used_by.date_joined|date:"M d, Y" }}
+                        </div>
+                        {% endif %}
                     </div>
                 </div>
                 {% endfor %}
@@ -610,6 +719,12 @@ function showTab(tabName) {
 function copyDirectLink(inputId) {
     const input = document.getElementById(inputId);
     
+    if (!input) {
+        console.error('Input element not found:', inputId);
+        alert('Failed to find link. Please refresh the page.');
+        return;
+    }
+    
     // Select the text
     input.select();
     input.setSelectionRange(0, 99999);
@@ -640,7 +755,7 @@ function showCopySuccess(inputId) {
     const buttons = document.querySelectorAll(`button[onclick*="${inputId}"]`);
     buttons.forEach(button => {
         const originalHTML = button.innerHTML;
-        button.innerHTML = '<svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>Copied!';
+        button.innerHTML = '<svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>Copied!';
         button.classList.add('bg-green-600');
         
         setTimeout(() => {

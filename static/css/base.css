@@ -697,6 +697,26 @@ textarea::placeholder {
     color: #ffffff !important;
     background-color: #374151 !important;
   }
+  
+  /* Invites page specific fixes */
+  .flex.items-center.justify-between {
+    align-items: flex-start !important;
+  }
+  
+  .flex.items-center.space-x-4 {
+    align-items: flex-start !important;
+    gap: 0.5rem !important;
+  }
+  
+  .flex.items-center.space-x-3 {
+    align-items: center !important;
+    gap: 0.5rem !important;
+  }
+  
+  .flex.items-center.space-x-2 {
+    align-items: center !important;
+    gap: 0.25rem !important;
+  }
 }
 
 /* Responsive Design */
