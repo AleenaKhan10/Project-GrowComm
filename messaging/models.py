@@ -330,6 +330,9 @@ class MessageSlotBooking(models.Model):
         active_bookings_count = cls.get_active_bookings_for_receiver(receiver, message_type).count()
         receiver_limit = cls._get_receiver_slot_limit(receiver, message_type)
         
+        if receiver_limit == 0:
+            return False, "invalid_slot_type"
+            
         if active_bookings_count >= receiver_limit:
             return False, "slots_full"
         
@@ -339,15 +342,10 @@ class MessageSlotBooking(models.Model):
     def _get_receiver_slot_limit(cls, receiver, message_type):
         """Get the slot limit for a receiver based on custom message type"""
         try:
-            # Debug logging
-            print(f"Getting slot limit for receiver {receiver.username}, message_type: {message_type.name}")
-            
             # Only use custom slots (we removed default slots)
             # For custom slots, extract the actual slot name from the message type name
             if message_type.name.startswith(f'CUSTOM_{receiver.id}_'):
                 actual_slot_name = message_type.name.replace(f'CUSTOM_{receiver.id}_', '')
-                print(f"Looking for custom slot: {actual_slot_name} for user {receiver.username}")
-                
                 custom_slot = CustomMessageSlot.objects.filter(
                     user=receiver,
                     name=actual_slot_name,
@@ -355,20 +353,12 @@ class MessageSlotBooking(models.Model):
                 ).first()
                 
                 if custom_slot:
-                    print(f"Found custom slot with limit: {custom_slot.slot_limit}")
                     return custom_slot.slot_limit
-                else:
-                    print(f"No custom slot found for {actual_slot_name}")
-            else:
-                print(f"Message type name doesn't match pattern: {message_type.name}")
             
-            # If no custom slot found, return a default value of 10 instead of 0
-            # This prevents the "slots full" error when slots aren't properly configured
-            print("Returning default limit of 10")
-            return 10
+            # If no custom slot found, return 0 to prevent any bookings for invalid slots
+            return 0
         except Exception as e:
-            print(f"Error getting slot limit: {e}")
-            return 10  # Return default instead of 0
+            return 0
     
     @classmethod
     def book_slot(cls, sender, receiver, message_type, message=None):
@@ -378,13 +368,17 @@ class MessageSlotBooking(models.Model):
             return None, reason
         
         # Create the booking
-        booking = cls.objects.create(
-            sender=sender,
-            receiver=receiver,
-            message_type=message_type,
-            message=message
-        )
-        return booking, "booked"
+        try:
+            booking = cls.objects.create(
+                sender=sender,
+                receiver=receiver,
+                message_type=message_type,
+                message=message
+            )
+            return booking, "booked"
+        except Exception as e:
+            # Handle duplicate booking constraint
+            return None, "already_sent"
 
 
 class IdentityRevelation(models.Model):

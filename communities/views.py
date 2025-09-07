@@ -303,68 +303,59 @@ def send_inline_message(request):
                 'error': 'You cannot send a message to yourself'
             }, status=400)
         
-        # Check if there's already an existing conversation between these users
-        existing_conversation = Message.objects.filter(
-            (Q(sender=request.user, receiver=to_user) | Q(sender=to_user, receiver=request.user))
-        ).first()
-        
         with transaction.atomic():
-            # Get receiver's message settings to check if they use custom slots
+            # Get receiver's message settings
             receiver_settings, _ = UserMessageSettings.objects.get_or_create(user=to_user)
             
             message_type = None
-            
-            # If existing conversation, use its message type and skip slot checking
-            if existing_conversation:
-                message_type = existing_conversation.message_type
-            elif message_type_name:
-                # Check if this is for a custom slot
-                if receiver_settings.use_custom_slots:
-                    # For custom slots, use the special naming convention
-                    custom_slot = CustomMessageSlot.objects.filter(
-                        user=to_user,
-                        name=message_type_name,
-                        is_active=True
-                    ).first()
-                    
-                    if custom_slot:
-                        # Create/get message type with custom naming convention
-                        message_type, _ = MessageType.objects.get_or_create(
-                            name=f"CUSTOM_{to_user.id}_{message_type_name}",
-                            defaults={
-                                'description': f'Custom slot: {message_type_name} for {to_user.username}',
-                                'is_active': True
-                            }
-                        )
-                    else:
-                        return JsonResponse({
-                            'success': False,
-                            'error': f'Message category "{message_type_name}" not found for {to_user.username}'
-                        }, status=400)
-                else:
-                    # For default slots, use regular message types
+            if message_type_name:
+                # For custom slots, use the special naming convention
+                custom_slot = CustomMessageSlot.objects.filter(
+                    user=to_user,
+                    name=message_type_name,
+                    is_active=True
+                ).first()
+                
+                if custom_slot:
+                    # Create/get message type with custom naming convention
                     message_type, _ = MessageType.objects.get_or_create(
-                        name=message_type_name,
+                        name=f"CUSTOM_{to_user.id}_{message_type_name}",
                         defaults={
-                            'description': f'{message_type_name} message',
+                            'description': f'Custom slot: {message_type_name} for {to_user.username}',
                             'is_active': True
                         }
                     )
+                else:
+                    return JsonResponse({
+                        'success': False,
+                        'error': f'Message category "{message_type_name}" not found for {to_user.username}'
+                    }, status=400)
             
-            # Check slot availability only for NEW conversations, not for replies
-            if message_type and not existing_conversation:
+            # Check slot availability for new messages only
+            if message_type:
                 can_send, reason = MessageSlotBooking.can_user_send_message(request.user, to_user, message_type)
                 if not can_send:
                     error_messages = {
                         'already_sent': f'You have already sent a {message_type_name} message to {to_user.username}. Please wait 3 days before sending another.',
-                        'slots_full': f'{to_user.username}\'s {message_type_name} slots are currently full. Please try again later.'
+                        'slots_full': f'{to_user.username}\'s {message_type_name} slots are currently full. Please try again later.',
+                        'invalid_slot_type': f'Invalid message category "{message_type_name}".'
                     }
                     return JsonResponse({
                         'success': False,
                         'error': error_messages.get(reason, 'Cannot send message at this time')
                     }, status=400)
+                
+                # Book the slot first
+                booking, booking_reason = MessageSlotBooking.book_slot(
+                    request.user, to_user, message_type, None
+                )
+                if not booking:
+                    return JsonResponse({
+                        'success': False,
+                        'error': f'Failed to book slot: {booking_reason}'
+                    }, status=400)
             
-            # Create the message using the simplified model
+            # Create the message
             message = Message.objects.create(
                 sender=request.user,
                 receiver=to_user,
@@ -372,18 +363,10 @@ def send_inline_message(request):
                 message_type=message_type
             )
             
-            # Book slot only for NEW conversations, not for replies
-            if message_type and not existing_conversation:
-                booking, booking_reason = MessageSlotBooking.book_slot(
-                    request.user, to_user, message_type, message
-                )
-                if not booking:
-                    # If booking failed, delete the message and return error
-                    message.delete()
-                    return JsonResponse({
-                        'success': False,
-                        'error': f'Failed to send message: {booking_reason}'
-                    }, status=400)
+            # Update the booking to reference the message
+            if message_type and booking:
+                booking.message = message
+                booking.save()
         
         # Return success response
         return JsonResponse({
