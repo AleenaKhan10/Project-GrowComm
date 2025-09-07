@@ -74,6 +74,9 @@
                         Password
                     </label>
                     <input type="password" name="{{ form.password1.name }}" id="{{ form.password1.id_for_label }}" class="input" placeholder="Create a password">
+                    <p class="mt-1 text-xs text-gray-500">
+                        Password must be at least 8 characters with at least 3 of the following: lowercase letter, uppercase letter, number, special character (!@#$%^&*)
+                    </p>
                     {% if form.password1.errors %}
                         <p class="mt-1 text-sm text-gray-600">{{ form.password1.errors.0 }}</p>
                     {% endif %}
