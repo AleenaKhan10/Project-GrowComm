@@ -45,7 +45,7 @@ def inbox(request):
         else:
             # Identity not revealed - show anonymous name only if they chose anonymous visibility
             if hasattr(other_user, 'profile') and other_user.profile.name_visibility == 'anonymous':
-                conversation['display_name'] = "Anonymous User"
+                conversation['display_name'] = "Anonymous Member"
             else:
                 # For non-anonymous users, show their chosen display name
                 conversation['display_name'] = other_user.profile.display_name if hasattr(other_user, 'profile') else other_user.username
@@ -352,8 +352,8 @@ def get_messages(request, user_id):
             else:
                 # Identity not revealed - check user's visibility preference
                 if hasattr(msg.sender, 'profile') and msg.sender.profile.name_visibility == 'anonymous':
-                    # User chose to be anonymous - show "Anonymous User"
-                    sender_display_name = "Anonymous User"
+                    # User chose to be anonymous - show "Anonymous Member"
+                    sender_display_name = "Anonymous Member"
                 else:
                     # User didn't choose anonymous - show their chosen display name
                     sender_display_name = msg.sender.profile.display_name if hasattr(msg.sender, 'profile') else msg.sender.username
@@ -369,8 +369,8 @@ def get_messages(request, user_id):
             else:
                 # Identity not revealed - check user's visibility preference
                 if hasattr(msg.receiver, 'profile') and msg.receiver.profile.name_visibility == 'anonymous':
-                    # User chose to be anonymous - show "Anonymous User"
-                    receiver_display_name = "Anonymous User"
+                    # User chose to be anonymous - show "Anonymous Member"
+                    receiver_display_name = "Anonymous Member"
                 else:
                     # User didn't choose anonymous - show their chosen display name
                     receiver_display_name = msg.receiver.profile.display_name if hasattr(msg.receiver, 'profile') else msg.receiver.username
@@ -405,8 +405,8 @@ def get_messages(request, user_id):
     else:
         # Identity not revealed - check user's visibility preference
         if hasattr(other_user, 'profile') and other_user.profile.name_visibility == 'anonymous':
-            # User chose to be anonymous - show "Anonymous User"
-            other_user_display_name = "Anonymous User"
+            # User chose to be anonymous - show "Anonymous Member"
+            other_user_display_name = "Anonymous Member"
         else:
             # User didn't choose anonymous - show their chosen display name
             other_user_display_name = other_user.profile.display_name if hasattr(other_user, 'profile') else other_user.username

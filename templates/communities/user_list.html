@@ -571,7 +571,6 @@
                         </div>
                         <div class="flex-1">
                             <div class="text-sm font-medium text-gray-900" id="modalName">Name</div>
-                            <div class="text-xs text-gray-500" id="modalLocation">Location</div>
                         </div>
                     </div>
                     
@@ -678,7 +677,6 @@ function openUserModal(userId) {
     // Update modal content
     document.getElementById('modalUserName').textContent = userName;
     document.getElementById('modalName').textContent = userName;
-    document.getElementById('modalLocation').textContent = userLocation || 'Location not provided';
     document.getElementById('modalCompany').textContent = userCompany || 'Not specified';
     document.getElementById('modalTeam').textContent = userTeam || 'Not specified';  
     document.getElementById('modalLevel').textContent = userLevel || 'Not specified';

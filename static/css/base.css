@@ -191,6 +191,15 @@ textarea {
 
 /* ULTRA AGGRESSIVE Mobile Form Optimization */
 @media (max-width: 768px) {
+  /* MOBILE LOGO ADJUSTMENTS */
+  nav img {
+    height: 2.5rem !important; /* Slightly smaller on mobile navbar */
+  }
+  
+  .logo-text {
+    font-size: 2rem !important; /* text-base for mobile */
+  }
+  
   /* MOBILE CONTAINER - ZERO PADDING */
   .container {
     padding: 0.125rem !important;

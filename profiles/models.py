@@ -167,7 +167,7 @@ class UserProfile(models.Model):
             last_initial = self.user.last_name[0] if self.user.last_name else ''
             return f"{first_initial}{last_initial}".strip() or self.user.username[0]
         else:  # anonymous
-            return "Anonymous User"
+            return "Anonymous Member"
     
     @property
     def real_name(self):
@@ -178,7 +178,7 @@ class UserProfile(models.Model):
     @property
     def anonymous_display_name(self):
         """Return anonymous name for community display"""
-        return self.anonymous_name or "Anonymous User"
+        return self.anonymous_name or "Anonymous Member"
     
     def _generate_anonymous_name(self):
         """Generate a unique anonymous name"""
