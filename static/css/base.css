@@ -719,8 +719,58 @@ textarea::placeholder {
   }
 }
 
-/* Responsive Design */
+/* Mobile Messaging Support */
 @media (max-width: 768px) {
+  /* MESSAGING PAGE SPECIFIC OVERRIDES */
+  body.messages-page {
+    overflow: hidden !important;
+    height: 100vh !important;
+  }
+  
+  body.messages-page .container {
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: 100% !important;
+  }
+  
+  /* MESSAGE BUBBLE STYLES */
+  .message-sent {
+    background: black !important;
+    color: white !important;
+    margin-left: auto !important;
+    border-radius: 1rem 1rem 0.25rem 1rem !important;
+  }
+  
+  .message-received {
+    background: #E5E5EA !important;
+    color: black !important;
+    margin-right: auto !important;
+    border-radius: 1rem 1rem 1rem 0.25rem !important;
+  }
+  
+  /* AVATAR COLOR CLASSES */
+  .avatar-white {
+    background: white !important;
+    color: black !important;
+    border: 1px solid #e5e7eb !important;
+  }
+  
+  .avatar-gray-1 {
+    background: #f3f4f6 !important;
+    color: #374151 !important;
+  }
+  
+  .avatar-gray-2 {
+    background: #e5e7eb !important;
+    color: #1f2937 !important;
+  }
+  
+  .avatar-gray-3 {
+    background: #d1d5db !important;
+    color: #111827 !important;
+  }
+  
+  /* RESPONSIVE DESIGN FALLBACK */
   .messages-container {
     grid-template-columns: 1fr;
   }
