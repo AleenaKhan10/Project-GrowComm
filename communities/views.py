@@ -67,17 +67,8 @@ def user_list(request):
     # Order by newest members first
     users = users.order_by('-profile__created_date')
     
-    # Only get the core default message types for the template
-    # Custom message types will be handled per-user in the slot data
-    default_message_types = ['Coffee Chat', 'Mentorship', 'Networking', 'General']
+    # No default message types - all categories are now custom per user
     message_types = []
-    
-    for name in default_message_types:
-        msg_type, created = MessageType.objects.get_or_create(
-            name=name,
-            defaults={'description': f'Default {name} message type', 'is_active': True}
-        )
-        message_types.append(msg_type)
     users_slot_data = {}
     
     def make_json_safe(obj):
@@ -246,8 +237,12 @@ def user_detail(request, user_id):
     if hasattr(request.user, 'profile'):
         available_slots = request.user.profile.available_slots
     
-    # Get message types for the form
-    message_types = MessageType.objects.filter(is_active=True)
+    # Get user's custom message slots for the form
+    custom_slots = CustomMessageSlot.objects.filter(
+        user=user, 
+        is_active=True
+    ).order_by('name')
+    message_types = [{'name': slot.name} for slot in custom_slots]
     
     context = {
         'profile_user': user,
