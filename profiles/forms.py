@@ -12,7 +12,7 @@ class UserProfileForm(forms.ModelForm):
         max_length=30,
         required=True,
         widget=forms.TextInput(attrs={
-            'class': 'w-full px-4 py-3 bg-white border border-gray-300 rounded text-black placeholder-gray-500 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors',
+            'class': 'input',
             'placeholder': 'Enter your first name'
         })
     )
@@ -20,14 +20,14 @@ class UserProfileForm(forms.ModelForm):
         max_length=30,
         required=True,
         widget=forms.TextInput(attrs={
-            'class': 'w-full px-4 py-3 bg-white border border-gray-300 rounded text-black placeholder-gray-500 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors',
+            'class': 'input',
             'placeholder': 'Enter your last name'
         })
     )
     email = forms.EmailField(
         required=True,
         widget=forms.EmailInput(attrs={
-            'class': 'w-full px-4 py-3 bg-white border border-gray-300 rounded text-black placeholder-gray-500 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors',
+            'class': 'input',
             'placeholder': 'Enter your email address'
         })
     )
@@ -44,48 +44,48 @@ class UserProfileForm(forms.ModelForm):
                 'accept': 'image/*'
             }),
             'bio': forms.Textarea(attrs={
-                'class': 'w-full px-4 py-3 bg-white border border-gray-300 rounded text-black placeholder-gray-500 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors min-h-[100px]',
+                'class': 'input',
                 'rows': 4,
                 'placeholder': 'Tell us about yourself, your interests, and what you bring to the community...'
             }),
             'company': forms.TextInput(attrs={
-                'class': 'w-full px-4 py-3 bg-white border border-gray-300 rounded text-black placeholder-gray-500 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors',
+                'class': 'input',
                 'placeholder': 'Your current company or organization'
             }),
             'team': forms.TextInput(attrs={
-                'class': 'w-full px-4 py-3 bg-white border border-gray-300 rounded text-black placeholder-gray-500 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors',
+                'class': 'input',
                 'placeholder': 'Your team or department'
             }),
             'organization_level': forms.Select(attrs={
-                'class': 'w-full px-4 py-3 bg-white border border-gray-300 rounded text-black focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors'
+                'class': 'input'
             }),
             'gender': forms.Select(attrs={
-                'class': 'w-full px-4 py-3 bg-white border border-gray-300 rounded text-black focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors'
+                'class': 'input'
             }),
             'city': forms.TextInput(attrs={
-                'class': 'w-full px-4 py-3 bg-white border border-gray-300 rounded text-black placeholder-gray-500 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors',
+                'class': 'input',
                 'placeholder': 'Enter your city'
             }),
             'country': forms.TextInput(attrs={
-                'class': 'w-full px-4 py-3 bg-white border border-gray-300 rounded text-black placeholder-gray-500 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors',
+                'class': 'input',
                 'placeholder': 'Enter your country'
             }),
             'schools': forms.Textarea(attrs={
-                'class': 'w-full px-4 py-3 bg-white border border-gray-300 rounded text-black placeholder-gray-500 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors min-h-[100px]',
+                'class': 'input',
                 'rows': 3,
                 'placeholder': 'Enter schools/universities (one per line or comma-separated)\nExample: Harvard University, MIT, Stanford Business School'
             }),
             'tags': forms.Textarea(attrs={
-                'class': 'w-full px-4 py-3 bg-white border border-gray-300 rounded text-black placeholder-gray-500 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors min-h-[100px]',
+                'class': 'input',
                 'rows': 3,
                 'placeholder': 'Enter skills, interests, or expertise areas (comma-separated)\nExample: Python, Data Science, Startup, Machine Learning, Product Management'
             }),
             'phone_number': forms.TextInput(attrs={
-                'class': 'w-full px-4 py-3 bg-white border border-gray-300 rounded text-black placeholder-gray-500 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors',
+                'class': 'input',
                 'placeholder': 'Your phone number (optional)'
             }),
             'name_visibility': forms.Select(attrs={
-                'class': 'w-3/5 px-4 py-3 bg-white border border-gray-300 rounded text-black focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors'
+                'class': 'input'
             }),
         }
     
@@ -295,11 +295,11 @@ class CustomMessageSlotForm(forms.ModelForm):
         fields = ['name', 'slot_limit', 'is_active']
         widgets = {
             'name': forms.TextInput(attrs={
-                'class': 'w-full px-2 py-2 text-sm bg-white border border-gray-300 rounded text-black placeholder-gray-400 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors',
+                'class': 'input',
                 'placeholder': 'Enter category name (e.g., Career Advice)'
             }),
             'slot_limit': forms.NumberInput(attrs={
-                'class': 'w-full px-2 py-2 text-sm bg-white border border-gray-300 rounded text-black placeholder-gray-400 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors text-center',
+                'class': 'input',
                 'min': 0,
                 'max': 100,
                 'placeholder': '10'
