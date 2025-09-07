@@ -303,12 +303,21 @@ def send_inline_message(request):
                 'error': 'You cannot send a message to yourself'
             }, status=400)
         
+        # Check if there's already an existing conversation between these users
+        existing_conversation = Message.objects.filter(
+            (Q(sender=request.user, receiver=to_user) | Q(sender=to_user, receiver=request.user))
+        ).first()
+        
         with transaction.atomic():
             # Get receiver's message settings to check if they use custom slots
             receiver_settings, _ = UserMessageSettings.objects.get_or_create(user=to_user)
             
             message_type = None
-            if message_type_name:
+            
+            # If existing conversation, use its message type and skip slot checking
+            if existing_conversation:
+                message_type = existing_conversation.message_type
+            elif message_type_name:
                 # Check if this is for a custom slot
                 if receiver_settings.use_custom_slots:
                     # For custom slots, use the special naming convention
@@ -342,8 +351,8 @@ def send_inline_message(request):
                         }
                     )
             
-            # Check slot availability if message type is provided
-            if message_type:
+            # Check slot availability only for NEW conversations, not for replies
+            if message_type and not existing_conversation:
                 can_send, reason = MessageSlotBooking.can_user_send_message(request.user, to_user, message_type)
                 if not can_send:
                     error_messages = {
@@ -363,8 +372,8 @@ def send_inline_message(request):
                 message_type=message_type
             )
             
-            # Book slot if message type is provided
-            if message_type:
+            # Book slot only for NEW conversations, not for replies
+            if message_type and not existing_conversation:
                 booking, booking_reason = MessageSlotBooking.book_slot(
                     request.user, to_user, message_type, message
                 )

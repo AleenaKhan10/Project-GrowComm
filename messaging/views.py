@@ -94,13 +94,16 @@ def conversation_view(request, user_id):
     
     # Handle message sending via POST
     if request.method == 'POST':
-        # Check if there's an existing conversation between these users
-        existing_messages = Message.objects.filter(
+        # Check if there's an existing conversation between these users and get its message_type
+        existing_message = Message.objects.filter(
             (Q(sender=request.user, receiver=other_user) | Q(sender=other_user, receiver=request.user))
-        ).exists()
+        ).first()
+        
+        # Get the message_type from existing conversation if it exists
+        existing_message_type = existing_message.message_type if existing_message else None
         
         # Only require verification for NEW conversations, not for replies in existing conversations
-        if not existing_messages:
+        if not existing_message:
             if not request.user.is_superuser and not request.user.profile.is_verified:
                 messages.warning(request, f"You need {request.user.profile.referrals_needed} more referrals to start new conversations.")
                 return redirect('profiles:referrals')
@@ -110,7 +113,8 @@ def conversation_view(request, user_id):
             Message.objects.create(
                 sender=request.user,
                 receiver=other_user,
-                content=content
+                content=content,
+                message_type=existing_message_type  # Preserve the message_type from the conversation
             )
             messages.success(request, 'Message sent successfully!')
             return redirect('messaging:conversation', user_id=user_id)
@@ -177,9 +181,13 @@ def send_message(request):
             }, status=400)
         
         # Check if there's an existing conversation between these users
+        # Also get the message type from the existing conversation if it exists
         existing_conversation = Message.objects.filter(
             (Q(sender=request.user, receiver=receiver) | Q(sender=receiver, receiver=request.user))
-        ).exists()
+        ).first()
+        
+        # If existing conversation found, use its message_type
+        existing_message_type = existing_conversation.message_type if existing_conversation else None
         
         # For NEW conversations, apply slot restrictions and verification
         if not existing_conversation:
@@ -235,11 +243,12 @@ def send_message(request):
                     }, status=400)
         else:
             # For EXISTING conversations, no restrictions - just create the message
+            # Use the same message_type as the existing conversation to keep messages grouped
             message = Message.objects.create(
                 sender=request.user,
                 receiver=receiver,
                 content=content,
-                # No message_type for replies in existing conversations
+                message_type=existing_message_type  # Use the same message type as the conversation
             )
         
         # Return success with message data
