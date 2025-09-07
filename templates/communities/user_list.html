@@ -150,21 +150,22 @@
         border-radius: 4px;
     }
     
-    /* Ultra compact user list rows */
+    /* Mobile user list rows - better spacing */
     .user-row {
-        padding: 0.5rem 0.75rem !important;
-        min-height: 40px;
+        padding: 0.75rem 1rem !important;
+        min-height: 60px;
     }
     
     .user-row img, .user-row > div > div:first-child {
-        width: 32px !important;
-        height: 32px !important;
+        width: 40px !important;
+        height: 40px !important;
     }
     
     /* Modal sizes */
     #modalAvatar {
-        width: 40px !important;
-        height: 40px !important;
+        width: 36px !important;
+        height: 36px !important;
+        font-size: 14px !important;
     }
     
     /* Search form compact */
@@ -261,10 +262,6 @@
 
     <!-- Community Table -->
     <div class="card overflow-hidden">
-        <!-- Mobile scroll indicator -->
-        <div class="block md:hidden bg-blue-50 border-b border-blue-200 px-4 py-2 text-center">
-            <p class="text-sm text-blue-700">← Swipe to see more columns →</p>
-        </div>
         
         <!-- Desktop table view -->
         <div class="hidden md:block table-container">
@@ -344,67 +341,163 @@
                         </button>
                     </td>
                 </tr>
-                <!-- Expandable message form row -->
+                <!-- Expandable user details and message form row - FULL SCREEN -->
                 <tr id="message-form-{{ user.id }}" class="hidden">
-                    <td colspan="8" class="px-6 py-4 bg-gray-800">
-                        <div class="max-w-2xl">
-                            <div class="mb-4">
-                                <label class="form-label">Select Message Type:</label>
-                                <div class="flex flex-wrap gap-2 mb-4">
-                                    {% with user_slots=users_slot_data|dict_get:user.id %}
-                                    {% for slot_key, slot_info in user_slots.items %}
-                                        <button 
-                                            onclick="{% if request.user.is_superuser or user_is_verified %}selectMessageType({{ user.id }}, '{{ slot_info.message_type.name }}'){% else %}showVerificationRequired(){% endif %}" 
-                                            class="btn message-type-btn
-                                                {% if not user_is_verified and not request.user.is_superuser %}btn-ghost cursor-not-allowed
-                                                {% elif slot_info.status == 'available' %}btn-secondary
-                                                {% elif slot_info.status == 'already_sent' %}btn-ghost cursor-not-allowed
-                                                {% elif slot_info.status == 'full' %}btn-ghost cursor-not-allowed{% endif %}"
-                                            {% if slot_info.status != 'available' or not user_is_verified and not request.user.is_superuser %}disabled{% endif %}
-                                            title="{% if not user_is_verified and not request.user.is_superuser %}Get verified to send messages{% endif %}"
-                                        >
-                                            {{ slot_info.message_type.name }}
-                                            <span class="ml-1 text-xs
-                                                {% if slot_info.status == 'available' %}text-green-600
-                                                {% elif slot_info.status == 'already_sent' %}text-gray-500
-                                                {% elif slot_info.status == 'full' %}text-red-600{% endif %}
-                                            ">
-                                                {% if slot_info.status == 'available' %}
-                                                    ({{ slot_info.available_slots }}/{{ slot_info.total_slots }})
-                                                {% elif slot_info.status == 'already_sent' %}
-                                                    ✓ Sent
-                                                {% elif slot_info.status == 'full' %}
-                                                    (Full)
-                                                {% endif %}
-                                            </span>
-                                        </button>
-                                    {% endfor %}
-                                    {% endwith %}
+                    <td colspan="8" class="px-4 py-6 bg-gray-50 border-t border-gray-200">
+                        <div class="max-w-4xl mx-auto space-y-6">
+                            
+                            <!-- User Profile Details Section -->
+                            <div class="bg-white rounded-lg p-5 shadow-sm border border-gray-200">
+                                <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                                    {% if user.profile.profile_picture %}
+                                        <img src="{{ user.profile.profile_picture.url }}" alt="{{ user.profile.display_name }}" class="h-8 w-8 rounded-full object-cover mr-3">
+                                    {% else %}
+                                        <div class="h-8 w-8 rounded-full bg-gray-300 flex items-center justify-center text-sm font-medium text-gray-600 mr-3">
+                                            {{ user.first_name.0|default:user.username.0|upper }}
+                                        </div>
+                                    {% endif %}
+                                    {{ user.profile.display_name }} - Profile Details
+                                </h3>
+                                
+                                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                    <!-- Left Column - Personal Info -->
+                                    <div class="space-y-4">
+                                        <h4 class="font-medium text-gray-700 text-sm border-b border-gray-200 pb-2">Personal Information</h4>
+                                        
+                                        {% if user.profile.bio %}
+                                        <div>
+                                            <span class="text-xs font-medium text-gray-500 uppercase tracking-wider">Bio</span>
+                                            <p class="text-sm text-gray-700 mt-1 leading-relaxed">{{ user.profile.bio }}</p>
+                                        </div>
+                                        {% endif %}
+                                        
+                                        {% if user.profile.schools %}
+                                        <div>
+                                            <span class="text-xs font-medium text-gray-500 uppercase tracking-wider">Education</span>
+                                            <div class="text-sm text-gray-700 mt-1">
+                                                {% for school in user.profile.school_list %}
+                                                    <div class="py-1">• {{ school }}</div>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                        {% endif %}
+                                        
+                                        {% if user.profile.tag_list %}
+                                        <div>
+                                            <span class="text-xs font-medium text-gray-500 uppercase tracking-wider">Skills & Interests</span>
+                                            <div class="flex flex-wrap gap-2 mt-2">
+                                                {% for tag in user.profile.tag_list %}
+                                                    <span class="px-2 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-medium">{{ tag }}</span>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <!-- Right Column - Professional Info -->
+                                    <div class="space-y-4">
+                                        <h4 class="font-medium text-gray-700 text-sm border-b border-gray-200 pb-2">Professional Details</h4>
+                                        
+                                        <div class="grid grid-cols-1 gap-3">
+                                            {% if user.profile.company %}
+                                            <div>
+                                                <span class="text-xs font-medium text-gray-500 uppercase tracking-wider">Company</span>
+                                                <p class="text-sm text-gray-700">{{ user.profile.company }}</p>
+                                            </div>
+                                            {% endif %}
+                                            
+                                            {% if user.profile.team %}
+                                            <div>
+                                                <span class="text-xs font-medium text-gray-500 uppercase tracking-wider">Team</span>
+                                                <p class="text-sm text-gray-700">{{ user.profile.team }}</p>
+                                            </div>
+                                            {% endif %}
+                                            
+                                            {% if user.profile.get_organization_level_display %}
+                                            <div>
+                                                <span class="text-xs font-medium text-gray-500 uppercase tracking-wider">Career Level</span>
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                    {{ user.profile.get_organization_level_display }}
+                                                </span>
+                                            </div>
+                                            {% endif %}
+                                            
+                                            {% if user.profile.location %}
+                                            <div>
+                                                <span class="text-xs font-medium text-gray-500 uppercase tracking-wider">Location</span>
+                                                <p class="text-sm text-gray-700">{{ user.profile.location }}</p>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="mb-4">
-                                <label class="form-label">Your Message:</label>
-                                <textarea 
-                                    id="message-text-{{ user.id }}" 
-                                    class="input {% if not user_is_verified and not request.user.is_superuser %}bg-gray-100 cursor-not-allowed{% endif %}" 
-                                    rows="3" 
-                                    placeholder="{% if request.user.is_superuser or user_is_verified %}Write your message here...{% else %}Get verified to send messages...{% endif %}"
-                                    {% if not user_is_verified and not request.user.is_superuser %}disabled readonly{% endif %}
-                                ></textarea>
-                            </div>
-                            <div class="flex justify-end space-x-2">
-                                <button 
-                                    onclick="toggleUserDetails({{ user.id }})" 
-                                    class="btn btn-ghost">
-                                >
-                                    Cancel
-                                </button>
-                                <button 
-                                    onclick="{% if request.user.is_superuser or user_is_verified %}sendMessage({{ user.id }}){% else %}showVerificationRequired(){% endif %}" 
-                                    class="btn {% if request.user.is_superuser or user_is_verified %}btn-primary{% else %}btn-ghost cursor-not-allowed{% endif %} text-sm"
-                                    {% if not user_is_verified and not request.user.is_superuser %}disabled title="Get verified to send messages"{% endif %}>
-                                    {% if request.user.is_superuser or user_is_verified %}Send Message{% else %}🔒 Get Verified to Send{% endif %}
-                                </button>
+                            
+                            <!-- Message Section -->
+                            <div class="bg-white rounded-lg p-5 shadow-sm border border-gray-200">
+                                <h4 class="font-medium text-gray-800 text-base mb-4">Send Message</h4>
+                                
+                                <!-- Message type selection -->
+                                <div class="mb-4">
+                                    <label class="text-sm font-medium text-gray-700 mb-2 block">Select Message Category:</label>
+                                    <div class="flex flex-wrap gap-2">
+                                        {% with user_slots=users_slot_data|dict_get:user.id %}
+                                        {% for slot_key, slot_info in user_slots.items %}
+                                            <button 
+                                                onclick="{% if request.user.is_superuser or user_is_verified %}selectMessageType({{ user.id }}, '{{ slot_info.message_type.name }}'){% else %}showVerificationRequired(){% endif %}" 
+                                                class="btn message-type-btn
+                                                    {% if not user_is_verified and not request.user.is_superuser %}btn-ghost cursor-not-allowed
+                                                    {% elif slot_info.status == 'available' %}btn-secondary
+                                                    {% elif slot_info.status == 'already_sent' %}btn-ghost cursor-not-allowed
+                                                    {% elif slot_info.status == 'full' %}btn-ghost cursor-not-allowed{% endif %}"
+                                                {% if slot_info.status != 'available' or not user_is_verified and not request.user.is_superuser %}disabled{% endif %}
+                                                title="{% if not user_is_verified and not request.user.is_superuser %}Get verified to send messages{% endif %}"
+                                            >
+                                                {{ slot_info.message_type.name }}
+                                                <span class="ml-1 text-xs
+                                                    {% if slot_info.status == 'available' %}text-green-600
+                                                    {% elif slot_info.status == 'already_sent' %}text-gray-500
+                                                    {% elif slot_info.status == 'full' %}text-red-600{% endif %}
+                                                ">
+                                                    {% if slot_info.status == 'available' %}
+                                                        ({{ slot_info.available_slots }}/{{ slot_info.total_slots }})
+                                                    {% elif slot_info.status == 'already_sent' %}
+                                                        ✓ Sent
+                                                    {% elif slot_info.status == 'full' %}
+                                                        (Full)
+                                                    {% endif %}
+                                                </span>
+                                            </button>
+                                        {% endfor %}
+                                        {% endwith %}
+                                    </div>
+                                </div>
+                                
+                                <!-- Message input -->
+                                <div class="mb-4">
+                                    <label class="text-sm font-medium text-gray-700 mb-2 block">Your Message:</label>
+                                    <textarea 
+                                        id="message-text-{{ user.id }}" 
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent {% if not user_is_verified and not request.user.is_superuser %}bg-gray-100 cursor-not-allowed{% endif %}" 
+                                        rows="4" 
+                                        placeholder="{% if request.user.is_superuser or user_is_verified %}Write your message here...{% else %}Get verified to send messages...{% endif %}"
+                                        {% if not user_is_verified and not request.user.is_superuser %}disabled readonly{% endif %}
+                                    ></textarea>
+                                </div>
+                                
+                                <div class="flex justify-end space-x-3">
+                                    <button 
+                                        onclick="toggleUserDetails({{ user.id }})" 
+                                        class="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors">
+                                        Cancel
+                                    </button>
+                                    <button 
+                                        onclick="{% if request.user.is_superuser or user_is_verified %}sendMessage({{ user.id }}){% else %}showVerificationRequired(){% endif %}" 
+                                        class="px-4 py-2 {% if request.user.is_superuser or user_is_verified %}bg-blue-600 hover:bg-blue-700 text-white{% else %}bg-gray-300 text-gray-500 cursor-not-allowed{% endif %} rounded-md transition-colors"
+                                        {% if not user_is_verified and not request.user.is_superuser %}disabled title="Get verified to send messages"{% endif %}>
+                                        {% if request.user.is_superuser or user_is_verified %}Send Message{% else %}🔒 Get Verified to Send{% endif %}
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </td>
@@ -417,10 +510,10 @@
         <!-- Mobile list view - Minimal -->
         <div class="block md:hidden">
             {% for user in users %}
-                <div class="border-b border-gray-200 last:border-b-0">
+                <div class="border-b border-gray-200 last:border-b-0 mb-1 px-2 py-1">
                     <!-- Minimal User Row -->
                     <button 
-                        class="w-full px-3 py-2 flex items-center hover:bg-gray-50 transition-colors user-row"
+                        class="w-full flex items-center hover:bg-gray-50 transition-colors user-row"
                         onclick="openUserModal({{ user.id }})"
                         data-user-id="{{ user.id }}"
                         data-user-name="{{ user.profile.display_name }}"
@@ -429,22 +522,23 @@
                         data-user-team="{{ user.profile.team|default:'' }}"
                         data-user-level="{{ user.profile.get_organization_level_display|default:'' }}"
                         data-user-schools="{{ user.profile.schools|default:'' }}"
+                        data-user-bio="{{ user.profile.bio|default:'' }}"
                         data-user-tags="{{ user.profile.tag_list|join:', ' }}"
                     >
                         <div class="flex items-center flex-1">
                             {% if user.profile.profile_picture %}
-                                <img src="{{ user.profile.profile_picture.url }}" alt="{{ user.profile.display_name }}" class="h-8 w-8 rounded-full object-cover mr-2">
+                                <img src="{{ user.profile.profile_picture.url }}" alt="{{ user.profile.display_name }}" class="w-8 h-8 rounded-full object-cover mr-3 border border-gray-200">
                             {% else %}
-                                <div class="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-medium text-gray-600 mr-2">
+                                <div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-medium text-gray-600 mr-3 border border-gray-200">
                                     {{ user.profile.display_name|first }}
                                 </div>
                             {% endif %}
-                            <div class="text-left">
-                                <div class="text-sm font-medium text-gray-900">{{ user.profile.display_name }}</div>
-                                <div class="text-xs text-gray-500">{{ user.profile.location|default:"" }}{% if user.profile.company %} • {{ user.profile.company }}{% endif %}</div>
+                            <div class="text-left flex-1">
+                                <div class="text-base font-medium text-gray-900 mb-1">{{ user.profile.display_name }}</div>
+                                <div class="text-sm text-gray-500">{{ user.profile.location|default:"" }}{% if user.profile.company %} • {{ user.profile.company }}{% endif %}</div>
                             </div>
                         </div>
-                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                         </svg>
                     </button>
@@ -461,8 +555,8 @@
         <!-- Modal Content -->
         <div class="absolute inset-x-0 bottom-0 bg-white rounded-t-xl max-h-[90vh] overflow-hidden transform transition-transform duration-300 translate-y-full" id="modalContent">
             <!-- Modal Header -->
-            <div class="sticky top-0 bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
-                <h3 class="text-base font-semibold text-gray-900" id="modalUserName">User Details</h3>
+            <div class="sticky top-0 bg-white border-b border-gray-200 px-3 py-2 flex items-center justify-between">
+                <h3 class="text-sm font-semibold text-gray-900" id="modalUserName">User Details</h3>
                 <button onclick="closeUserModal()" class="p-1 rounded-full hover:bg-gray-100">
                     <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
@@ -473,9 +567,9 @@
             <!-- Modal Body -->
             <div class="overflow-y-auto" style="max-height: calc(90vh - 60px);">
                 <!-- User Info -->
-                <div class="px-4 py-3 space-y-2 border-b border-gray-100">
-                    <div class="flex items-center space-x-3">
-                        <div id="modalAvatar" class="h-12 w-12 rounded-full bg-gray-200 flex items-center justify-center text-sm font-medium text-gray-600">
+                <div class="px-3 py-2 space-y-2 border-b border-gray-100">
+                    <div class="flex items-center space-x-2">
+                        <div id="modalAvatar" class="rounded-full bg-gray-200 flex items-center justify-center font-medium text-gray-600">
                             U
                         </div>
                         <div class="flex-1">
@@ -484,36 +578,55 @@
                         </div>
                     </div>
                     
-                    <!-- User Details Grid -->
-                    <div class="grid grid-cols-2 gap-2 text-xs">
-                        <div>
-                            <span class="text-gray-500">Company:</span>
-                            <span class="text-gray-700" id="modalCompany">-</span>
+                    <!-- Complete User Profile Information -->
+                    <div class="space-y-3 text-xs">
+                        <!-- Bio Section -->
+                        <div id="modalBioSection">
+                            <div class="font-medium text-gray-500 mb-1">Bio</div>
+                            <div class="text-gray-700 leading-relaxed" id="modalBio">-</div>
                         </div>
+                        
+                        <!-- Professional Details -->
                         <div>
-                            <span class="text-gray-500">Team:</span>
-                            <span class="text-gray-700" id="modalTeam">-</span>
+                            <div class="font-medium text-gray-500 mb-2">Professional Details</div>
+                            <div class="space-y-1">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-500">Company:</span>
+                                    <span class="text-gray-700 text-right flex-1 ml-2" id="modalCompany">-</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-500">Team:</span>
+                                    <span class="text-gray-700 text-right flex-1 ml-2" id="modalTeam">-</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-500">Career Level:</span>
+                                    <span class="text-gray-700 text-right flex-1 ml-2" id="modalLevel">-</span>
+                                </div>
+                            </div>
                         </div>
-                        <div>
-                            <span class="text-gray-500">Level:</span>
-                            <span class="text-gray-700" id="modalLevel">-</span>
+                        
+                        <!-- Education Section -->
+                        <div id="modalEducationSection">
+                            <div class="font-medium text-gray-500 mb-1">Education</div>
+                            <div class="text-gray-700" id="modalSchools">-</div>
                         </div>
-                        <div>
-                            <span class="text-gray-500">Education:</span>
-                            <span class="text-gray-700" id="modalSchools">-</span>
+                        
+                        <!-- Skills & Interests Section -->
+                        <div id="modalTagsSection">
+                            <div class="font-medium text-gray-500 mb-1">Skills & Interests</div>
+                            <div id="modalTags" class="flex flex-wrap gap-1">
+                                <span class="text-gray-400 text-xs">Loading...</span>
+                            </div>
                         </div>
                     </div>
-                    
-                    <!-- Tags -->
-                    <div id="modalTags" class="flex flex-wrap gap-1 pt-1"></div>
                 </div>
                 
                 <!-- Message Section -->
-                <div class="px-4 py-3">
+                <div class="px-3 py-2">
                     <div class="text-xs font-medium text-gray-700 mb-2">Send Message</div>
                     
                     <!-- Message Categories -->
-                    <div class="grid grid-cols-3 gap-1 mb-2" id="modalMessageTypes">
+                    <div class="grid grid-cols-2 gap-1 mb-2" id="modalMessageTypes">
                         <!-- Will be populated dynamically -->
                     </div>
                     
@@ -562,32 +675,64 @@ function openUserModal(userId) {
     const userTeam = userRow.dataset.userTeam || '';
     const userLevel = userRow.dataset.userLevel || '';
     const userSchools = userRow.dataset.userSchools || '';
+    const userBio = userRow.dataset.userBio || '';
     const userTags = userRow.dataset.userTags || '';
     
     // Update modal content
     document.getElementById('modalUserName').textContent = userName;
     document.getElementById('modalName').textContent = userName;
     document.getElementById('modalLocation').textContent = userLocation || 'Location not provided';
-    document.getElementById('modalCompany').textContent = userCompany || '-';
-    document.getElementById('modalTeam').textContent = userTeam || '-';
-    document.getElementById('modalLevel').textContent = userLevel || '-';
-    document.getElementById('modalSchools').textContent = userSchools.substring(0, 20) || '-';
+    document.getElementById('modalCompany').textContent = userCompany || 'Not specified';
+    document.getElementById('modalTeam').textContent = userTeam || 'Not specified';  
+    document.getElementById('modalLevel').textContent = userLevel || 'Not specified';
+    
+    // Handle bio section - always show section
+    const bioText = document.getElementById('modalBio');
+    if (userBio && userBio.trim()) {
+        bioText.textContent = userBio;
+        bioText.className = 'text-gray-700 leading-relaxed';
+    } else {
+        bioText.textContent = 'No bio provided';
+        bioText.className = 'text-gray-400 leading-relaxed text-xs';
+    }
+    
+    // Handle education section - show full schools information
+    const schoolsText = document.getElementById('modalSchools');
+    if (userSchools && userSchools.trim()) {
+        // Split schools by line or comma and display as list
+        const schoolList = userSchools.split(/[,\n]/).map(s => s.trim()).filter(s => s);
+        if (schoolList.length > 1) {
+            schoolsText.innerHTML = schoolList.map(school => `• ${school}`).join('<br>');
+        } else {
+            schoolsText.textContent = userSchools;
+        }
+        schoolsText.className = 'text-gray-700';
+    } else {
+        schoolsText.textContent = 'No education information provided';
+        schoolsText.className = 'text-gray-400 text-xs';
+    }
     
     // Update avatar
     const avatarDiv = document.getElementById('modalAvatar');
     avatarDiv.textContent = userName.charAt(0).toUpperCase();
     
-    // Update tags
+    // Handle tags section - show full tags information
     const tagsContainer = document.getElementById('modalTags');
     tagsContainer.innerHTML = '';
-    if (userTags) {
-        const tagList = userTags.split(',').slice(0, 3);
-        tagList.forEach(tag => {
-            const tagSpan = document.createElement('span');
-            tagSpan.className = 'px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded';
-            tagSpan.textContent = tag.trim().substring(0, 10);
-            tagsContainer.appendChild(tagSpan);
-        });
+    if (userTags && userTags.trim()) {
+        const tagList = userTags.split(',').map(tag => tag.trim()).filter(tag => tag);
+        if (tagList.length > 0) {
+            tagList.forEach(tag => {
+                const tagSpan = document.createElement('span');
+                tagSpan.className = 'px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded font-medium';
+                tagSpan.textContent = tag; // Show full tag text without truncation
+                tagsContainer.appendChild(tagSpan);
+            });
+        } else {
+            tagsContainer.innerHTML = '<span class="text-gray-400 text-xs">No skills/interests specified</span>';
+        }
+    } else {
+        tagsContainer.innerHTML = '<span class="text-gray-400 text-xs">No skills/interests specified</span>';
     }
     
     // Populate message types
@@ -647,7 +792,7 @@ function populateMessageTypes(userId) {
     
     messageTypes.forEach(type => {
         const btn = document.createElement('button');
-        btn.className = 'px-2 py-1.5 text-xs border border-gray-200 rounded hover:bg-blue-50 hover:border-blue-400 transition-colors msg-type-btn';
+        btn.className = 'px-2 py-2 text-xs border border-gray-200 rounded hover:bg-blue-50 hover:border-blue-400 transition-colors msg-type-btn text-center';
         
         // Get slot status for this message type using the same key transformation as desktop
         const slotKey = type.name.toLowerCase().replace(/ /g, '_');
@@ -676,8 +821,8 @@ function populateMessageTypes(userId) {
         }
         
         btn.innerHTML = `
-            <div class="font-medium">${type.name}</div>
-            <div class="text-xs ${statusClass}">${statusText}</div>
+            <div class="font-medium text-xs leading-tight">${type.name}</div>
+            <div class="text-xs ${statusClass} mt-0.5">${statusText}</div>
         `;
         
         if (!canSend) {
