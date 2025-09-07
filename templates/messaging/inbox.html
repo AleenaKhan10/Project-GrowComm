@@ -649,20 +649,37 @@ class MessagingApp {
                     height: 1rem !important;
                 }
                 
-                /* CHAT AVATAR */
+                /* CHAT AVATAR - OVERFLOW HIDDEN TO HIDE EXTRA ICONS */
                 .chat-header .relative {
                     position: relative !important;
+                    width: 1.75rem !important;
+                    height: 1.75rem !important;
+                    overflow: hidden !important;
+                    flex-shrink: 0 !important;
                 }
                 
                 .chat-header #chat-avatar {
                     width: 1.75rem !important;
                     height: 1.75rem !important;
                     font-size: 0.625rem !important;
+                    position: relative !important;
+                    z-index: 1 !important;
                 }
                 
-                .chat-header .absolute.-bottom-0\\.5.-right-0\\.5 {
-                    width: 0.5rem !important;
-                    height: 0.5rem !important;
+                /* HIDE ALL ABSOLUTE POSITIONED ELEMENTS (ONLINE DOTS) */
+                .chat-header .absolute.-bottom-0\\.5.-right-0\\.5,
+                .chat-header .absolute {
+                    display: none !important;
+                    visibility: hidden !important;
+                    opacity: 0 !important;
+                }
+                
+                /* HIDE STATUS DOT */
+                .chat-header #chat-status .w-2.h-2 {
+                    display: none !important;
+                    visibility: hidden !important;
+                    width: 0 !important;
+                    height: 0 !important;
                 }
                 
                 /* CHAT INFO */
