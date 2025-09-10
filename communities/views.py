@@ -13,6 +13,7 @@ from .models import Community, CommunityMembership
 from profiles.forms import ProfileSearchForm
 from messaging.models import Message, MessageType, MessageSlotBooking, UserMessageSettings, CustomMessageSlot
 from messaging.forms import MessageRequestForm
+from audittrack.utils import log_slot_booked, log_message_answered
 
 
 @login_required
@@ -354,6 +355,18 @@ def send_inline_message(request):
                         'success': False,
                         'error': f'Failed to book slot: {booking_reason}'
                     }, status=400)
+                else:
+                    # Log slot booking audit event
+                    log_slot_booked(request.user, f"Booked {message_type_name} slot with {to_user.username} from community page")
+            
+            # Check if this is the first time responding to this user with this message type
+            is_first_response = False
+            if message_type:
+                is_first_response = not Message.objects.filter(
+                    sender=request.user,
+                    receiver=to_user,
+                    message_type=message_type
+                ).exists()
             
             # Create the message
             message = Message.objects.create(
@@ -362,6 +375,18 @@ def send_inline_message(request):
                 content=message_content,
                 message_type=message_type
             )
+            
+            # Log first time message answer if this is a response to an existing conversation
+            if is_first_response and message_type:
+                # Check if there are messages from the receiver to the sender (indicating this is a response)
+                has_received_messages = Message.objects.filter(
+                    sender=to_user,
+                    receiver=request.user,
+                    message_type=message_type
+                ).exists()
+                
+                if has_received_messages:
+                    log_message_answered(request.user, f"First response to {to_user.username} in {message_type_name} category from community page")
             
             # Update the booking to reference the message
             if message_type and booking:
