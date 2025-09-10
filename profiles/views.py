@@ -9,6 +9,7 @@ from .models import UserProfile, Referral
 from .forms import UserProfileForm, SendReferralForm, CustomMessageSlotForm, UserMessageSettingsForm
 from .decorators import verified_user_required
 from messaging.models import CustomMessageSlot, UserMessageSettings
+from audittrack.utils import log_user_deleted, log_profile_edited
 
 
 @login_required
@@ -46,6 +47,7 @@ def profile_edit(request):
         if form.is_valid() and settings_form.is_valid():
             form.save()
             settings_form.save()
+            log_profile_edited(request.user, "Updated profile information")
             messages.success(request, 'Your profile has been updated successfully!')
             return redirect('profiles:view', user_id=request.user.id)
         else:
@@ -147,14 +149,22 @@ def send_referral(request):
     if request.method == 'POST':
         form = SendReferralForm(user=request.user, data=request.POST)
         if form.is_valid():
-            referral = form.save()
-            messages.success(
-                request, 
-                f'Referral sent successfully to {referral.recipient_email}!'
-            )
-            return redirect('profiles:referrals')
+            try:
+                referral = form.save()
+                log_referral_sent(request.user, f"Sent referral to {referral.recipient_email}")
+                messages.success(
+                    request, 
+                    f'Referral sent successfully to {referral.recipient_email}!'
+                )
+                return redirect('profiles:referrals')
+            except Exception as e:
+                messages.error(request, f'Failed to send referral: {str(e)}')
         else:
             messages.error(request, 'Please correct the errors below.')
+            # Show specific form errors for debugging
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f'{field}: {error}')
     else:
         form = SendReferralForm(user=request.user)
     
@@ -187,6 +197,9 @@ def delete_profile(request):
         if request.POST.get('confirm_deletion') == 'yes':
             user = request.user
             username = user.username
+            
+            # Log user deletion before deleting (include username in detail since user will be null)
+            log_user_deleted(user, f"Self-deletion by {username} (ID: {user.id})")
             
             # Delete the user (this will cascade to profile and related objects)
             user.delete()

@@ -11,6 +11,7 @@ from profiles.decorators import verified_user_required
 from django.http import Http404, HttpResponseForbidden
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
+from audittrack.utils import log_registration, log_signin, log_signout
 
 
 class UnifiedLoginView(LoginView):
@@ -29,6 +30,7 @@ class UnifiedLoginView(LoginView):
         """Login user after successful form validation"""
         user = form.get_user()
         login(self.request, user)
+        log_signin(user, "Unified login")
         return redirect(self.get_success_url())
     
     def form_invalid(self, form):
@@ -75,6 +77,7 @@ class UserLoginView(LoginView):
         """Login user after successful form validation"""
         user = form.get_user()
         login(self.request, user)
+        log_signin(user, "User login")
         return redirect(self.get_success_url())
     
     def form_invalid(self, form):
@@ -116,12 +119,16 @@ def register_view(request, invite_code):
             
             profile.save()
             
+            # Log registration event
+            log_registration(user, f"Registered via invite from {invite.created_by.username}")
+            
             # Automatically log in the user after registration
             username = form.cleaned_data.get('username')
             password = form.cleaned_data.get('password1')
             user = authenticate(username=username, password=password)
             if user:
                 login(request, user)
+                log_signin(user, "Initial login after registration")
                 return redirect('profiles:edit')  # Redirect to profile setup
         else:
             messages.error(request, 'Please correct the errors below.')
@@ -140,6 +147,7 @@ def register_view(request, invite_code):
 def logout_view(request):
     """Custom logout view with confirmation page"""
     if request.method == 'POST':
+        log_signout(request.user, "Manual logout")
         logout(request)
         messages.success(request, 'You have been successfully signed out.')
         return render(request, 'accounts/logout_success.html')

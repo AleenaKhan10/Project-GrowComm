@@ -8,6 +8,7 @@ from .utils import build_invite_url
 from profiles.decorators import verified_user_required
 from profiles.models import Referral
 from profiles.forms import SendReferralForm
+from audittrack.utils import log_invite_created, log_referral_sent
 
 
 @login_required
@@ -36,6 +37,7 @@ def my_invites(request):
             if invite_form.is_valid():
                 invite = invite_form.save(user=request.user)
                 invite_url = build_invite_url(request, invite.code)
+                log_invite_created(request.user, f"Created invite: {invite.code}")
                 messages.success(
                     request, 
                     f'Invite link created successfully! Share this link: {invite_url}'
@@ -50,12 +52,21 @@ def my_invites(request):
             
             referral_form = SendReferralForm(user=request.user, data=request.POST)
             if referral_form.is_valid():
-                referral = referral_form.save()
-                messages.success(
-                    request, 
-                    f'Referral sent successfully to {referral.recipient_email}!'
-                )
-                return redirect('invites:my_invites')
+                try:
+                    referral = referral_form.save()
+                    log_referral_sent(request.user, f"Sent referral to {referral.recipient_email}")
+                    messages.success(
+                        request, 
+                        f'Referral sent successfully to {referral.recipient_email}!'
+                    )
+                    return redirect('invites:my_invites')
+                except Exception as e:
+                    messages.error(request, f'Failed to send referral: {str(e)}')
+            else:
+                # Show specific form errors for debugging
+                for field, errors in referral_form.errors.items():
+                    for error in errors:
+                        messages.error(request, f'Referral {field}: {error}')
     
     context = {
         'invite_form': invite_form,

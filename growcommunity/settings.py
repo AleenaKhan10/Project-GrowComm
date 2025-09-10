@@ -88,6 +88,7 @@ INSTALLED_APPS = [
     'messaging',
     'invites',
     'legal',
+    'audittrack',
 ]
 
 MIDDLEWARE = [

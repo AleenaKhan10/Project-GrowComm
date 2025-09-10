@@ -27,6 +27,9 @@ urlpatterns = [
     
     # Legal pages
     path('legal/', include('legal.urls')),
+    
+    # Audit tracking
+    path('audit/', include('audittrack.urls')),
 ]
 
 # Serve media files in development

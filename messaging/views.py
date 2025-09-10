@@ -20,6 +20,7 @@ from .forms import (
     CustomMessageSlotForm, CustomMessageSlotFormSet
 )
 from profiles.decorators import verified_user_required
+from audittrack.utils import log_slot_booked, log_message_answered
 
 
 @login_required
@@ -240,8 +241,18 @@ def send_message(request):
                         'success': False,
                         'error': f'Failed to send message: {booking_reason}'
                     }, status=400)
+                else:
+                    # Log slot booking
+                    log_slot_booked(request.user, f"Booked {message_type.name} slot with {receiver.username}")
         else:
             # For EXISTING conversations with same message type, no restrictions
+            # Check if this is the first time the receiver is responding to the sender
+            is_first_response = not Message.objects.filter(
+                sender=request.user,
+                receiver=receiver,
+                message_type=message_type
+            ).exists()
+            
             # Use the same message_type to keep messages in the same conversation
             message = Message.objects.create(
                 sender=request.user,
@@ -249,6 +260,10 @@ def send_message(request):
                 content=content,
                 message_type=message_type  # Use the message type from the request (same as existing)
             )
+            
+            # Log first time message answer
+            if is_first_response:
+                log_message_answered(request.user, f"First response to {receiver.username} in {message_type.name if message_type else 'general'} conversation")
         
         # Return success with message data
         return JsonResponse({
@@ -547,6 +562,8 @@ def send_message_request(request, user_id):
         )
         
         if booking:
+            # Log slot booking
+            log_slot_booked(request.user, f"Booked {message_type.name} slot with {recipient.username}")
             messages.success(request, f'{message_type.name} message sent to {recipient.username}!')
             return redirect('messaging:conversation', user_id=recipient.id)
         else:
