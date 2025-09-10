@@ -1,0 +1,235 @@
+{% extends 'base.html' %}
+
+{% block title %}Reports & Blocks Admin Dashboard - GrwComm{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900">Reports & Blocks Admin Dashboard</h1>
+            <p class="mt-2 text-gray-600">Monitor and manage user reports and chat blocks</p>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <!-- Total Reports -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <svg class="h-8 w-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                        </svg>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-500">Total Reports</p>
+                        <p class="text-2xl font-semibold text-gray-900">{{ report_stats.total_reports }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pending Reports -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <svg class="h-8 w-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-500">Pending Review</p>
+                        <p class="text-2xl font-semibold text-gray-900">{{ report_stats.pending_reports }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Active Blocks -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <svg class="h-8 w-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18.364 5.636A9 9 0 015.636 18.364"/>
+                        </svg>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-500">Active Blocks</p>
+                        <p class="text-2xl font-semibold text-gray-900">{{ chat_block_stats.active_blocks }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Unreviewed Blocks -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <svg class="h-8 w-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-500">Unreviewed Blocks</p>
+                        <p class="text-2xl font-semibold text-gray-900">{{ chat_block_stats.unreviewed_blocks }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="mb-8">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
+            <div class="flex flex-wrap gap-4">
+                <a href="{% url 'messaging:admin_reports_list' %}" 
+                   class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    View All Reports
+                </a>
+                <a href="{% url 'messaging:admin_chat_blocks_list' %}" 
+                   class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18.364 5.636A9 9 0 015.636 18.364"/>
+                    </svg>
+                    Manage Chat Blocks
+                </a>
+                {% if report_stats.pending_reports > 0 %}
+                <a href="{% url 'messaging:admin_reports_list' %}?review_status=unreviewed" 
+                   class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                    </svg>
+                    Review Pending Reports ({{ report_stats.pending_reports }})
+                </a>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Recent Reports -->
+            <div class="bg-white rounded-lg shadow">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-medium text-gray-900">Recent Reports</h3>
+                </div>
+                <div class="divide-y divide-gray-200">
+                    {% for report in recent_reports %}
+                    <div class="px-6 py-4">
+                        <div class="flex items-center justify-between">
+                            <div class="flex-1">
+                                <div class="flex items-center space-x-2">
+                                    <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full
+                                        {% if report.report_type == 'spam' %}bg-yellow-100 text-yellow-800
+                                        {% elif report.report_type == 'harassment' %}bg-red-100 text-red-800
+                                        {% elif report.report_type == 'inappropriate' %}bg-orange-100 text-orange-800
+                                        {% elif report.report_type == 'fake' %}bg-purple-100 text-purple-800
+                                        {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                        {{ report.get_report_type_display }}
+                                    </span>
+                                </div>
+                                <p class="text-sm text-gray-900 mt-1">
+                                    <span class="font-medium">{{ report.reporter.username }}</span> reported 
+                                    <span class="font-medium">{{ report.reported_user.username }}</span>
+                                </p>
+                                <p class="text-xs text-gray-500 mt-1">{{ report.created_date|date:"M d, Y H:i" }}</p>
+                            </div>
+                            <a href="{% url 'messaging:admin_report_detail' report.id %}" 
+                               class="text-indigo-600 hover:text-indigo-900 text-sm font-medium">
+                                View
+                            </a>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="px-6 py-8 text-center">
+                        <p class="text-gray-500">No recent reports</p>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% if recent_reports %}
+                <div class="px-6 py-3 bg-gray-50 text-right">
+                    <a href="{% url 'messaging:admin_reports_list' %}" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">
+                        View all reports →
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Recent Chat Blocks -->
+            <div class="bg-white rounded-lg shadow">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-medium text-gray-900">Recent Chat Blocks</h3>
+                </div>
+                <div class="divide-y divide-gray-200">
+                    {% for block in recent_blocks %}
+                    <div class="px-6 py-4">
+                        <div class="flex items-center justify-between">
+                            <div class="flex-1">
+                                <div class="flex items-center space-x-2">
+                                    <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full
+                                        {% if block.is_active %}bg-red-100 text-red-800{% else %}bg-gray-100 text-gray-800{% endif %}">
+                                        {% if block.is_active %}Active{% else %}Inactive{% endif %}
+                                    </span>
+                                    {% if not block.reviewed_by_admin %}
+                                    <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800">
+                                        Unreviewed
+                                    </span>
+                                    {% endif %}
+                                </div>
+                                <p class="text-sm text-gray-900 mt-1">
+                                    <span class="font-medium">{{ block.reporter.username }}</span> ↔ 
+                                    <span class="font-medium">{{ block.blocked_user.username }}</span>
+                                </p>
+                                <p class="text-xs text-gray-500 mt-1">{{ block.created_date|date:"M d, Y H:i" }}</p>
+                            </div>
+                            <a href="{% url 'messaging:admin_report_detail' block.report.id %}" 
+                               class="text-indigo-600 hover:text-indigo-900 text-sm font-medium">
+                                View
+                            </a>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="px-6 py-8 text-center">
+                        <p class="text-gray-500">No recent chat blocks</p>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% if recent_blocks %}
+                <div class="px-6 py-3 bg-gray-50 text-right">
+                    <a href="{% url 'messaging:admin_chat_blocks_list' %}" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">
+                        View all blocks →
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Report Type Distribution -->
+        {% if report_type_stats %}
+        <div class="mt-8">
+            <div class="bg-white rounded-lg shadow">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-medium text-gray-900">Report Type Distribution</h3>
+                </div>
+                <div class="px-6 py-4">
+                    <div class="space-y-4">
+                        {% for stat in report_type_stats %}
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full
+                                    {% if stat.report_type == 'spam' %}bg-yellow-100 text-yellow-800
+                                    {% elif stat.report_type == 'harassment' %}bg-red-100 text-red-800
+                                    {% elif stat.report_type == 'inappropriate' %}bg-orange-100 text-orange-800
+                                    {% elif stat.report_type == 'fake' %}bg-purple-100 text-purple-800
+                                    {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                    {{ stat.report_type|capfirst }}
+                                </span>
+                            </div>
+                            <span class="text-sm font-medium text-gray-900">{{ stat.count }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

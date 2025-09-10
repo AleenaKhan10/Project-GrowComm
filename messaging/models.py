@@ -532,3 +532,103 @@ from django.dispatch import receiver
 def create_user_message_settings(sender, instance, created, **kwargs):
     if created:
         UserMessageSettings.objects.get_or_create(user=instance)
+
+
+class MessageReport(models.Model):
+    """Simple model for reporting users in messages"""
+    
+    REPORT_TYPES = [
+        ('spam', 'Spam'),
+        ('harassment', 'Harassment'),
+        ('inappropriate', 'Inappropriate Content'),
+        ('fake', 'Fake Account'),
+        ('other', 'Other'),
+    ]
+    
+    # Who is reporting and who is being reported
+    reporter = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reports_made')
+    reported_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reports_received')
+    
+    # Report details
+    report_type = models.CharField(max_length=20, choices=REPORT_TYPES)
+    note = models.TextField(help_text="Additional details about the report")
+    
+    # Timestamp
+    created_date = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['-created_date']
+    
+    def __str__(self):
+        return f"{self.reporter.username} reported {self.reported_user.username} - {self.get_report_type_display()}"
+
+
+class UserBlock(models.Model):
+    """Simple model for blocking users"""
+    
+    blocker = models.ForeignKey(User, on_delete=models.CASCADE, related_name='blocked_users')
+    blocked = models.ForeignKey(User, on_delete=models.CASCADE, related_name='blocked_by')
+    created_date = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        unique_together = ['blocker', 'blocked']
+        ordering = ['-created_date']
+    
+    def __str__(self):
+        return f"{self.blocker.username} blocked {self.blocked.username}"
+    
+    @classmethod
+    def is_blocked(cls, user1, user2):
+        """Check if either user has blocked the other"""
+        return cls.objects.filter(
+            Q(blocker=user1, blocked=user2) | 
+            Q(blocker=user2, blocked=user1)
+        ).exists()
+
+
+class ChatBlock(models.Model):
+    """Model for tracking chat blocks with report reasons"""
+    
+    # Chat participants
+    reporter = models.ForeignKey(User, on_delete=models.CASCADE, related_name='chat_blocks_reported')
+    blocked_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='chat_blocks_received')
+    
+    # Chat identifier (can be used to track specific conversation)
+    chat_id = models.CharField(max_length=100, null=True, blank=True, help_text="Identifier for the specific chat")
+    
+    # Report that led to block
+    report = models.ForeignKey(MessageReport, on_delete=models.CASCADE, related_name='chat_blocks')
+    
+    # Block status
+    is_active = models.BooleanField(default=True, help_text="Whether the block is currently active")
+    
+    # Admin control
+    reviewed_by_admin = models.BooleanField(default=False)
+    admin_notes = models.TextField(blank=True, help_text="Admin notes about this block")
+    
+    # Timestamps
+    created_date = models.DateTimeField(auto_now_add=True)
+    updated_date = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        unique_together = ['reporter', 'blocked_user']
+        ordering = ['-created_date']
+    
+    def __str__(self):
+        return f"Chat block: {self.reporter.username} blocked {self.blocked_user.username}"
+    
+    @classmethod
+    def is_chat_blocked(cls, user1, user2):
+        """Check if chat between two users is blocked"""
+        return cls.objects.filter(
+            Q(reporter=user1, blocked_user=user2, is_active=True) | 
+            Q(reporter=user2, blocked_user=user1, is_active=True)
+        ).exists()
+    
+    @classmethod
+    def get_block_info(cls, user1, user2):
+        """Get block information between two users"""
+        return cls.objects.filter(
+            Q(reporter=user1, blocked_user=user2, is_active=True) | 
+            Q(reporter=user2, blocked_user=user1, is_active=True)
+        ).first()
