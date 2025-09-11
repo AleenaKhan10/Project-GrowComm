@@ -321,3 +321,9 @@ def get_custom_slots(request):
         'can_edit': True
     }
     return render(request, 'profiles/custom_slots_list.html', context)
+
+
+@login_required
+def message_categories(request):
+    """Standalone message categories management page"""
+    return render(request, 'profiles/message_categories.html')

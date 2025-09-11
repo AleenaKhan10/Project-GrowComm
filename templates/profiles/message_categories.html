@@ -1,0 +1,198 @@
+{% extends 'base.html' %}
+
+{% block title %}Message Categories - GrwComm{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/htmx.org@1.9.10"></script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Mobile-first responsive design */
+@media (max-width: 768px) {
+    .container {
+        padding: 0.5rem !important;
+    }
+    
+    .card {
+        margin: 0 !important;
+        border-radius: 0.5rem !important;
+    }
+    
+    .px-8 {
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+    }
+    
+    .py-6 {
+        padding-top: 1rem !important;
+        padding-bottom: 1rem !important;
+    }
+    
+    .py-8 {
+        padding-top: 1.5rem !important;
+        padding-bottom: 1.5rem !important;
+    }
+    
+    h1 {
+        font-size: 1.5rem !important;
+    }
+    
+    h2 {
+        font-size: 1.25rem !important;
+    }
+    
+    .text-base {
+        font-size: 0.875rem !important;
+    }
+    
+    .text-sm {
+        font-size: 0.75rem !important;
+    }
+    
+    /* Button responsive */
+    .btn {
+        width: 100% !important;
+        margin-bottom: 0.5rem !important;
+    }
+    
+    .flex.justify-between.items-center {
+        display: block !important;
+    }
+    
+    .flex.justify-between.items-center h3 {
+        margin-bottom: 1rem !important;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-8">
+    <div class="card max-w-4xl mx-auto">
+        <!-- Header -->
+        <div class="px-8 py-6 border-b border-gray-300">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-semibold text-black mb-2">
+                        Message <span class="font-bold">Categories</span>
+                    </h1>
+                    <p class="text-base text-gray-600">
+                        Create and manage custom message categories to organize how others can reach out to you.
+                    </p>
+                </div>
+                <a href="{% url 'profiles:edit' %}" class="btn btn-secondary">
+                    <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                    </svg>
+                    Back to Profile
+                </a>
+            </div>
+        </div>
+        
+        <!-- Content -->
+        <div class="px-8 py-8">
+            <!-- Information Box -->
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="text-sm font-medium text-blue-800">
+                            About Message Categories
+                        </h3>
+                        <div class="mt-2 text-sm text-blue-700">
+                            <p>Message categories help you organize different types of conversations. When someone wants to message you, they'll choose from your available categories. You can set limits on how many messages you receive per category.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Message Categories Management -->
+            <div id="custom-slots">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-semibold text-black">Your Message Categories</h2>
+                    <button type="button" 
+                            hx-get="{% url 'profiles:add_custom_slot' %}" 
+                            hx-target="#slot-form-container"
+                            hx-swap="innerHTML"
+                            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-cyan-600 hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500 transition-colors">
+                        <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                        </svg>
+                        Add New Category
+                    </button>
+                </div>
+                
+                <!-- Form container for adding/editing slots -->
+                <div id="slot-form-container" class="mb-6"></div>
+                
+                <!-- Custom Slots List -->
+                <div id="custom-slots-list" hx-get="{% url 'profiles:get_custom_slots' %}" hx-trigger="load">
+                    <!-- Loading state -->
+                    <div class="flex items-center justify-center py-12">
+                        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-600"></div>
+                        <span class="ml-3 text-gray-600">Loading categories...</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Usage Tips -->
+            <div class="mt-8 bg-gray-50 border border-gray-200 rounded-lg p-6">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Tips for Effective Categories</h3>
+                <div class="space-y-3 text-sm text-gray-600">
+                    <div class="flex items-start">
+                        <svg class="h-4 w-4 text-green-500 mt-0.5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                        </svg>
+                        <p><strong>Be specific:</strong> Use clear category names like "Business Proposals" or "Mentorship Requests" instead of generic terms.</p>
+                    </div>
+                    <div class="flex items-start">
+                        <svg class="h-4 w-4 text-green-500 mt-0.5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                        </svg>
+                        <p><strong>Set limits:</strong> Use slot limits to manage your time and ensure you can respond to messages meaningfully.</p>
+                    </div>
+                    <div class="flex items-start">
+                        <svg class="h-4 w-4 text-green-500 mt-0.5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                        </svg>
+                        <p><strong>Regular updates:</strong> Review and update your categories based on the types of conversations you're having.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle HTMX events for better UX
+    document.body.addEventListener('htmx:beforeSwap', function(evt) {
+        // Add loading state to buttons when form is being submitted
+        if (evt.detail.xhr.status === 200) {
+            const target = evt.target;
+            if (target.id === 'slot-form-container') {
+                // Scroll to form when it loads
+                setTimeout(() => {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }, 100);
+            }
+        }
+    });
+    
+    document.body.addEventListener('htmx:afterSwap', function(evt) {
+        // Focus on first input when form loads
+        if (evt.target.id === 'slot-form-container') {
+            const firstInput = evt.target.querySelector('input[type="text"]');
+            if (firstInput) {
+                firstInput.focus();
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

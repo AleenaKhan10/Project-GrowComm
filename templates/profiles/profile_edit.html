@@ -520,39 +520,6 @@
                 </div>
             </div>
             
-            <!-- Message Slot Settings -->
-            <div>
-                <div class="border-t border-gray-700 pt-6"></div>
-                <h2 class="text-xl font-semibold text-black mb-6">Message Categories</h2>
-                <p class="text-sm text-gray-600 mb-6">
-                    Create custom message categories to organize how others can reach out to you.
-                </p>
-                
-                <!-- Custom Categories -->
-                <div id="custom-slots">
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-lg font-medium text-black">Your Message Categories</h3>
-                        <button type="button" 
-                                hx-get="{% url 'profiles:add_custom_slot' %}" 
-                                hx-target="#slot-form-container"
-                                hx-swap="innerHTML"
-                                class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-cyan-600 hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500 transition-colors">
-                            <svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-                            </svg>
-                            Add Category
-                        </button>
-                    </div>
-                    
-                    <!-- Form container for adding/editing slots -->
-                    <div id="slot-form-container"></div>
-                    
-                    <!-- Custom Slots List -->
-                    <div id="custom-slots-list" hx-get="{% url 'profiles:get_custom_slots' %}" hx-trigger="load">
-                        <!-- Initial load will be handled by HTMX -->
-                    </div>
-                </div>
-            </div>
             
             <!-- Non-field errors -->
             {% if form.non_field_errors %}

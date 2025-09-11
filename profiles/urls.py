@@ -11,6 +11,8 @@ urlpatterns = [
     path('send-referral/', views.send_referral, name='send_referral'),
     path('referral-stats/', views.referral_stats, name='referral_stats'),
     path('delete/', views.delete_profile, name='delete'),
+    # Message categories management
+    path('message-categories/', views.message_categories, name='message_categories'),
     # Custom message slot management URLs
     path('slots/add/', views.add_custom_slot, name='add_custom_slot'),
     path('slots/edit/<int:slot_id>/', views.edit_custom_slot, name='edit_custom_slot'),
