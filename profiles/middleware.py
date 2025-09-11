@@ -2,12 +2,14 @@ from django.shortcuts import redirect
 from django.contrib.auth import logout
 from django.contrib import messages
 from django.urls import reverse
+from django.utils import timezone
 
 
 class UserStatusMiddleware:
     """
     Middleware to check if user is deleted and handle accordingly.
     Suspended users can browse but not perform actions (like unverified users).
+    Also updates last_seen timestamp for authenticated users.
     """
     
     def __init__(self, get_response):
@@ -31,9 +33,22 @@ class UserStatusMiddleware:
                     
                     # For suspended users: they stay logged in and can browse
                     # but actions will be blocked in views/templates (like unverified users)
+                    
+                    # Update last_seen timestamp for all authenticated users (except deleted)
+                    if not profile.is_deleted:
+                        profile.last_seen = timezone.now()
+                        profile.save(update_fields=['last_seen'])
                             
                 except AttributeError:
                     # Profile doesn't exist, continue normally
+                    pass
+            else:
+                # Update last_seen for superusers too
+                try:
+                    profile = request.user.profile
+                    profile.last_seen = timezone.now()
+                    profile.save(update_fields=['last_seen'])
+                except AttributeError:
                     pass
         
         response = self.get_response(request)

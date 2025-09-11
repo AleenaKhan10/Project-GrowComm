@@ -150,6 +150,13 @@ class UserProfile(models.Model):
         help_text="Admin user who deleted this user"
     )
     
+    # Last seen tracking (for chat "Last Seen" feature)
+    last_seen = models.DateTimeField(
+        null=True, 
+        blank=True, 
+        help_text="When the user was last seen online (webapp access)"
+    )
+    
     # Anonymous messaging system
     anonymous_name = models.CharField(
         max_length=100, 
@@ -202,6 +209,40 @@ class UserProfile(models.Model):
     def anonymous_display_name(self):
         """Return anonymous name for community display"""
         return self.anonymous_name or "Anonymous Member"
+    
+    @property 
+    def last_seen_display(self):
+        """Return a human-readable last seen time"""
+        if not self.last_seen:
+            return "Never"
+        
+        from django.utils import timezone
+        from django.utils.timesince import timesince
+        
+        now = timezone.now()
+        time_diff = now - self.last_seen
+        
+        # If less than 5 minutes, show "Just now"
+        if time_diff.total_seconds() < 300:  # 5 minutes
+            return "Just now"
+        
+        # If less than 1 hour, show minutes
+        if time_diff.total_seconds() < 3600:  # 1 hour
+            minutes = int(time_diff.total_seconds() / 60)
+            return f"{minutes}m ago"
+        
+        # If less than 24 hours, show hours
+        if time_diff.total_seconds() < 86400:  # 24 hours
+            hours = int(time_diff.total_seconds() / 3600)
+            return f"{hours}h ago"
+        
+        # If less than 7 days, show days
+        if time_diff.total_seconds() < 604800:  # 7 days
+            days = int(time_diff.total_seconds() / 86400)
+            return f"{days}d ago"
+        
+        # Otherwise show date
+        return self.last_seen.strftime("%b %d")
     
     def _generate_anonymous_name(self):
         """Generate a unique anonymous name"""

@@ -40,6 +40,7 @@ document.body.classList.add('messages-page');
                         <div class="conversation-item {% if forloop.first %}active{% endif %}" 
                              data-user-id="{{ conversation.other_user.id }}"
                              data-user-name="{{ conversation.display_name|escapejs }}"
+                             data-last-seen="{{ conversation.other_user.profile.last_seen_display|escapejs }}"
                              data-message-type-id="{% if conversation.message_type %}{{ conversation.message_type.id }}{% else %}null{% endif %}"
                              data-message-type-name="{% if conversation.message_type %}{{ conversation.message_type.name|escapejs }}{% else %}General{% endif %}">
                             
@@ -68,17 +69,20 @@ document.body.classList.add('messages-page');
                                         </div>
                                     {% endif %}
                                     
-                                    <!-- Online indicator -->
-                                    <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-gray-600 border-2 border-white rounded-full"></div>
                                 </div>
                                 
                                 <!-- Conversation Info -->
                                 <div class="flex-1 min-w-0">
                                     <div class="flex items-center justify-between">
-                                        <h3 class="text-sm font-semibold text-black truncate">
-                                            {{ conversation.display_name }}
-                                        </h3>
-                                        <span class="text-xs text-gray-500">
+                                        <div class="flex-1 min-w-0">
+                                            <h3 class="text-sm font-semibold text-black truncate">
+                                                {{ conversation.display_name }}
+                                            </h3>
+                                            <p class="text-xs text-gray-500 truncate">
+                                                Last seen: {{ conversation.other_user.profile.last_seen_display }}
+                                            </p>
+                                        </div>
+                                        <span class="text-xs text-gray-500 flex-shrink-0 ml-2">
                                             {{ conversation.latest_message.timestamp|timesince }} ago
                                         </span>
                                     </div>
@@ -144,8 +148,7 @@ document.body.classList.add('messages-page');
                 <div class="flex-1">
                     <h3 id="chat-name" class="text-lg font-semibold text-black leading-tight">Select a conversation</h3>
                     <p id="chat-status" class="text-sm text-gray-600">
-                        <span class="w-2 h-2 bg-gray-600 rounded-full mr-2 inline-block"></span>
-                        Online
+                        Last seen: <span id="last-seen-time">Select a conversation</span>
                     </p>
                 </div>
 
@@ -1058,6 +1061,7 @@ class MessagingApp {
                     e.preventDefault();
                     const userId = parseInt(conversationItem.dataset.userId);
                     const userName = conversationItem.dataset.userName;
+                    const lastSeen = conversationItem.dataset.lastSeen;
                     const messageTypeIdStr = conversationItem.dataset.messageTypeId;
                     const messageTypeId = messageTypeIdStr === 'null' || messageTypeIdStr === null || messageTypeIdStr === undefined ? null : parseInt(messageTypeIdStr);
                     
@@ -1069,7 +1073,7 @@ class MessagingApp {
                         element: conversationItem
                     });
                     
-                    this.selectConversation(conversationItem, userId, userName, messageTypeId);
+                    this.selectConversation(conversationItem, userId, userName, lastSeen, messageTypeId);
                 }
             });
         }
@@ -1134,12 +1138,13 @@ class MessagingApp {
                 const userName = firstConversation.dataset.userName;
                 const messageTypeId = firstConversation.dataset.messageTypeId === 'null' ? null : parseInt(firstConversation.dataset.messageTypeId);
                 
-                this.selectConversation(firstConversation, userId, userName, messageTypeId);
+                const lastSeen = firstConversation.dataset.lastSeen;
+                this.selectConversation(firstConversation, userId, userName, lastSeen, messageTypeId);
             }
         }
     }
     
-    selectConversation(conversationElement, userId, userName, messageTypeId = null) {
+    selectConversation(conversationElement, userId, userName, lastSeen, messageTypeId = null) {
         // Remove active class from all conversations
         document.querySelectorAll('.conversation-item').forEach(item => {
             item.classList.remove('active');
@@ -1149,7 +1154,7 @@ class MessagingApp {
         conversationElement.classList.add('active');
         
         // Update chat header
-        this.updateChatHeader(userName, messageTypeId);
+        this.updateChatHeader(userName, lastSeen, messageTypeId);
         
         // Show chat interface
         this.showChatInterface();
@@ -1199,12 +1204,17 @@ class MessagingApp {
         currentChatUserId = null;
     }
     
-    updateChatHeader(userName, messageTypeId) {
+    updateChatHeader(userName, lastSeen, messageTypeId) {
         const chatName = document.getElementById('chat-name');
         const chatAvatar = document.getElementById('chat-avatar');
+        const lastSeenTime = document.getElementById('last-seen-time');
         
         if (chatName) {
             chatName.textContent = userName;
+        }
+        
+        if (lastSeenTime) {
+            lastSeenTime.textContent = lastSeen || 'Never';
         }
         
         if (chatAvatar) {
