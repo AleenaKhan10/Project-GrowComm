@@ -61,7 +61,7 @@ deploy_simple() {
         -v $(pwd)/media:/app/media \
         -v $(pwd)/staticfiles:/app/staticfiles \
         -e DEBUG=False \
-        -e ALLOWED_HOSTS=grwcomm.com,www.grwcomm.com,51.20.31.158,localhost \
+        -e ALLOWED_HOSTS=grwcomm.com,www.grwcomm.com,54.160.219.96,localhost \
         --restart unless-stopped \
         growcomm
 
@@ -117,7 +117,7 @@ if [[ $REPLY == "1" ]]; then
 else
     echo "   http://grwcomm.com"
     echo "   http://www.grwcomm.com"
-    echo "   http://51.20.31.158"
+    echo "   http://54.160.219.96"
 fi
 echo ""
 echo "💾 SQLite database is preserved in:"

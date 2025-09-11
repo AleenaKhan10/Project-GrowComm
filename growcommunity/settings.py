@@ -32,7 +32,7 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-h_%#ss$#i$peguhau6-nk!$xrg
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'True').lower() == 'true'
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,51.20.31.158,www.grwcomm.com,grwcomm.com,127.0.0.1').split(',')
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,54.160.219.96,www.grwcomm.com,grwcomm.com,127.0.0.1').split(',')
 
 # HTTPS/Security Settings for Production
 SECURE_SSL_REDIRECT = os.getenv('SECURE_SSL_REDIRECT', 'False').lower() == 'true'
@@ -50,8 +50,8 @@ CSRF_TRUSTED_ORIGINS = [
     'https://grwcomm.com',
     'http://www.grwcomm.com',
     'https://www.grwcomm.com',
-    'http://51.20.31.158',
-    'https://51.20.31.158',
+    'http://54.160.219.96',
+    'https://54.160.219.96',
 ]
 CSRF_COOKIE_SAMESITE = 'Lax'
 SESSION_COOKIE_SAMESITE = 'Lax'
