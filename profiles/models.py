@@ -213,14 +213,19 @@ class UserProfile(models.Model):
     @property 
     def last_seen_display(self):
         """Return a human-readable last seen time"""
-        if not self.last_seen:
+        # Use last_seen if available, otherwise fall back to last_login
+        last_activity = self.last_seen
+        if not last_activity:
+            last_activity = self.user.last_login
+            
+        if not last_activity:
             return "Never"
         
         from django.utils import timezone
         from django.utils.timesince import timesince
         
         now = timezone.now()
-        time_diff = now - self.last_seen
+        time_diff = now - last_activity
         
         # If less than 5 minutes, show "Just now"
         if time_diff.total_seconds() < 300:  # 5 minutes
@@ -242,7 +247,7 @@ class UserProfile(models.Model):
             return f"{days}d ago"
         
         # Otherwise show date
-        return self.last_seen.strftime("%b %d")
+        return last_activity.strftime("%b %d")
     
     def _generate_anonymous_name(self):
         """Generate a unique anonymous name"""

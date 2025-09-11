@@ -78,6 +78,11 @@ document.body.classList.add('messages-page');
                                             <h3 class="text-sm font-semibold text-black truncate">
                                                 {{ conversation.display_name }}
                                             </h3>
+                                            {% if conversation.chat_heading %}
+                                                <p class="text-xs text-blue-600 font-medium truncate chat-heading-display">
+                                                    📝 {{ conversation.chat_heading }}
+                                                </p>
+                                            {% endif %}
                                             <p class="text-xs text-gray-500 truncate">
                                                 Last seen: {{ conversation.other_user.profile.last_seen_display }}
                                             </p>
@@ -1760,6 +1765,7 @@ function closeReportModal() {
     document.getElementById('report-form').reset();
 }
 
+
 // Submit Report
 function submitReport() {
     if (!window.messagingApp || !window.messagingApp.currentUserId) return;
@@ -1831,6 +1837,7 @@ function getCookie(name) {
     return cookieValue;
 }
 </script>
+
 
 <!-- Report Modal -->
 <div id="reportModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 z-50 flex items-center justify-center">

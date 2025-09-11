@@ -11,7 +11,7 @@ import json
 
 from .models import Community, CommunityMembership
 from profiles.forms import ProfileSearchForm
-from messaging.models import Message, MessageType, MessageSlotBooking, UserMessageSettings, CustomMessageSlot
+from messaging.models import Message, MessageType, MessageSlotBooking, UserMessageSettings, CustomMessageSlot, ChatHeading
 from messaging.forms import MessageRequestForm
 from audittrack.utils import log_slot_booked, log_message_answered
 
@@ -275,6 +275,7 @@ def send_inline_message(request):
         to_user_id = data.get('to_user_id')
         message_type_name = data.get('message_type', 'General')
         message_content = data.get('message_content', '').strip()
+        chat_heading = data.get('chat_heading', '').strip()
         
         # Validate input
         if not to_user_id:
@@ -376,6 +377,10 @@ def send_inline_message(request):
                 content=message_content,
                 message_type=message_type
             )
+            
+            # Set chat heading if provided
+            if chat_heading:
+                ChatHeading.set_heading_for_chat(request.user, to_user, message_type, chat_heading)
             
             # Log first time message answer if this is a response to an existing conversation
             if is_first_response and message_type:

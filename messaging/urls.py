@@ -50,4 +50,7 @@ urlpatterns = [
     path('admin/users/<int:user_id>/suspend/', views.admin_suspend_user, name='admin_suspend_user'),
     path('admin/users/<int:user_id>/unsuspend/', views.admin_unsuspend_user, name='admin_unsuspend_user'),
     path('admin/users/<int:user_id>/restore/', views.admin_restore_user, name='admin_restore_user'),
+    
+    # Chat heading management
+    path('api/chat-heading/<int:user_id>/', views.chat_heading_api, name='chat_heading_api'),
 ]

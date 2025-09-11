@@ -470,6 +470,20 @@
                                     </div>
                                 </div>
                                 
+                                <!-- Chat heading input -->
+                                <div class="mb-3">
+                                    <label class="text-sm font-medium text-gray-700 mb-2 block">Chat Heading/Note (Optional):</label>
+                                    <input 
+                                        type="text" 
+                                        id="chat-heading-{{ user.id }}" 
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent {% if not user_can_send %}bg-gray-100 cursor-not-allowed{% endif %}" 
+                                        placeholder="{% if user_can_send %}e.g., Project discussion, Potential mentor...{% else %}Get verified to add headings...{% endif %}"
+                                        maxlength="100"
+                                        {% if not user_can_send %}disabled readonly{% endif %}
+                                    />
+                                    <p class="text-xs text-gray-500 mt-1">💡 Help organize your conversations - only visible to you</p>
+                                </div>
+
                                 <!-- Message input -->
                                 <div class="mb-4">
                                     <label class="text-sm font-medium text-gray-700 mb-2 block">Your Message:</label>
@@ -625,6 +639,15 @@
                     <div class="grid grid-cols-2 gap-1 mb-2" id="modalMessageTypes">
                         <!-- Will be populated dynamically -->
                     </div>
+                    
+                    <!-- Chat Heading Input -->
+                    <input 
+                        type="text" 
+                        id="modalChatHeading" 
+                        class="w-full px-2 py-1.5 text-xs border border-gray-200 rounded focus:outline-none focus:border-blue-400 mb-2" 
+                        placeholder="Chat heading/note (optional)..."
+                        maxlength="100"
+                    />
                     
                     <!-- Message Input -->
                     <textarea 
@@ -846,6 +869,7 @@ function selectMessageCategory(typeId, typeName) {
 
 function sendModalMessage() {
     const messageText = document.getElementById('modalMessageText').value;
+    const chatHeading = document.getElementById('modalChatHeading').value;
     
     if (!selectedMessageCategory) {
         alert('Please select a message category');
@@ -858,10 +882,10 @@ function sendModalMessage() {
     }
     
     // Send message via existing sendMessage function
-    sendMessageFromModal(currentUserId, selectedMessageCategory, messageText);
+    sendMessageFromModal(currentUserId, selectedMessageCategory, messageText, chatHeading);
 }
 
-function sendMessageFromModal(userId, messageType, messageText) {
+function sendMessageFromModal(userId, messageType, messageText, chatHeading = '') {
     fetch('/community/send-message/', {
         method: 'POST',
         headers: {
@@ -871,7 +895,8 @@ function sendMessageFromModal(userId, messageType, messageText) {
         body: JSON.stringify({
             'to_user_id': userId,
             'message_type': messageType,
-            'message_content': messageText
+            'message_content': messageText,
+            'chat_heading': chatHeading
         })
     })
     .then(response => response.json())
@@ -925,6 +950,7 @@ function selectMessageType(userId, type) {
 
 function sendMessage(userId) {
     const messageText = document.getElementById(`message-text-${userId}`).value;
+    const chatHeading = document.getElementById(`chat-heading-${userId}`).value;
     const messageType = selectedMessageType[userId];
     const sendButton = document.querySelector(`#message-form-${userId} button[onclick="sendMessage(${userId})"]`);
     
@@ -953,7 +979,8 @@ function sendMessage(userId) {
         body: JSON.stringify({
             'to_user_id': userId,
             'message_type': messageType,
-            'message_content': messageText
+            'message_content': messageText,
+            'chat_heading': chatHeading
         })
     })
     .then(response => response.json())

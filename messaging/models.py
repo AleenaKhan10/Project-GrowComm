@@ -632,3 +632,63 @@ class ChatBlock(models.Model):
             Q(reporter=user1, blocked_user=user2, is_active=True) | 
             Q(reporter=user2, blocked_user=user1, is_active=True)
         ).first()
+
+
+class ChatHeading(models.Model):
+    """Model for storing user-defined headings/notes for specific chats"""
+    
+    # User who set the heading (owner of the heading)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='chat_headings', help_text="User who set this heading")
+    
+    # Chat participant (the other user in the conversation)
+    other_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='chat_headings_for', help_text="The other user in the conversation")
+    
+    # Optional message type (for conversations with specific message types)
+    message_type = models.ForeignKey(MessageType, on_delete=models.CASCADE, null=True, blank=True, help_text="Message type for this conversation")
+    
+    # The heading/note text
+    heading = models.CharField(max_length=100, help_text="Custom heading/note for this chat (max 100 characters)")
+    
+    # Timestamps
+    created_date = models.DateTimeField(auto_now_add=True)
+    updated_date = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        unique_together = ['user', 'other_user', 'message_type']
+        ordering = ['-updated_date']
+    
+    def __str__(self):
+        message_type_name = self.message_type.name if self.message_type else "General"
+        return f"{self.user.username} -> {self.other_user.username} ({message_type_name}): {self.heading}"
+    
+    @classmethod
+    def get_heading_for_chat(cls, user, other_user, message_type=None):
+        """Get the heading for a specific chat"""
+        try:
+            return cls.objects.get(
+                user=user,
+                other_user=other_user,
+                message_type=message_type
+            ).heading
+        except cls.DoesNotExist:
+            return None
+    
+    @classmethod
+    def set_heading_for_chat(cls, user, other_user, message_type, heading):
+        """Set or update the heading for a specific chat"""
+        if heading and heading.strip():
+            heading_obj, created = cls.objects.update_or_create(
+                user=user,
+                other_user=other_user,
+                message_type=message_type,
+                defaults={'heading': heading.strip()[:100]}  # Limit to 100 characters
+            )
+            return heading_obj
+        else:
+            # If heading is empty, delete existing heading
+            cls.objects.filter(
+                user=user,
+                other_user=other_user,
+                message_type=message_type
+            ).delete()
+            return None

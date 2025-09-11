@@ -13,7 +13,7 @@ import json
 from .models import (
     Conversation, Message, MessageRequest, 
     MessageType, UserMessageSettings, MessageSlotBooking, IdentityRevelation,
-    CustomMessageSlot, MessageReport, UserBlock, ChatBlock
+    CustomMessageSlot, MessageReport, UserBlock, ChatBlock, ChatHeading
 )
 from .forms import (
     MessageRequestForm, MessageReplyForm, UserMessageSettingsForm,
@@ -32,12 +32,15 @@ def inbox(request):
     # Get conversations using the optimized method
     conversations = Message.get_conversations_for_user(request.user)
     
-    # Enhance conversations with identity revelation info
+    # Enhance conversations with identity revelation info and chat headings
     for conversation in conversations:
         other_user = conversation['other_user']
         message_type = conversation.get('message_type')
         # Check if other user revealed their identity to current user for this message type
         conversation['identity_revealed'] = IdentityRevelation.has_revealed_identity(other_user, request.user, message_type)
+        
+        # Get chat heading set by current user for this conversation
+        conversation['chat_heading'] = ChatHeading.get_heading_for_chat(request.user, other_user, message_type)
         
         # Determine display name for inbox based on identity revelation
         if conversation['identity_revealed']:
@@ -1464,3 +1467,61 @@ def admin_restore_user(request, user_id):
     
     messages.success(request, f'User {user.username} has been restored.')
     return redirect('messaging:admin_user_detail', user_id=user_id)
+
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def chat_heading_api(request, user_id):
+    """API endpoint to get or set chat heading for a conversation"""
+    other_user = get_object_or_404(User, id=user_id)
+    message_type_id = request.GET.get('message_type_id') or request.POST.get('message_type_id')
+    
+    # Get message type if specified
+    message_type = None
+    if message_type_id and message_type_id != 'null':
+        try:
+            message_type = MessageType.objects.get(id=message_type_id)
+        except MessageType.DoesNotExist:
+            pass
+    
+    if request.method == 'GET':
+        # Get current heading
+        heading = ChatHeading.get_heading_for_chat(request.user, other_user, message_type)
+        return JsonResponse({
+            'success': True,
+            'heading': heading
+        })
+    
+    elif request.method == 'POST':
+        # Set/update heading
+        try:
+            data = json.loads(request.body)
+            heading = data.get('heading', '').strip()
+            
+            if heading:
+                # Set or update heading
+                ChatHeading.set_heading_for_chat(request.user, other_user, message_type, heading)
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Chat heading updated successfully',
+                    'heading': heading
+                })
+            else:
+                # Remove heading
+                ChatHeading.set_heading_for_chat(request.user, other_user, message_type, None)
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Chat heading removed successfully',
+                    'heading': None
+                })
+                
+        except json.JSONDecodeError:
+            return JsonResponse({
+                'success': False,
+                'error': 'Invalid JSON data'
+            }, status=400)
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'error': str(e)
+            }, status=500)
