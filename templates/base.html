@@ -180,6 +180,11 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        
+        /* Fix profile dropdown showing before Alpine.js loads */
+        [x-cloak] {
+            display: none !important;
+        }
     </style>
 </head>
 <body class="bg-white text-black flex flex-col min-h-screen">
@@ -269,7 +274,7 @@
                             </div>
                             
                             <!-- Dropdown menu -->
-                            <div x-show="open" @click.away="open = false" x-transition class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-card white-border z-50">
+                            <div x-show="open" @click.away="open = false" x-transition x-cloak class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-card white-border z-50">
                                 <div class="py-1">
                                     <div class="px-4 py-2 text-sm text-secondary border-b border-gray-700">
                                         <div class="font-light text-primary">{{ user.profile.display_name }}</div>
