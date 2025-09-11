@@ -53,4 +53,7 @@ urlpatterns = [
     
     # Chat heading management
     path('api/chat-heading/<int:user_id>/', views.chat_heading_api, name='chat_heading_api'),
+    
+    # User info API
+    path('api/user-info/<int:user_id>/', views.user_info_api, name='user_info_api'),
 ]

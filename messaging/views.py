@@ -1525,3 +1525,23 @@ def chat_heading_api(request, user_id):
                 'success': False,
                 'error': str(e)
             }, status=500)
+
+
+@login_required
+@require_http_methods(["GET"])
+def user_info_api(request, user_id):
+    """API endpoint to get user info including last login time"""
+    try:
+        user = get_object_or_404(User, id=user_id)
+        
+        return JsonResponse({
+            'success': True,
+            'user_id': user.id,
+            'username': user.username,
+            'last_login': user.last_login.isoformat() if user.last_login else None
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)

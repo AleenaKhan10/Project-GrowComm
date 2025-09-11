@@ -212,11 +212,9 @@ class UserProfile(models.Model):
     
     @property 
     def last_seen_display(self):
-        """Return a human-readable last seen time"""
-        # Use last_seen if available, otherwise fall back to last_login
-        last_activity = self.last_seen
-        if not last_activity:
-            last_activity = self.user.last_login
+        """Return a human-readable last seen time based on login time"""
+        # Use last_login to show actual login time, not middleware updates
+        last_activity = self.user.last_login
             
         if not last_activity:
             return "Never"

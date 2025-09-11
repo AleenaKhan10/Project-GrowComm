@@ -298,6 +298,7 @@ class MessagingApp {
         this.messagePolling = null;
         this.lastMessageCount = 0;
         this.searchTimeout = null;
+        this.lastSeenInterval = null;
         
         this.init();
     }
@@ -1264,6 +1265,7 @@ class MessagingApp {
         
         // Stop message polling
         this.stopMessagePolling();
+        this.clearLastSeenInterval();
         
         // Hide reveal identity button
         const revealButton = document.getElementById('reveal-identity-btn');
@@ -1287,7 +1289,17 @@ class MessagingApp {
         }
         
         if (lastSeenTime) {
-            lastSeenTime.textContent = lastSeen || 'Never';
+            // Store the user ID to fetch fresh last seen data
+            if (this.currentUserId) {
+                this.updateLastSeenTime(this.currentUserId);
+                // Set up interval to update last seen time every minute
+                this.clearLastSeenInterval();
+                this.lastSeenInterval = setInterval(() => {
+                    this.updateLastSeenTime(this.currentUserId);
+                }, 60000); // Update every minute
+            } else {
+                lastSeenTime.textContent = lastSeen || 'Never';
+            }
         }
         
         if (chatAvatar) {
@@ -1570,6 +1582,31 @@ class MessagingApp {
         }
     }
     
+    clearLastSeenInterval() {
+        if (this.lastSeenInterval) {
+            clearInterval(this.lastSeenInterval);
+            this.lastSeenInterval = null;
+        }
+    }
+    
+    async updateLastSeenTime(userId) {
+        try {
+            // Fetch fresh user data to get current last_login time
+            const response = await fetch(`/messages/api/user-info/${userId}/`);
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success && data.last_login) {
+                    const lastSeenTime = document.getElementById('last-seen-time');
+                    if (lastSeenTime) {
+                        lastSeenTime.textContent = this.formatTime(data.last_login);
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Error updating last seen time:', error);
+        }
+    }
+    
     scrollToBottom() {
         const messagesContainer = document.querySelector('.messages-list');
         if (messagesContainer) {
@@ -1670,6 +1707,7 @@ class MessagingApp {
     
     cleanup() {
         this.stopMessagePolling();
+        this.clearLastSeenInterval();
         if (this.searchTimeout) {
             clearTimeout(this.searchTimeout);
         }
