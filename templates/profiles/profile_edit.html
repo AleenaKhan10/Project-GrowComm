@@ -488,18 +488,18 @@
                 <p class="mt-1 text-sm text-gray-500">{{ form.schools.help_text }}</p>
             </div>
             
-            <!-- Tags/Skills -->
+            <!-- Tags -->
             <div>
                 <div class="border-t border-gray-700 pt-6"></div>
                 <label for="{{ form.tags.id_for_label }}" class="form-label">
-                    Skills & Interests
+                    Tags
                 </label>
                 {{ form.tags }}
                 {% if form.tags.errors %}
                     <p class="mt-1 text-sm text-red-400">{{ form.tags.errors.0 }}</p>
                 {% endif %}
                 <div class="mt-2 flex justify-between text-sm">
-                    <p class="text-gray-500">{{ form.tags.help_text }}</p>
+                    <p class="text-gray-500">Tags help people find you and collaborate for opportunities. Showcase what's best about you and how you can contribute to the community.</p>
                     <span class="text-gray-400" id="tags-counter">0 / 500 characters</span>
                 </div>
             </div>
