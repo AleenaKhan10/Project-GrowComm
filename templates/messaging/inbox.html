@@ -338,6 +338,36 @@ class MessagingApp {
                 animation: slideIn 0.3s ease-out;
             }
             
+            /* Message bubble styles */
+            .message-bubble {
+                padding: 8px 12px;
+                border-radius: 12px;
+                max-width: 280px;
+                word-wrap: break-word;
+                box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+                position: relative;
+            }
+            
+            .message-sent {
+                background: #007bff !important; /* Blue background for sent messages */
+                color: white !important;
+                border-bottom-right-radius: 4px;
+            }
+            
+            .message-sent p {
+                color: white !important;
+            }
+            
+            .message-received {
+                background: #f1f3f5 !important;
+                color: #333 !important;
+                border-bottom-left-radius: 4px;
+            }
+            
+            .message-received p {
+                color: #333 !important;
+            }
+            
             /* ULTRA AGGRESSIVE Mobile Messaging Optimization */
             @media (max-width: 768px) {
                 /* FORCE body and html reset */
