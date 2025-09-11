@@ -280,9 +280,6 @@
                                         <div class="font-light text-primary">{{ user.profile.display_name }}</div>
                                         <div class="text-muted">{{ user.email }}</div>
                                     </div>
-                                    <a href="{% url 'profiles:view' user.id %}" class="block px-4 py-2 text-sm text-secondary hover:bg-card-hover hover:text-white transition-colors">Your Profile</a>
-                                    <a href="{% url 'profiles:edit' %}" class="block px-4 py-2 text-sm text-secondary hover:bg-card-hover hover:text-white transition-colors">Edit Profile</a>
-                                    <a href="{% url 'messaging:settings' %}" class="block px-4 py-2 text-sm text-secondary hover:bg-card-hover hover:text-white transition-colors">Message Settings</a>
                                     <a href="{% url 'accounts:logout' %}" class="block px-4 py-2 text-sm text-secondary hover:bg-card-hover hover:text-red-400 transition-colors">Sign out</a>
                                 </div>
                             </div>
