@@ -6,7 +6,8 @@ from django.urls import reverse
 
 class UserStatusMiddleware:
     """
-    Middleware to check if user is suspended or deleted and handle accordingly.
+    Middleware to check if user is deleted and handle accordingly.
+    Suspended users can browse but not perform actions (like unverified users).
     """
     
     def __init__(self, get_response):
@@ -20,21 +21,16 @@ class UserStatusMiddleware:
                 try:
                     profile = request.user.profile
                     
-                    # Check if user is suspended
-                    if profile.is_suspended:
-                        # Allow viewing of suspension notice page
-                        if request.path != reverse('profiles:account_suspended') and not request.path.startswith('/accounts/logout/'):
-                            logout(request)
-                            messages.error(request, 'Your account has been suspended. Please contact support for more information.')
-                            return redirect('profiles:account_suspended')
-                    
-                    # Check if user is deleted
+                    # Check if user is deleted - force logout and redirect
                     if profile.is_deleted:
                         # Force logout deleted users
                         if request.path != reverse('profiles:account_deleted') and not request.path.startswith('/accounts/logout/'):
                             logout(request)
                             messages.error(request, 'Your account has been deleted.')
                             return redirect('profiles:account_deleted')
+                    
+                    # For suspended users: they stay logged in and can browse
+                    # but actions will be blocked in views/templates (like unverified users)
                             
                 except AttributeError:
                     # Profile doesn't exist, continue normally

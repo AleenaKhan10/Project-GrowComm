@@ -112,6 +112,7 @@ def user_list(request):
         'users': users,
         'total_users': users.count(),
         'user_is_verified': request.user.is_superuser or (hasattr(request.user, 'profile') and request.user.profile.is_verified),
+        'user_can_send': request.user.is_superuser or (hasattr(request.user, 'profile') and request.user.profile.is_verified and not request.user.profile.is_suspended),
         'message_types': message_types,
         'users_slot_data': users_slot_data,
         'users_slot_data_json': json.dumps(users_slot_data, default=str),

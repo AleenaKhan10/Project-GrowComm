@@ -330,7 +330,7 @@
                         <button 
                             onclick="toggleUserDetails({{ user.id }})" 
                             class="text-gray-600 hover:text-black"
-                            title="{% if request.user.is_superuser or user_is_verified %}Send message{% else %}View messaging options{% endif %}"
+                            title="{% if user_can_send %}Send message{% else %}View messaging options{% endif %}"
                         >
                             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
@@ -441,14 +441,14 @@
                                         {% with user_slots=users_slot_data|dict_get:user.id %}
                                         {% for slot_key, slot_info in user_slots.items %}
                                             <button 
-                                                onclick="{% if request.user.is_superuser or user_is_verified %}selectMessageType({{ user.id }}, '{{ slot_info.message_type.name }}'){% else %}showVerificationRequired(){% endif %}" 
+                                                onclick="{% if user_can_send %}selectMessageType({{ user.id }}, '{{ slot_info.message_type.name }}'){% else %}showVerificationRequired(){% endif %}" 
                                                 class="btn message-type-btn
-                                                    {% if not user_is_verified and not request.user.is_superuser %}btn-ghost cursor-not-allowed
+                                                    {% if not user_can_send %}btn-ghost cursor-not-allowed
                                                     {% elif slot_info.status == 'available' %}btn-secondary
                                                     {% elif slot_info.status == 'already_sent' %}btn-ghost cursor-not-allowed
                                                     {% elif slot_info.status == 'full' %}btn-ghost cursor-not-allowed{% endif %}"
-                                                {% if slot_info.status != 'available' or not user_is_verified and not request.user.is_superuser %}disabled{% endif %}
-                                                title="{% if not user_is_verified and not request.user.is_superuser %}Get verified to send messages{% endif %}"
+                                                {% if slot_info.status != 'available' or not user_can_send %}disabled{% endif %}
+                                                title="{% if not user_can_send %}{% if request.user.profile.is_suspended %}Account suspended - cannot send messages{% else %}Get verified to send messages{% endif %}{% endif %}"
                                             >
                                                 {{ slot_info.message_type.name }}
                                                 <span class="ml-1 text-xs
@@ -475,10 +475,10 @@
                                     <label class="text-sm font-medium text-gray-700 mb-2 block">Your Message:</label>
                                     <textarea 
                                         id="message-text-{{ user.id }}" 
-                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent {% if not user_is_verified and not request.user.is_superuser %}bg-gray-100 cursor-not-allowed{% endif %}" 
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent {% if not user_can_send %}bg-gray-100 cursor-not-allowed{% endif %}" 
                                         rows="4" 
-                                        placeholder="{% if request.user.is_superuser or user_is_verified %}Write your message here...{% else %}Get verified to send messages...{% endif %}"
-                                        {% if not user_is_verified and not request.user.is_superuser %}disabled readonly{% endif %}
+                                        placeholder="{% if user_can_send %}Write your message here...{% elif request.user.profile.is_suspended %}Account suspended - cannot send messages...{% else %}Get verified to send messages...{% endif %}"
+                                        {% if not user_can_send %}disabled readonly{% endif %}
                                     ></textarea>
                                 </div>
                                 
@@ -489,10 +489,10 @@
                                         Cancel
                                     </button>
                                     <button 
-                                        onclick="{% if request.user.is_superuser or user_is_verified %}sendMessage({{ user.id }}){% else %}showVerificationRequired(){% endif %}" 
-                                        class="px-4 py-2 {% if request.user.is_superuser or user_is_verified %}bg-blue-600 hover:bg-blue-700 text-white{% else %}bg-gray-300 text-gray-500 cursor-not-allowed{% endif %} rounded-md transition-colors"
-                                        {% if not user_is_verified and not request.user.is_superuser %}disabled title="Get verified to send messages"{% endif %}>
-                                        {% if request.user.is_superuser or user_is_verified %}Send Message{% else %}🔒 Get Verified to Send{% endif %}
+                                        onclick="{% if user_can_send %}sendMessage({{ user.id }}){% else %}showVerificationRequired(){% endif %}" 
+                                        class="px-4 py-2 {% if user_can_send %}bg-blue-600 hover:bg-blue-700 text-white{% else %}bg-gray-300 text-gray-500 cursor-not-allowed{% endif %} rounded-md transition-colors"
+                                        {% if not user_can_send %}disabled title="{% if request.user.profile.is_suspended %}Account suspended - cannot send messages{% else %}Get verified to send messages{% endif %}"{% endif %}>
+                                        {% if user_can_send %}Send Message{% elif request.user.profile.is_suspended %}🔒 Account Suspended{% else %}🔒 Get Verified to Send{% endif %}
                                     </button>
                                 </div>
                             </div>

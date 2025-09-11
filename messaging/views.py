@@ -209,6 +209,13 @@ def send_message(request):
         
         # For NEW conversations, apply slot restrictions and verification
         if not existing_conversation:
+            # Check if user is suspended
+            if not request.user.is_superuser and request.user.profile.is_suspended:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'You cannot perform this action. Your account is suspended.'
+                }, status=403)
+            
             # Check verification for new conversations
             if not request.user.is_superuser and not request.user.profile.is_verified:
                 return JsonResponse({
@@ -253,7 +260,14 @@ def send_message(request):
                     # Log slot booking
                     log_slot_booked(request.user, f"Booked {message_type.name} slot with {receiver.username}")
         else:
-            # For EXISTING conversations with same message type, no restrictions
+            # For EXISTING conversations with same message type, check suspension status
+            # Check if user is suspended
+            if not request.user.is_superuser and request.user.profile.is_suspended:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'You cannot perform this action. Your account is suspended.'
+                }, status=403)
+            
             # Check if this is the first time the receiver is responding to the sender
             is_first_response = not Message.objects.filter(
                 sender=request.user,
@@ -1427,37 +1441,6 @@ def admin_unsuspend_user(request, user_id):
     messages.success(request, f'User {user.username} has been unsuspended.')
     return redirect('messaging:admin_user_detail', user_id=user_id)
 
-
-@staff_member_required
-@require_POST
-def admin_delete_user(request, user_id):
-    """Soft delete a user account"""
-    from django.contrib.auth.models import User
-    from audittrack.views import log_audit_action
-    
-    user = get_object_or_404(User.objects.select_related('profile'), id=user_id)
-    
-    if user.is_superuser:
-        messages.error(request, 'Cannot delete superuser accounts.')
-        return redirect('messaging:admin_user_detail', user_id=user_id)
-    
-    confirm = request.POST.get('confirm', '').lower()
-    if confirm != 'delete':
-        messages.error(request, 'Please type "DELETE" to confirm user deletion.')
-        return redirect('messaging:admin_user_detail', user_id=user_id)
-    
-    # Soft delete the user
-    user.profile.soft_delete_user(request.user)
-    
-    # Log audit event
-    log_audit_action(
-        user=request.user,
-        action='user_deletion',
-        action_detail=f'Soft deleted user {user.username}'
-    )
-    
-    messages.success(request, f'User {user.username} has been deleted.')
-    return redirect('messaging:admin_users_list')
 
 
 @staff_member_required

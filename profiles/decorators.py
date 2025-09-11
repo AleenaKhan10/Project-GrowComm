@@ -7,6 +7,7 @@ from django.contrib.auth.decorators import login_required
 def verified_user_required(view_func=None, *, message="You need 3 referrals to unlock this feature"):
     """
     Decorator that requires user to be verified (has 3 referrals or invited by superadmin).
+    Also blocks suspended users with appropriate message.
     """
     def decorator(func):
         @wraps(func)
@@ -21,6 +22,13 @@ def verified_user_required(view_func=None, *, message="You need 3 referrals to u
                 return redirect('accounts:login')
             
             profile = request.user.profile
+            
+            # Check if user is suspended - block with suspension message
+            if profile.is_suspended:
+                messages.error(request, "You cannot perform this action. Your account is suspended.")
+                return redirect(request.META.get('HTTP_REFERER', '/'))
+            
+            # Check verification status
             if not profile.is_verified:
                 referrals_needed = profile.referrals_needed
                 if referrals_needed > 0:
