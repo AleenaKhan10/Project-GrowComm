@@ -215,7 +215,7 @@
                                 </svg>
                                 Messages
                             </a>
-                            <a href="{% url 'profiles:edit' %}" class="{% if 'profiles' in request.resolver_match.namespace %}border-white text-white bg-gray-950{% else %}border-transparent text-gray-400 hover:text-white hover:border-white{% endif %} inline-flex items-center px-3 py-2 border-b-2 text-sm font-light rounded-t-lg transition-all duration-200">
+                            <a href="{% url 'profiles:view' user.id %}" class="{% if 'profiles' in request.resolver_match.namespace %}border-white text-white bg-gray-950{% else %}border-transparent text-gray-400 hover:text-white hover:border-white{% endif %} inline-flex items-center px-3 py-2 border-b-2 text-sm font-light rounded-t-lg transition-all duration-200">
                                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                                 </svg>
@@ -310,7 +310,7 @@
                         </svg>
                         Messages
                     </a>
-                    <a href="{% url 'profiles:edit' %}" class="{% if 'profiles' in request.resolver_match.namespace %}bg-gray-950 text-white{% else %}text-gray-400 hover:text-white hover:bg-gray-800{% endif %} block px-3 py-2 rounded-md text-base font-light transition-all duration-200">
+                    <a href="{% url 'profiles:view' user.id %}" class="{% if 'profiles' in request.resolver_match.namespace %}bg-gray-950 text-white{% else %}text-gray-400 hover:text-white hover:bg-gray-800{% endif %} block px-3 py-2 rounded-md text-base font-light transition-all duration-200">
                         <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                         </svg>
