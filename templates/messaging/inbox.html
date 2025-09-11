@@ -52,18 +52,18 @@ document.body.classList.add('messages-page');
                                              alt="{{ conversation.display_name }}" 
                                              class="avatar">
                                     {% else %}
-                                        {% if conversation.other_user.id|divisibleby:5 %}
+                                        {% if conversation.other_user.id|divisibleby:6 %}
                                             <div class="avatar avatar-gray-1">
-                                        {% elif conversation.other_user.id|add:1|divisibleby:5 %}
+                                        {% elif conversation.other_user.id|add:1|divisibleby:6 %}
                                             <div class="avatar avatar-gray-2">
-                                        {% elif conversation.other_user.id|add:2|divisibleby:5 %}
+                                        {% elif conversation.other_user.id|add:2|divisibleby:6 %}
                                             <div class="avatar avatar-gray-3">
-                                        {% elif conversation.other_user.id|add:3|divisibleby:5 %}
-                                            <div class="avatar avatar-gray-2">
-                                        {% elif conversation.other_user.id|add:4|divisibleby:5 %}
-                                            <div class="avatar avatar-gray-3">
-                                        {% else %}
+                                        {% elif conversation.other_user.id|add:3|divisibleby:6 %}
                                             <div class="avatar avatar-white">
+                                        {% elif conversation.other_user.id|add:4|divisibleby:6 %}
+                                            <div class="avatar avatar-purple">
+                                        {% else %}
+                                            <div class="avatar avatar-teal">
                                         {% endif %}
                                             {{ conversation.display_name.0|upper }}
                                         </div>
@@ -366,6 +366,44 @@ class MessagingApp {
             
             .message-received p {
                 color: #333 !important;
+            }
+            
+            /* Avatar multi-color borders */
+            .avatar-gray-1 {
+                background: var(--color-gray-200) !important;
+                color: var(--color-pure-black) !important;
+                border: 2px solid #e74c3c !important; /* Red border */
+            }
+            
+            .avatar-gray-2 {
+                background: var(--color-gray-300) !important;
+                color: var(--color-pure-black) !important;
+                border: 2px solid #3498db !important; /* Blue border */
+            }
+            
+            .avatar-gray-3 {
+                background: var(--color-gray-100) !important;
+                color: var(--color-pure-black) !important;
+                border: 2px solid #2ecc71 !important; /* Green border */
+            }
+            
+            .avatar-white {
+                background: var(--color-pure-white) !important;
+                color: var(--color-pure-black) !important;
+                border: 2px solid #f39c12 !important; /* Orange border */
+            }
+            
+            /* Additional avatar color variations for more variety */
+            .avatar-purple {
+                background: var(--color-gray-200) !important;
+                color: var(--color-pure-black) !important;
+                border: 2px solid #9b59b6 !important; /* Purple border */
+            }
+            
+            .avatar-teal {
+                background: var(--color-gray-100) !important;
+                color: var(--color-pure-black) !important;
+                border: 2px solid #1abc9c !important; /* Teal border */
             }
             
             /* ULTRA AGGRESSIVE Mobile Messaging Optimization */
@@ -1250,20 +1288,22 @@ class MessagingApp {
         if (chatAvatar) {
             chatAvatar.textContent = userName.charAt(0).toUpperCase();
             
-            // Apply avatar color logic
+            // Apply avatar color logic with multi-colored borders
             const userId = this.currentUserId;
             let bgClass = 'avatar-white';
             
             if (userId % 6 === 0) {
-                bgClass = 'avatar-gray-1';
+                bgClass = 'avatar-gray-1';  // Red border
             } else if ((userId + 1) % 6 === 0) {
-                bgClass = 'avatar-gray-2';
+                bgClass = 'avatar-gray-2';  // Blue border
             } else if ((userId + 2) % 6 === 0) {
-                bgClass = 'avatar-gray-3';
+                bgClass = 'avatar-gray-3';  // Green border
             } else if ((userId + 3) % 6 === 0) {
-                bgClass = 'avatar-gray-2';
+                bgClass = 'avatar-white';   // Orange border
             } else if ((userId + 4) % 6 === 0) {
-                bgClass = 'avatar-gray-3';
+                bgClass = 'avatar-purple'; // Purple border
+            } else {
+                bgClass = 'avatar-teal';   // Teal border
             }
             
             chatAvatar.className = `avatar ${bgClass}`;
