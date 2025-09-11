@@ -127,6 +127,29 @@ class UserProfile(models.Model):
     )
     needs_referrals = models.BooleanField(default=True, help_text="True if user needs 3 referrals to be verified")
     
+    # User management fields for admin system
+    is_suspended = models.BooleanField(default=False, help_text="User is temporarily suspended")
+    suspended_at = models.DateTimeField(null=True, blank=True, help_text="When the user was suspended")
+    suspended_by = models.ForeignKey(
+        User, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='suspended_users',
+        help_text="Admin user who suspended this user"
+    )
+    suspension_reason = models.TextField(blank=True, help_text="Reason for suspension")
+    is_deleted = models.BooleanField(default=False, help_text="User is soft deleted (not permanently removed)")
+    deleted_at = models.DateTimeField(null=True, blank=True, help_text="When the user was soft deleted")
+    deleted_by = models.ForeignKey(
+        User, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='deleted_users',
+        help_text="Admin user who deleted this user"
+    )
+    
     # Anonymous messaging system
     anonymous_name = models.CharField(
         max_length=100, 
@@ -287,6 +310,61 @@ class UserProfile(models.Model):
         if not self.needs_referrals or self.is_verified:
             return 0
         return max(0, 3 - self.referral_count)
+    
+    @property
+    def status(self):
+        """Return the current status of the user"""
+        if self.is_deleted:
+            return 'deleted'
+        elif self.is_suspended:
+            return 'suspended'
+        elif self.is_verified:
+            return 'active'
+        else:
+            return 'pending'
+    
+    @property
+    def status_display(self):
+        """Return human-readable status"""
+        status_map = {
+            'deleted': 'Deleted',
+            'suspended': 'Suspended',
+            'active': 'Active',
+            'pending': 'Pending Verification'
+        }
+        return status_map.get(self.status, 'Unknown')
+    
+    def suspend_user(self, admin_user, reason=""):
+        """Suspend this user"""
+        from django.utils import timezone
+        self.is_suspended = True
+        self.suspended_at = timezone.now()
+        self.suspended_by = admin_user
+        self.suspension_reason = reason
+        self.save()
+    
+    def unsuspend_user(self):
+        """Unsuspend this user"""
+        self.is_suspended = False
+        self.suspended_at = None
+        self.suspended_by = None
+        self.suspension_reason = ""
+        self.save()
+    
+    def soft_delete_user(self, admin_user):
+        """Soft delete this user"""
+        from django.utils import timezone
+        self.is_deleted = True
+        self.deleted_at = timezone.now()
+        self.deleted_by = admin_user
+        self.save()
+    
+    def restore_user(self):
+        """Restore a soft deleted user"""
+        self.is_deleted = False
+        self.deleted_at = None
+        self.deleted_by = None
+        self.save()
 
 
 class Referral(models.Model):

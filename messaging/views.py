@@ -1281,3 +1281,203 @@ def admin_toggle_block(request, block_id):
     # Redirect back to the referring page or blocks list
     next_url = request.POST.get('next') or request.META.get('HTTP_REFERER') or 'messaging:admin_chat_blocks_list'
     return redirect(next_url)
+
+
+# ============================================
+# USER MANAGEMENT ADMIN VIEWS
+# ============================================
+
+@staff_member_required
+def admin_users_list(request):
+    """Admin view to list and filter all users"""
+    from django.contrib.auth.models import User
+    from profiles.models import UserProfile
+    
+    # Get filter parameters
+    status = request.GET.get('status', '')
+    search = request.GET.get('search', '')
+    
+    # Base queryset with profile
+    users = User.objects.select_related('profile').order_by('-date_joined')
+    
+    # Apply status filter
+    if status == 'active':
+        users = users.filter(profile__is_verified=True, profile__is_suspended=False, profile__is_deleted=False)
+    elif status == 'suspended':
+        users = users.filter(profile__is_suspended=True)
+    elif status == 'deleted':
+        users = users.filter(profile__is_deleted=True)
+    elif status == 'pending':
+        users = users.filter(profile__is_verified=False, profile__is_suspended=False, profile__is_deleted=False)
+    
+    # Apply search filter
+    if search:
+        users = users.filter(
+            Q(username__icontains=search) |
+            Q(email__icontains=search) |
+            Q(first_name__icontains=search) |
+            Q(last_name__icontains=search)
+        )
+    
+    # Pagination
+    paginator = Paginator(users, 25)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    # Status choices for filter
+    status_choices = [
+        ('', 'All Users'),
+        ('active', 'Active'),
+        ('pending', 'Pending Verification'),
+        ('suspended', 'Suspended'),
+        ('deleted', 'Deleted'),
+    ]
+    
+    context = {
+        'page_obj': page_obj,
+        'status_choices': status_choices,
+        'current_filters': {
+            'status': status,
+            'search': search,
+        },
+    }
+    return render(request, 'messaging/admin/users_list.html', context)
+
+
+@staff_member_required
+def admin_user_detail(request, user_id):
+    """Admin view to manage individual user"""
+    from django.contrib.auth.models import User
+    from profiles.models import UserProfile
+    
+    user = get_object_or_404(User.objects.select_related('profile'), id=user_id)
+    profile = user.profile
+    
+    # Get user statistics
+    from messaging.models import Message, MessageReport
+    
+    stats = {
+        'messages_sent': Message.objects.filter(sender=user).count(),
+        'messages_received': Message.objects.filter(receiver=user).count(),
+        'reports_made': MessageReport.objects.filter(reporter=user).count(),
+        'reports_received': MessageReport.objects.filter(reported_user=user).count(),
+        'referrals_sent': profile.user.sent_referrals.count() if hasattr(profile.user, 'sent_referrals') else 0,
+        'referrals_received': profile.referral_count,
+    }
+    
+    context = {
+        'user_obj': user,  # renamed to avoid conflict with request.user
+        'profile': profile,
+        'stats': stats,
+    }
+    return render(request, 'messaging/admin/user_detail.html', context)
+
+
+@staff_member_required
+@require_POST
+def admin_suspend_user(request, user_id):
+    """Suspend a user account"""
+    from django.contrib.auth.models import User
+    from audittrack.views import log_audit_action
+    
+    user = get_object_or_404(User.objects.select_related('profile'), id=user_id)
+    
+    if user.is_superuser:
+        messages.error(request, 'Cannot suspend superuser accounts.')
+        return redirect('messaging:admin_user_detail', user_id=user_id)
+    
+    reason = request.POST.get('reason', '').strip()
+    if not reason:
+        messages.error(request, 'Suspension reason is required.')
+        return redirect('messaging:admin_user_detail', user_id=user_id)
+    
+    # Suspend the user
+    user.profile.suspend_user(request.user, reason)
+    
+    # Log audit event
+    log_audit_action(
+        user=request.user,
+        action='user_suspension',
+        action_detail=f'Suspended user {user.username}: {reason}'
+    )
+    
+    messages.success(request, f'User {user.username} has been suspended.')
+    return redirect('messaging:admin_user_detail', user_id=user_id)
+
+
+@staff_member_required
+@require_POST
+def admin_unsuspend_user(request, user_id):
+    """Unsuspend a user account"""
+    from django.contrib.auth.models import User
+    from audittrack.views import log_audit_action
+    
+    user = get_object_or_404(User.objects.select_related('profile'), id=user_id)
+    
+    # Unsuspend the user
+    user.profile.unsuspend_user()
+    
+    # Log audit event
+    log_audit_action(
+        user=request.user,
+        action='user_unsuspension',
+        action_detail=f'Unsuspended user {user.username}'
+    )
+    
+    messages.success(request, f'User {user.username} has been unsuspended.')
+    return redirect('messaging:admin_user_detail', user_id=user_id)
+
+
+@staff_member_required
+@require_POST
+def admin_delete_user(request, user_id):
+    """Soft delete a user account"""
+    from django.contrib.auth.models import User
+    from audittrack.views import log_audit_action
+    
+    user = get_object_or_404(User.objects.select_related('profile'), id=user_id)
+    
+    if user.is_superuser:
+        messages.error(request, 'Cannot delete superuser accounts.')
+        return redirect('messaging:admin_user_detail', user_id=user_id)
+    
+    confirm = request.POST.get('confirm', '').lower()
+    if confirm != 'delete':
+        messages.error(request, 'Please type "DELETE" to confirm user deletion.')
+        return redirect('messaging:admin_user_detail', user_id=user_id)
+    
+    # Soft delete the user
+    user.profile.soft_delete_user(request.user)
+    
+    # Log audit event
+    log_audit_action(
+        user=request.user,
+        action='user_deletion',
+        action_detail=f'Soft deleted user {user.username}'
+    )
+    
+    messages.success(request, f'User {user.username} has been deleted.')
+    return redirect('messaging:admin_users_list')
+
+
+@staff_member_required
+@require_POST
+def admin_restore_user(request, user_id):
+    """Restore a soft deleted user"""
+    from django.contrib.auth.models import User
+    from audittrack.views import log_audit_action
+    
+    user = get_object_or_404(User.objects.select_related('profile'), id=user_id)
+    
+    # Restore the user
+    user.profile.restore_user()
+    
+    # Log audit event
+    log_audit_action(
+        user=request.user,
+        action='user_restoration',
+        action_detail=f'Restored user {user.username}'
+    )
+    
+    messages.success(request, f'User {user.username} has been restored.')
+    return redirect('messaging:admin_user_detail', user_id=user_id)

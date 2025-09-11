@@ -209,7 +209,7 @@
                                 </svg>
                                 Baselist
                             </a>
-                            <a href="{% url 'messaging:inbox' %}" class="{% if 'messaging' in request.resolver_match.namespace %}border-white text-white bg-gray-950{% else %}border-transparent text-gray-400 hover:text-white hover:border-white{% endif %} inline-flex items-center px-3 py-2 border-b-2 text-sm font-light rounded-t-lg transition-all duration-200">
+                            <a href="{% url 'messaging:inbox' %}" class="{% if 'messaging' in request.resolver_match.namespace and 'admin' not in request.resolver_match.url_name %}border-white text-white bg-gray-950{% else %}border-transparent text-gray-400 hover:text-white hover:border-white{% endif %} inline-flex items-center px-3 py-2 border-b-2 text-sm font-light rounded-t-lg transition-all duration-200">
                                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-3.582 8-8 8a8.966 8.966 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 3.582-8 8-8s8 3.582 8 8z"/>
                                 </svg>
@@ -234,11 +234,11 @@
                                 </svg>
                                 Audit
                             </a>
-                            <a href="{% url 'messaging:admin_dashboard' %}" class="{% if request.resolver_match.url_name|slice:':6' == 'admin_' %}border-white text-white bg-gray-950{% else %}border-transparent text-gray-400 hover:text-white hover:border-white{% endif %} inline-flex items-center px-3 py-2 border-b-2 text-sm font-light rounded-t-lg transition-all duration-200">
-                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/>
-                                </svg>
+                            <a href="{% url 'messaging:admin_dashboard' %}" class="{% if request.resolver_match.url_name|slice:':6' == 'admin_' and 'reports' in request.resolver_match.url_name %}border-white text-white bg-gray-950{% else %}border-transparent text-gray-400 hover:text-white hover:border-white{% endif %} inline-flex items-center px-3 py-2 border-b-2 text-sm font-light rounded-t-lg transition-all duration-200">
                                 Reports
+                            </a>
+                            <a href="{% url 'messaging:admin_users_list' %}" class="{% if request.resolver_match.url_name|slice:':6' == 'admin_' and 'users' in request.resolver_match.url_name %}border-white text-white bg-gray-950{% else %}border-transparent text-gray-400 hover:text-white hover:border-white{% endif %} inline-flex items-center px-3 py-2 border-b-2 text-sm font-light rounded-t-lg transition-all duration-200">
+                                Users
                             </a>
                             {% endif %}
                         </div>
@@ -304,7 +304,7 @@
                         </svg>
                         Baselist
                     </a>
-                    <a href="{% url 'messaging:inbox' %}" class="{% if 'messaging' in request.resolver_match.namespace %}bg-gray-950 text-white{% else %}text-gray-400 hover:text-white hover:bg-gray-800{% endif %} block px-3 py-2 rounded-md text-base font-light transition-all duration-200">
+                    <a href="{% url 'messaging:inbox' %}" class="{% if 'messaging' in request.resolver_match.namespace and 'admin' not in request.resolver_match.url_name %}bg-gray-950 text-white{% else %}text-gray-400 hover:text-white hover:bg-gray-800{% endif %} block px-3 py-2 rounded-md text-base font-light transition-all duration-200">
                         <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-3.582 8-8 8a8.966 8.966 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 3.582-8 8-8s8 3.582 8 8z"/>
                         </svg>
@@ -329,11 +329,11 @@
                         </svg>
                         Audit
                     </a>
-                    <a href="{% url 'messaging:admin_dashboard' %}" class="{% if request.resolver_match.url_name|slice:':6' == 'admin_' %}bg-gray-950 text-white{% else %}text-gray-400 hover:text-white hover:bg-gray-800{% endif %} block px-3 py-2 rounded-md text-base font-light transition-all duration-200">
-                        <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/>
-                        </svg>
+                    <a href="{% url 'messaging:admin_dashboard' %}" class="{% if request.resolver_match.url_name|slice:':6' == 'admin_' and 'reports' in request.resolver_match.url_name %}bg-gray-950 text-white{% else %}text-gray-400 hover:text-white hover:bg-gray-800{% endif %} block px-3 py-2 rounded-md text-base font-light transition-all duration-200">
                         Reports
+                    </a>
+                    <a href="{% url 'messaging:admin_users_list' %}" class="{% if request.resolver_match.url_name|slice:':6' == 'admin_' and 'users' in request.resolver_match.url_name %}bg-gray-950 text-white{% else %}text-gray-400 hover:text-white hover:bg-gray-800{% endif %} block px-3 py-2 rounded-md text-base font-light transition-all duration-200">
+                        Users
                     </a>
                     {% endif %}
                     <div class="border-t border-gray-700 mt-4 pt-4">

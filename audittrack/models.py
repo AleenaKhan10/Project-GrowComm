@@ -21,6 +21,12 @@ class AuditEvent(models.Model):
         ('message_answered', 'Message Answered for First Time'),
         ('user_deleted', 'User Deleted'),
         ('profile_edited', 'Profile Edited'),
+        # User management actions
+        ('user_suspended', 'User Suspended'),
+        ('user_unsuspended', 'User Unsuspended'),
+        ('user_soft_deleted', 'User Soft Deleted'),
+        ('user_restored', 'User Restored'),
+        ('bulk_user_action', 'Bulk User Action'),
     ]
     
     # Required Fields

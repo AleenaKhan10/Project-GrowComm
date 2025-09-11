@@ -29,8 +29,7 @@
                     <!-- Status Filter -->
                     <div>
                         <label for="status" class="block text-sm font-medium text-gray-700 mb-2">Block Status</label>
-                        <select name="status" id="status" 
-                                class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                        <select name="status" id="status" class="input">
                             <option value="">All Status</option>
                             <option value="active" {% if current_filters.status == 'active' %}selected{% endif %}>Active</option>
                             <option value="inactive" {% if current_filters.status == 'inactive' %}selected{% endif %}>Inactive</option>
@@ -40,8 +39,7 @@
                     <!-- Review Status Filter -->
                     <div>
                         <label for="review_status" class="block text-sm font-medium text-gray-700 mb-2">Review Status</label>
-                        <select name="review_status" id="review_status" 
-                                class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                        <select name="review_status" id="review_status" class="input">
                             <option value="">All Status</option>
                             <option value="reviewed" {% if current_filters.review_status == 'reviewed' %}selected{% endif %}>Reviewed</option>
                             <option value="unreviewed" {% if current_filters.review_status == 'unreviewed' %}selected{% endif %}>Unreviewed</option>
@@ -53,16 +51,12 @@
                         <label for="search" class="block text-sm font-medium text-gray-700 mb-2">Search Users</label>
                         <input type="text" name="search" id="search" placeholder="Username..." 
                                value="{{ current_filters.search|default:'' }}"
-                               class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                               class="input">
                     </div>
 
                     <!-- Submit -->
                     <div class="flex items-end">
-                        <button type="submit" 
-                                class="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                            </svg>
+                        <button type="submit" class="btn btn-primary w-full">
                             Filter
                         </button>
                     </div>

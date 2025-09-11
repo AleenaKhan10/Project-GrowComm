@@ -43,4 +43,12 @@ urlpatterns = [
     path('admin/reports/<int:report_id>/', views.admin_report_detail, name='admin_report_detail'),
     path('admin/reports/blocks/', views.admin_chat_blocks_list, name='admin_chat_blocks_list'),
     path('admin/reports/blocks/<int:block_id>/toggle/', views.admin_toggle_block, name='admin_toggle_block'),
+    
+    # Admin URLs for user management
+    path('admin/users/', views.admin_users_list, name='admin_users_list'),
+    path('admin/users/<int:user_id>/', views.admin_user_detail, name='admin_user_detail'),
+    path('admin/users/<int:user_id>/suspend/', views.admin_suspend_user, name='admin_suspend_user'),
+    path('admin/users/<int:user_id>/unsuspend/', views.admin_unsuspend_user, name='admin_unsuspend_user'),
+    path('admin/users/<int:user_id>/delete/', views.admin_delete_user, name='admin_delete_user'),
+    path('admin/users/<int:user_id>/restore/', views.admin_restore_user, name='admin_restore_user'),
 ]
