@@ -2,6 +2,65 @@
 
 {% block title %}Report #{{ report.id }} - Admin - GrwComm{% endblock %}
 
+{% block extra_css %}
+<style>
+@media (max-width: 768px) {
+    /* Container adjustments */
+    .max-w-5xl {
+        padding-left: 0.5rem !important;
+        padding-right: 0.5rem !important;
+    }
+    
+    /* Grid to single column on mobile */
+    .grid.grid-cols-1.lg\\:grid-cols-3 {
+        display: block;
+    }
+    
+    .grid.grid-cols-1.lg\\:grid-cols-3 > * {
+        margin-bottom: 1rem;
+    }
+    
+    /* Reduce text sizes moderately */
+    h1.text-3xl {
+        font-size: 1.75rem !important;
+    }
+    
+    h3.text-lg {
+        font-size: 1rem !important;
+    }
+    
+    .text-sm {
+        font-size: 0.8rem !important;
+    }
+    
+    /* Reduce padding on cards */
+    .bg-white.rounded-lg.shadow .px-6.py-4 {
+        padding: 0.75rem !important;
+    }
+    
+    /* Messages responsive */
+    .space-y-3.max-h-96.overflow-y-auto {
+        max-height: 20rem !important;
+    }
+    
+    .max-w-xs.lg\\:max-w-md {
+        max-width: 85% !important;
+    }
+    
+    /* Button responsive */
+    .inline-flex.items-center.px-4.py-2 {
+        padding: 0.5rem 0.75rem !important;
+        font-size: 0.8rem !important;
+    }
+    
+    .w-full.inline-flex.justify-center.items-center {
+        padding: 0.75rem !important;
+        font-size: 0.8rem !important;
+    }
+}
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="min-h-screen bg-gray-50 py-8">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -10,7 +69,7 @@
             <div class="flex items-center justify-between">
                 <div>
                     <h1 class="text-3xl font-bold text-gray-900">Report #{{ report.id }}</h1>
-                    <p class="mt-2 text-gray-600">
+                    <p class="mt-2 text-sm text-gray-600">
                         <span class="font-medium">{{ report.reporter.username }}</span> reported 
                         <span class="font-medium">{{ report.reported_user.username }}</span> on 
                         {{ report.created_date|date:"M d, Y \a\t H:i" }}

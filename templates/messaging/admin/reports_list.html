@@ -2,6 +2,7 @@
 
 {% block title %}All Reports - Admin - GrwComm{% endblock %}
 
+
 {% block content %}
 <div class="min-h-screen bg-gray-50 py-8">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -71,7 +72,9 @@
                     Reports ({{ page_obj.paginator.count }} total)
                 </h3>
             </div>
-            <div class="overflow-x-auto">
+            
+            <!-- Desktop Table -->
+            <div class="hidden md:block overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                         <tr>
@@ -151,6 +154,76 @@
                         {% endfor %}
                     </tbody>
                 </table>
+            </div>
+            
+            <!-- Mobile Cards -->
+            <div class="md:hidden">
+                {% for report in page_obj %}
+                <div class="bg-white rounded-lg shadow mb-4 p-4">
+                    <div class="flex justify-between items-start mb-3">
+                        <div class="text-sm font-semibold text-gray-900">Report #{{ report.id }}</div>
+                        <div>
+                            {% with chat_block=report.chat_blocks.first %}
+                            {% if chat_block %}
+                                {% if chat_block.reviewed_by_admin %}
+                                    {% if chat_block.is_active %}
+                                    <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800">Blocked</span>
+                                    {% else %}
+                                    <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-800">Dismissed</span>
+                                    {% endif %}
+                                {% else %}
+                                <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800">Pending</span>
+                                {% endif %}
+                            {% else %}
+                            <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800">Pending</span>
+                            {% endif %}
+                            {% endwith %}
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-center py-1 border-b border-gray-200">
+                            <span class="text-xs font-medium text-gray-500">Type</span>
+                            <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full
+                                {% if report.report_type == 'spam' %}bg-yellow-100 text-yellow-800
+                                {% elif report.report_type == 'harassment' %}bg-red-100 text-red-800
+                                {% elif report.report_type == 'inappropriate' %}bg-orange-100 text-orange-800
+                                {% elif report.report_type == 'fake' %}bg-purple-100 text-purple-800
+                                {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                {{ report.get_report_type_display }}
+                            </span>
+                        </div>
+                        
+                        <div class="flex justify-between items-center py-1 border-b border-gray-200">
+                            <span class="text-xs font-medium text-gray-500">Reporter</span>
+                            <span class="text-xs text-gray-900 text-right max-w-32 truncate">{{ report.reporter.username }}</span>
+                        </div>
+                        
+                        <div class="flex justify-between items-center py-1 border-b border-gray-200">
+                            <span class="text-xs font-medium text-gray-500">Reported User</span>
+                            <span class="text-xs text-gray-900 text-right max-w-32 truncate">{{ report.reported_user.username }}</span>
+                        </div>
+                        
+                        <div class="flex justify-between items-center py-1 border-b border-gray-200">
+                            <span class="text-xs font-medium text-gray-500">Date</span>
+                            <span class="text-xs text-gray-900 text-right">{{ report.created_date|date:"M d, Y H:i" }}</span>
+                        </div>
+                        
+                        {% if report.note %}
+                        <div class="flex justify-between items-start py-1 border-b border-gray-200">
+                            <span class="text-xs font-medium text-gray-500">Note</span>
+                            <div class="text-xs text-gray-600 text-right max-w-40 break-words">{{ report.note|truncatewords:8 }}</div>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="flex justify-end pt-2">
+                            <a href="{% url 'messaging:admin_report_detail' report.id %}" class="text-indigo-600 hover:text-indigo-900 text-xs font-medium">
+                                Review →
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
             </div>
 
             <!-- Pagination -->
