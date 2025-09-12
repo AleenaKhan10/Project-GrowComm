@@ -86,6 +86,16 @@ def conversation_view(request, user_id):
         messages.error(request, "You cannot message yourself.")
         return redirect('messaging:inbox')
     
+    # Check if users are in the same community (superusers bypass this check)
+    if not request.user.is_superuser:
+        user_communities = set(request.user.community_memberships.filter(is_active=True).values_list('community', flat=True))
+        other_user_communities = set(other_user.community_memberships.filter(is_active=True).values_list('community', flat=True))
+        
+        # Check if they share at least one community
+        if not user_communities.intersection(other_user_communities):
+            messages.error(request, "You can only message users from your community.")
+            return redirect('communities:user_list')
+    
     # Get messages between these two users
     message_list = Message.get_messages_between_users(request.user, other_user, limit=100)
     

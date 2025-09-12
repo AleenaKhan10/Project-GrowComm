@@ -8,6 +8,7 @@ class InviteLink(models.Model):
     """Model for managing invite links with unique codes"""
     code = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_invites')
+    community = models.ForeignKey('communities.Community', on_delete=models.CASCADE, related_name='invites', null=True, blank=True)
     used_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='used_invite')
     is_used = models.BooleanField(default=False)
     created_date = models.DateTimeField(default=timezone.now)

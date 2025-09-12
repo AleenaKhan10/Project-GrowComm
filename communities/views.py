@@ -7,6 +7,7 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.utils import timezone
 from django.db import transaction
+from django.contrib.admin.views.decorators import staff_member_required
 import json
 
 from .models import Community, CommunityMembership
@@ -22,8 +23,24 @@ def user_list(request):
     # Get the unified search query
     search_query = request.GET.get('q', '').strip()
     
-    # Get all users except current user
-    users = User.objects.exclude(id=request.user.id).select_related('profile')
+    # Get users from the same community as current user (if any)
+    # Superusers can see all users regardless of community
+    if request.user.is_superuser:
+        users = User.objects.exclude(id=request.user.id).select_related('profile')
+    else:
+        # Get current user's communities
+        user_communities = request.user.community_memberships.filter(is_active=True).values_list('community', flat=True)
+        
+        if user_communities:
+            # Show users from the same communities
+            users = User.objects.filter(
+                community_memberships__community__in=user_communities,
+                community_memberships__is_active=True
+            ).exclude(id=request.user.id).select_related('profile').distinct()
+        else:
+            # User has no community - show all users (fallback behavior)
+            # This ensures new users or users without communities can still see people
+            users = User.objects.exclude(id=request.user.id).select_related('profile')
     
     # Apply unified search if provided
     if search_query:
@@ -128,9 +145,17 @@ def community_list(request):
     # Get total user count
     total_users = User.objects.filter(is_active=True).count()
     
+    # Get communities user has access to (is a member of)
+    user_communities = []
+    if not request.user.is_superuser:
+        user_communities = list(
+            request.user.community_memberships.filter(is_active=True).values_list('community_id', flat=True)
+        )
+    
     context = {
         'communities': communities,
         'total_users': total_users,
+        'user_communities': user_communities,
     }
     return render(request, 'communities/community_list.html', context)
 
@@ -306,6 +331,18 @@ def send_inline_message(request):
                 'error': 'You cannot send a message to yourself'
             }, status=400)
         
+        # Check if users are in the same community (superusers bypass this check)
+        if not request.user.is_superuser:
+            user_communities = set(request.user.community_memberships.filter(is_active=True).values_list('community', flat=True))
+            other_user_communities = set(to_user.community_memberships.filter(is_active=True).values_list('community', flat=True))
+            
+            # Check if they share at least one community
+            if not user_communities.intersection(other_user_communities):
+                return JsonResponse({
+                    'success': False,
+                    'error': 'You can only message users from your community'
+                }, status=403)
+        
         with transaction.atomic():
             # Get receiver's message settings
             receiver_settings, _ = UserMessageSettings.objects.get_or_create(user=to_user)
@@ -420,3 +457,61 @@ def send_inline_message(request):
             'success': False,
             'error': 'An error occurred while sending the message'
         }, status=500)
+
+
+@staff_member_required
+def admin_community_list(request):
+    """Admin view for managing communities"""
+    communities = Community.objects.all().order_by('-created_date')
+    
+    context = {
+        'communities': communities,
+        'total_communities': communities.count(),
+    }
+    return render(request, 'communities/admin_community_list.html', context)
+
+
+@staff_member_required
+def admin_community_create(request):
+    """Admin view for creating new communities"""
+    if request.method == 'POST':
+        name = request.POST.get('name', '').strip()
+        description = request.POST.get('description', '').strip()
+        is_private = request.POST.get('is_private') == 'on'
+        
+        if name:
+            community = Community.objects.create(
+                name=name,
+                description=description,
+                created_by=request.user,
+                is_private=is_private
+            )
+            messages.success(request, f'Community "{name}" created successfully!')
+            return redirect('communities:admin_community_list')
+        else:
+            messages.error(request, 'Community name is required.')
+    
+    return render(request, 'communities/admin_community_create.html')
+
+
+@staff_member_required
+def admin_community_edit(request, community_id):
+    """Admin view for editing communities"""
+    community = get_object_or_404(Community, id=community_id)
+    
+    if request.method == 'POST':
+        community.name = request.POST.get('name', '').strip() or community.name
+        community.description = request.POST.get('description', '').strip()
+        community.is_active = request.POST.get('is_active') == 'on'
+        community.is_private = request.POST.get('is_private') == 'on'
+        community.save()
+        
+        messages.success(request, f'Community "{community.name}" updated successfully!')
+        return redirect('communities:admin_community_list')
+    
+    context = {
+        'community': community,
+        'members': community.active_members.select_related('profile'),
+        'member_count': community.member_count,
+    }
+    return render(request, 'communities/admin_community_edit.html', context)

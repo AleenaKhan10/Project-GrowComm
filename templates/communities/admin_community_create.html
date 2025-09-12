@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Create Community{% endblock %}
+
+{% block extra_css %}
+{% endblock %}
+
+{% block content %}
+<div class="container py-8">
+    <!-- Header -->
+    <div class="mb-8">
+        <div class="flex items-center space-x-4 mb-4">
+            <a href="{% url 'communities:admin_community_list' %}" 
+               class="inline-flex items-center text-gray-600 hover:text-black transition-colors duration-200">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                </svg>
+                Back to Communities
+            </a>
+        </div>
+        <h1 class="text-4xl font-light text-black mb-4">
+            <svg class="w-8 h-8 mr-3 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+            </svg>
+            Create New Community
+        </h1>
+        <p class="text-gray-600">Set up a new community to organize your users</p>
+    </div>
+
+    <!-- Main content -->
+    <div class="max-w-2xl mx-auto">
+        <div class="card p-8">
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+                
+                <!-- Community Name -->
+                <div>
+                    <label for="name" class="block text-sm font-medium text-black mb-2">
+                        Community Name <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" 
+                           id="name" 
+                           name="name" 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg text-black placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-all duration-200"
+                           placeholder="Enter community name"
+                           required
+                           maxlength="100">
+                    <p class="mt-2 text-sm text-gray-600">
+                        Choose a unique, descriptive name for your community
+                    </p>
+                </div>
+                
+                <!-- Description -->
+                <div>
+                    <label for="description" class="block text-sm font-medium text-black mb-2">
+                        Description
+                    </label>
+                    <textarea id="description" 
+                              name="description" 
+                              rows="4"
+                              class="w-full px-4 py-3 border border-gray-300 rounded-lg text-black placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-all duration-200 resize-none"
+                              placeholder="Describe what this community is about..."
+                              maxlength="500"></textarea>
+                    <p class="mt-2 text-sm text-gray-600">
+                        Provide a brief description to help users understand the community's purpose
+                    </p>
+                </div>
+                
+                <!-- Private Community Toggle -->
+                <div>
+                    <div class="flex items-start space-x-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                        <input type="checkbox" 
+                               id="is_private" 
+                               name="is_private" 
+                               class="mt-1 h-4 w-4 text-black border-gray-300 rounded focus:ring-black focus:ring-2">
+                        <div class="flex-1">
+                            <label for="is_private" class="block text-sm font-medium text-black">
+                                Private Community
+                            </label>
+                            <p class="mt-1 text-sm text-gray-600">
+                                Private communities require approval to join and are not visible in public listings
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Action buttons -->
+                <div class="flex justify-end space-x-3 pt-4">
+                    <a href="{% url 'communities:admin_community_list' %}" 
+                       class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors duration-200 inline-flex items-center">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                        Cancel
+                    </a>
+                    <button type="submit" 
+                            class="btn btn-primary inline-flex items-center">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        Create Community
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-focus the name field
+    document.getElementById('name').focus();
+    
+    // Character counter for description
+    const descriptionField = document.getElementById('description');
+    const maxLength = 500;
+    
+    // Create character counter
+    const counterElement = document.createElement('div');
+    counterElement.className = 'help-text text-end';
+    counterElement.style.marginTop = '0.25rem';
+    descriptionField.parentNode.appendChild(counterElement);
+    
+    function updateCounter() {
+        const remaining = maxLength - descriptionField.value.length;
+        counterElement.textContent = `${remaining} characters remaining`;
+        counterElement.style.color = remaining < 50 ? '#dc3545' : '#6b7280';
+    }
+    
+    descriptionField.addEventListener('input', updateCounter);
+    updateCounter(); // Initial call
+});
+</script>
+{% endblock %}

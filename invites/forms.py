@@ -22,12 +22,20 @@ class CreateInviteForm(forms.ModelForm):
         fields = []  # We don't include model fields directly
     
     def save(self, user, commit=True):
-        """Create invite link with expiry date"""
+        """Create invite link with expiry date and link to user's community"""
         expires_in_days = self.cleaned_data['expires_in_days']
         expiry_date = datetime.now() + timedelta(days=expires_in_days)
         
+        # Get user's community (if they have one)
+        community = None
+        if hasattr(user, 'community_memberships'):
+            membership = user.community_memberships.filter(is_active=True).first()
+            if membership:
+                community = membership.community
+        
         invite = InviteLink.objects.create(
             created_by=user,
+            community=community,
             expiry_date=expiry_date
         )
         return invite

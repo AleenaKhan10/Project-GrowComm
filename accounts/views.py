@@ -119,6 +119,16 @@ def register_view(request, invite_code):
             
             profile.save()
             
+            # Join community if invite has one
+            if invite.community:
+                from communities.models import CommunityMembership
+                CommunityMembership.objects.create(
+                    user=user,
+                    community=invite.community,
+                    role='member',
+                    is_active=True
+                )
+            
             # Log registration event
             log_registration(user, f"Registered via invite from {invite.created_by.username}")
             

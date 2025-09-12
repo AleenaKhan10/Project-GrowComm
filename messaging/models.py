@@ -142,6 +142,15 @@ class Message(models.Model):
         for other_user_id, message_type_id in conversation_combos:
             try:
                 other_user = User.objects.get(id=other_user_id)
+                
+                # Check if users are in the same community (superusers bypass this check)
+                if not user.is_superuser:
+                    user_communities = set(user.community_memberships.filter(is_active=True).values_list('community', flat=True))
+                    other_user_communities = set(other_user.community_memberships.filter(is_active=True).values_list('community', flat=True))
+                    
+                    # Skip if they don't share at least one community
+                    if not user_communities.intersection(other_user_communities):
+                        continue
                 message_type = None
                 if message_type_id:
                     try:

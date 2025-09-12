@@ -1,0 +1,397 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Edit {{ community.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .admin-header {
+        background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+        color: white;
+        padding: 2rem 0;
+        margin-bottom: 2rem;
+    }
+    
+    .form-card {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+    
+    .members-card {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        padding: 2rem;
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-label {
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 0.5rem;
+    }
+    
+    .form-control {
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+        transition: all 0.2s ease;
+    }
+    
+    .form-control:focus {
+        border-color: #6366f1;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+    
+    .form-check {
+        background: #f9fafb;
+        border-radius: 8px;
+        padding: 1rem;
+        border: 2px solid #e5e7eb;
+        transition: all 0.2s ease;
+        margin-bottom: 1rem;
+    }
+    
+    .form-check:hover {
+        border-color: #6366f1;
+    }
+    
+    .form-check-input:checked {
+        background-color: #6366f1;
+        border-color: #6366f1;
+    }
+    
+    .btn-save {
+        background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+        color: white;
+        border: none;
+        padding: 0.75rem 2rem;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.2s ease;
+        min-width: 120px;
+    }
+    
+    .btn-save:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(99, 102, 241, 0.3);
+        color: white;
+    }
+    
+    .btn-cancel {
+        background: #6b7280;
+        color: white;
+        border: none;
+        padding: 0.75rem 2rem;
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        min-width: 120px;
+    }
+    
+    .btn-cancel:hover {
+        background: #4b5563;
+        color: white;
+    }
+    
+    .help-text {
+        font-size: 0.875rem;
+        color: #6b7280;
+        margin-top: 0.25rem;
+    }
+    
+    .back-link {
+        color: white;
+        text-decoration: none;
+        opacity: 0.9;
+        transition: opacity 0.2s ease;
+    }
+    
+    .back-link:hover {
+        color: white;
+        opacity: 1;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .stats-item {
+        background: linear-gradient(45deg, #f8f9ff, #e6f3ff);
+        border-radius: 8px;
+        padding: 1.5rem;
+        text-align: center;
+        border-left: 4px solid #6366f1;
+    }
+    
+    .member-item {
+        display: flex;
+        align-items-center;
+        padding: 1rem;
+        border-bottom: 1px solid #e5e7eb;
+        transition: background-color 0.2s ease;
+    }
+    
+    .member-item:hover {
+        background-color: #f9fafb;
+    }
+    
+    .member-item:last-child {
+        border-bottom: none;
+    }
+    
+    .member-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(45deg, #6366f1, #8b5cf6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        margin-right: 1rem;
+    }
+    
+    .badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+    
+    .badge-success {
+        background-color: #dcfce7;
+        color: #166534;
+    }
+    
+    .badge-danger {
+        background-color: #fee2e2;
+        color: #991b1b;
+    }
+    
+    .badge-warning {
+        background-color: #fef3c7;
+        color: #92400e;
+    }
+    
+    @media (max-width: 768px) {
+        .admin-header {
+            padding: 1.5rem 0;
+        }
+        
+        .form-card,
+        .members-card {
+            padding: 1.5rem;
+        }
+        
+        .btn-save,
+        .btn-cancel {
+            width: 100%;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stats-grid {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="admin-header">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <a href="{% url 'communities:admin_community_list' %}" class="back-link">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Communities
+                </a>
+                <h1 class="mb-0 mt-2">
+                    <i class="fas fa-edit me-2"></i>
+                    Edit {{ community.name }}
+                </h1>
+                <p class="mb-0 mt-2 opacity-75">Manage community settings and members</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <!-- Community Statistics -->
+    <div class="stats-grid">
+        <div class="stats-item">
+            <h3 class="text-primary mb-1">{{ member_count }}</h3>
+            <p class="text-muted mb-0">Active Members</p>
+        </div>
+        <div class="stats-item">
+            <h3 class="text-info mb-1">{{ community.created_date|date:"M d, Y" }}</h3>
+            <p class="text-muted mb-0">Created</p>
+        </div>
+        <div class="stats-item">
+            <h3 class="text-success mb-1">{{ community.created_by.username }}</h3>
+            <p class="text-muted mb-0">Created By</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Community Settings Form -->
+        <div class="col-lg-6 mb-4">
+            <div class="form-card">
+                <h4 class="mb-4">
+                    <i class="fas fa-cog me-2"></i>Community Settings
+                </h4>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="form-group">
+                        <label for="name" class="form-label">
+                            Community Name <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" 
+                               id="name" 
+                               name="name" 
+                               class="form-control" 
+                               value="{{ community.name }}"
+                               required
+                               maxlength="100">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea id="description" 
+                                  name="description" 
+                                  class="form-control" 
+                                  rows="4"
+                                  maxlength="500">{{ community.description }}</textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <div class="form-check">
+                            <input type="checkbox" 
+                                   id="is_active" 
+                                   name="is_active" 
+                                   class="form-check-input"
+                                   {% if community.is_active %}checked{% endif %}>
+                            <label for="is_active" class="form-check-label fw-semibold">
+                                Active Community
+                            </label>
+                            <div class="help-text mt-2">
+                                Inactive communities are hidden and cannot accept new members
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <div class="form-check">
+                            <input type="checkbox" 
+                                   id="is_private" 
+                                   name="is_private" 
+                                   class="form-check-input"
+                                   {% if community.is_private %}checked{% endif %}>
+                            <label for="is_private" class="form-check-label fw-semibold">
+                                Private Community
+                            </label>
+                            <div class="help-text mt-2">
+                                Private communities require approval to join
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex gap-3 justify-content-end">
+                        <a href="{% url 'communities:admin_community_list' %}" class="btn btn-cancel">
+                            <i class="fas fa-times me-2"></i>Cancel
+                        </a>
+                        <button type="submit" class="btn btn-save">
+                            <i class="fas fa-save me-2"></i>Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Community Members -->
+        <div class="col-lg-6 mb-4">
+            <div class="members-card">
+                <h4 class="mb-4">
+                    <i class="fas fa-users me-2"></i>Community Members
+                    <span class="badge badge-success ms-2">{{ member_count }}</span>
+                </h4>
+                
+                {% if members %}
+                    <div style="max-height: 400px; overflow-y: auto;">
+                        {% for member in members %}
+                        <div class="member-item">
+                            <div class="member-avatar">
+                                {{ member.username|slice:":1"|upper }}
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="fw-semibold">{{ member.username }}</div>
+                                <small class="text-muted">
+                                    {% if member.first_name or member.last_name %}
+                                        {{ member.first_name }} {{ member.last_name }}
+                                    {% else %}
+                                        No display name
+                                    {% endif %}
+                                </small>
+                            </div>
+                            <div>
+                                {% if member.profile.is_verified %}
+                                    <span class="badge badge-success">
+                                        <i class="fas fa-check-circle me-1"></i>Verified
+                                    </span>
+                                {% else %}
+                                    <span class="badge badge-warning">
+                                        <i class="fas fa-clock me-1"></i>Pending
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-user-plus text-muted mb-3" style="font-size: 3rem;"></i>
+                        <h5 class="text-muted">No Members Yet</h5>
+                        <p class="text-muted mb-0">Members will appear here when they join this community.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Character counter for description
+    const descriptionField = document.getElementById('description');
+    const maxLength = 500;
+    
+    // Create character counter
+    const counterElement = document.createElement('div');
+    counterElement.className = 'help-text text-end';
+    counterElement.style.marginTop = '0.25rem';
+    descriptionField.parentNode.appendChild(counterElement);
+    
+    function updateCounter() {
+        const remaining = maxLength - descriptionField.value.length;
+        counterElement.textContent = `${remaining} characters remaining`;
+        counterElement.style.color = remaining < 50 ? '#dc3545' : '#6b7280';
+    }
+    
+    descriptionField.addEventListener('input', updateCounter);
+    updateCounter(); // Initial call
+});
+</script>
+{% endblock %}
