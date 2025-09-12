@@ -2,6 +2,136 @@
 
 {% block title %}All Reports - Admin - GrwComm{% endblock %}
 
+{% block extra_css %}
+<style>
+@media (max-width: 768px) {
+    /* Container adjustments */
+    .max-w-7xl {
+        padding-left: 0.5rem !important;
+        padding-right: 0.5rem !important;
+    }
+    
+    /* ALL heading sizes */
+    h1.text-3xl {
+        font-size: 1.25rem !important;
+    }
+    
+    h3.text-lg {
+        font-size: 0.875rem !important;
+    }
+    
+    /* ALL text classes - comprehensive */
+    .text-gray-600 {
+        font-size: 0.7rem !important;
+    }
+    
+    .text-gray-500 {
+        font-size: 0.7rem !important;
+    }
+    
+    .text-gray-900 {
+        font-size: 0.7rem !important;
+    }
+    
+    .text-gray-700 {
+        font-size: 0.7rem !important;
+    }
+    
+    .text-indigo-600 {
+        font-size: 0.7rem !important;
+    }
+    
+    .text-sm {
+        font-size: 0.7rem !important;
+    }
+    
+    .text-xs {
+        font-size: 0.625rem !important;
+    }
+    
+    /* ALL button classes */
+    .btn {
+        padding: 0.375rem 0.75rem !important;
+        font-size: 0.7rem !important;
+        min-height: 2rem !important;
+    }
+    
+    .btn-secondary {
+        font-size: 0.7rem !important;
+        padding: 0.25rem 0.5rem !important;
+    }
+    
+    .btn-primary {
+        font-size: 0.7rem !important;
+        padding: 0.375rem 0.75rem !important;
+    }
+    
+    /* FORCE hide desktop table, show mobile cards */
+    .hidden.md\\:block,
+    .overflow-x-auto {
+        display: none !important;
+    }
+    
+    .md\\:hidden {
+        display: block !important;
+    }
+    
+    /* Also target table directly if needed */
+    table {
+        display: none !important;
+    }
+    
+    /* Hide the desktop table container */
+    div.overflow-x-auto {
+        display: none !important;
+    }
+    
+    /* Card padding reductions */
+    .px-6.py-4 {
+        padding: 0.75rem !important;
+    }
+    
+    .px-4.py-3 {
+        padding: 0.5rem !important;
+    }
+    
+    /* Input elements */
+    .input {
+        font-size: 0.7rem !important;
+        padding: 0.375rem 0.5rem !important;
+    }
+    
+    select {
+        font-size: 0.7rem !important;
+        padding: 0.375rem 0.5rem !important;
+    }
+    
+    /* Badge elements */
+    .inline-flex.items-center.px-2.py-1 {
+        padding: 0.125rem 0.375rem !important;
+        font-size: 0.625rem !important;
+    }
+    
+    /* Spacing reductions */
+    .mb-8 {
+        margin-bottom: 1.5rem !important;
+    }
+    
+    .py-8 {
+        padding-top: 1.5rem !important;
+        padding-bottom: 1.5rem !important;
+    }
+    
+    .gap-4 {
+        gap: 0.5rem !important;
+    }
+    
+    .mb-6 {
+        margin-bottom: 1rem !important;
+    }
+}
+</style>
+{% endblock %}
 
 {% block content %}
 <div class="min-h-screen bg-gray-50 py-8">
