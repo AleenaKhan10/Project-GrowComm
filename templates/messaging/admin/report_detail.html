@@ -42,6 +42,9 @@
     .space-y-3.max-h-96.overflow-y-auto {
         max-height: 20rem !important;
     }
+}
+
+@media (max-width: 768px) {
     
     .max-w-xs.lg\\:max-w-md {
         max-width: 85% !important;
@@ -129,7 +132,26 @@
                         <p class="text-sm text-gray-600">Last 10 messages for context</p>
                     </div>
                     <div class="px-6 py-4">
-                        <div class="space-y-3 max-h-96 overflow-y-auto">
+                        <div class="space-y-3 max-h-96 overflow-y-auto pr-4" style="scrollbar-width: thin; scrollbar-color: #cbd5e1 #f1f5f9;" onload="this.style.setProperty('--webkit-scrollbar-width', '8px'); this.style.setProperty('--webkit-scrollbar-track-background', '#f1f5f9'); this.style.setProperty('--webkit-scrollbar-thumb-background', '#cbd5e1');"
+                         onmouseover="this.style.setProperty('--webkit-scrollbar-thumb-background-hover', '#94a3b8');"
+                         onfocus="this.style.setProperty('scrollbar-color', '#94a3b8 #f1f5f9');">
+                            <style>
+                                .space-y-3.max-h-96.overflow-y-auto.pr-4::-webkit-scrollbar {
+                                    width: 8px;
+                                }
+                                .space-y-3.max-h-96.overflow-y-auto.pr-4::-webkit-scrollbar-track {
+                                    background: #f1f5f9;
+                                    border-radius: 4px;
+                                }
+                                .space-y-3.max-h-96.overflow-y-auto.pr-4::-webkit-scrollbar-thumb {
+                                    background: #cbd5e1;
+                                    border-radius: 4px;
+                                    border: 1px solid #e2e8f0;
+                                }
+                                .space-y-3.max-h-96.overflow-y-auto.pr-4::-webkit-scrollbar-thumb:hover {
+                                    background: #94a3b8;
+                                }
+                            </style>
                             {% for message in messages_between %}
                             <div class="flex {% if message.sender == report.reporter %}justify-end{% else %}justify-start{% endif %}">
                                 <div class="max-w-xs lg:max-w-md">
