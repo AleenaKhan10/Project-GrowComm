@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Blocked Users - GrwComm{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="bg-white shadow rounded-lg mb-6">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <div class="flex items-center justify-between">
+                    <h1 class="text-2xl font-bold text-gray-900">Blocked Users</h1>
+                    <a href="{% url 'messaging:inbox' %}" class="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                        </svg>
+                        Back to Messages
+                    </a>
+                </div>
+                <p class="mt-2 text-sm text-gray-600">Manage users you have blocked from messaging you</p>
+            </div>
+        </div>
+
+        <!-- Blocked Users List -->
+        <div class="bg-white shadow rounded-lg">
+            {% if blocked_users %}
+                <ul class="divide-y divide-gray-200">
+                    {% for block in blocked_users %}
+                    <li class="px-6 py-4 hover:bg-gray-50 transition-colors">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                {% if block.blocked.profile.profile_picture %}
+                                    <img src="{{ block.blocked.profile.profile_picture.url }}" 
+                                         alt="{{ block.blocked.username }}" 
+                                         class="w-12 h-12 rounded-full object-cover">
+                                {% else %}
+                                    <div class="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-lg">
+                                        {{ block.blocked.username|first|upper }}
+                                    </div>
+                                {% endif %}
+                                <div class="ml-4">
+                                    <p class="text-lg font-medium text-gray-900">{{ block.blocked.username }}</p>
+                                    <p class="text-sm text-gray-500">Blocked on {{ block.created_at|date:"F j, Y" }}</p>
+                                </div>
+                            </div>
+                            <button onclick="unblockUser({{ block.blocked.id }}, '{{ block.blocked.username }}')" 
+                                    class="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/>
+                                </svg>
+                                Unblock
+                            </button>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <div class="px-6 py-12 text-center">
+                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <h3 class="mt-2 text-sm font-medium text-gray-900">No blocked users</h3>
+                    <p class="mt-1 text-sm text-gray-500">You haven't blocked any users yet.</p>
+                    <div class="mt-6">
+                        <a href="{% url 'messaging:inbox' %}" class="inline-flex items-center px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors">
+                            Go to Messages
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+function unblockUser(userId, username) {
+    if (confirm(`Are you sure you want to unblock ${username}?`)) {
+        fetch(`/messages/api/block/${userId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && !data.blocked) {
+                alert(`${username} has been unblocked successfully!`);
+                location.reload();
+            } else {
+                alert('Failed to unblock user. Please try again.');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred. Please try again.');
+        });
+    }
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}

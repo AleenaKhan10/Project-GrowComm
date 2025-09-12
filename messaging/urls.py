@@ -21,6 +21,7 @@ urlpatterns = [
     # Report and Block endpoints
     path('api/report/<int:user_id>/', views.report_user, name='report_user'),
     path('api/block/<int:user_id>/', views.block_user, name='block_user'),
+    path('api/unblock/<int:user_id>/', views.unblock_chat, name='unblock_chat'),
     path('blocked-users/', views.blocked_users, name='blocked_users'),
     
     # Message requests (kept for backward compatibility)
@@ -37,12 +38,6 @@ urlpatterns = [
     path('conversation/<int:conversation_id>/messages/', views.get_conversation_messages, name='conversation_messages'),
     path('conversation/<int:conversation_id>/reply/', views.send_conversation_reply, name='conversation_reply'),
     
-    # Admin URLs for reports and chat blocks management
-    path('admin/reports/', views.admin_dashboard, name='admin_dashboard'),
-    path('admin/reports/list/', views.admin_reports_list, name='admin_reports_list'),
-    path('admin/reports/<int:report_id>/', views.admin_report_detail, name='admin_report_detail'),
-    path('admin/reports/blocks/', views.admin_chat_blocks_list, name='admin_chat_blocks_list'),
-    path('admin/reports/blocks/<int:block_id>/toggle/', views.admin_toggle_block, name='admin_toggle_block'),
     
     # Admin URLs for user management
     path('admin/users/', views.admin_users_list, name='admin_users_list'),

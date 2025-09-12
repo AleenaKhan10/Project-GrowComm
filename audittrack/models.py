@@ -21,6 +21,8 @@ class AuditEvent(models.Model):
         ('message_answered', 'Message Answered for First Time'),
         ('user_deleted', 'User Deleted'),
         ('profile_edited', 'Profile Edited'),
+        ('user_reported', 'User Reported'),
+        ('user_unblocked', 'User Unblocked'),
         # User management actions
         ('user_suspended', 'User Suspended'),
         ('user_unsuspended', 'User Unsuspended'),

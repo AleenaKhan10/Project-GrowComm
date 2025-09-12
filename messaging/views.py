@@ -20,7 +20,7 @@ from .forms import (
     CustomMessageSlotForm, CustomMessageSlotFormSet
 )
 from profiles.decorators import verified_user_required
-from audittrack.utils import log_slot_booked, log_message_answered
+from audittrack.utils import log_slot_booked, log_message_answered, log_user_reported, log_user_unblocked
 
 
 @login_required
@@ -969,6 +969,12 @@ def report_user(request, user_id):
         note=note
     )
     
+    # Log the report to audit logs
+    report_detail = f"Reported {reported_user.username} for {report_type}"
+    if note:
+        report_detail += f" - Note: {note[:100]}"  # Limit note length in audit log
+    log_user_reported(request.user, report_detail)
+    
     # Create chat block
     from .models import ChatBlock
     chat_block, created = ChatBlock.objects.get_or_create(
@@ -988,12 +994,43 @@ def report_user(request, user_id):
         chat_block.is_active = True
         chat_block.save()
     
-    messages.success(request, f'User {reported_user.username} has been reported and blocked. Administrators will review your report.')
     
     return JsonResponse({
         'success': True,
         'message': 'Report submitted and user blocked successfully'
     })
+
+
+@login_required
+@require_POST
+def unblock_chat(request, user_id):
+    """Unblock a chat by removing the ChatBlock"""
+    try:
+        other_user = User.objects.get(id=user_id)
+    except User.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'User not found'}, status=404)
+    
+    if other_user == request.user:
+        return JsonResponse({'success': False, 'error': 'You cannot unblock yourself'}, status=400)
+    
+    # Find and delete the ChatBlock
+    from .models import ChatBlock
+    chat_block = ChatBlock.objects.filter(
+        reporter=request.user,
+        blocked_user=other_user,
+        is_active=True
+    ).first()
+    
+    if chat_block:
+        chat_block.delete()
+        # Log the unblock action
+        log_user_unblocked(request.user, f"Unblocked chat with {other_user.username}")
+        return JsonResponse({
+            'success': True,
+            'message': 'Chat unblocked successfully'
+        })
+    else:
+        return JsonResponse({'success': False, 'error': 'No active block found'}, status=400)
 
 
 @login_required
@@ -1014,6 +1051,8 @@ def block_user(request, user_id):
     if existing_block:
         # Unblock
         existing_block.delete()
+        # Log the unblock action
+        log_user_unblocked(request.user, f"Unblocked {user_to_block.username}")
         messages.success(request, f'User {user_to_block.username} has been unblocked.')
         return JsonResponse({
             'success': True,
@@ -1046,258 +1085,11 @@ def blocked_users(request):
 
 
 # ============================================================================
-# ADMIN VIEWS FOR REPORTS AND CHAT BLOCKS MANAGEMENT
+# ADMIN VIEWS FOR USER MANAGEMENT
 # ============================================================================
 
 from django.contrib.admin.views.decorators import staff_member_required
 from django.db.models import Count
-
-
-@staff_member_required
-def admin_dashboard(request):
-    """Dashboard showing report statistics"""
-    # Get report statistics
-    report_stats = {
-        'total_reports': MessageReport.objects.count(),
-        'pending_reports': MessageReport.objects.filter(
-            chat_blocks__reviewed_by_admin=False
-        ).count(),
-        'reviewed_reports': MessageReport.objects.filter(
-            chat_blocks__reviewed_by_admin=True
-        ).count(),
-    }
-    
-    # Get report type distribution
-    report_type_stats = MessageReport.objects.values('report_type').annotate(
-        count=Count('id')
-    ).order_by('-count')
-    
-    # Get chat block statistics
-    chat_block_stats = {
-        'total_blocks': ChatBlock.objects.count(),
-        'active_blocks': ChatBlock.objects.filter(is_active=True).count(),
-        'inactive_blocks': ChatBlock.objects.filter(is_active=False).count(),
-        'unreviewed_blocks': ChatBlock.objects.filter(reviewed_by_admin=False).count(),
-    }
-    
-    # Recent reports (last 10)
-    recent_reports = MessageReport.objects.select_related(
-        'reporter', 'reported_user'
-    ).order_by('-created_date')[:10]
-    
-    # Recent chat blocks (last 10)
-    recent_blocks = ChatBlock.objects.select_related(
-        'reporter', 'blocked_user', 'report'
-    ).order_by('-created_date')[:10]
-    
-    context = {
-        'report_stats': report_stats,
-        'report_type_stats': report_type_stats,
-        'chat_block_stats': chat_block_stats,
-        'recent_reports': recent_reports,
-        'recent_blocks': recent_blocks,
-    }
-    return render(request, 'messaging/admin/dashboard.html', context)
-
-
-@staff_member_required
-def admin_reports_list(request):
-    """List all reports with filtering and search"""
-    reports = MessageReport.objects.select_related(
-        'reporter', 'reported_user'
-    ).prefetch_related('chat_blocks')
-    
-    # Filter by report type
-    report_type = request.GET.get('report_type')
-    if report_type:
-        reports = reports.filter(report_type=report_type)
-    
-    # Filter by review status
-    review_status = request.GET.get('review_status')
-    if review_status == 'reviewed':
-        reports = reports.filter(chat_blocks__reviewed_by_admin=True)
-    elif review_status == 'unreviewed':
-        reports = reports.filter(chat_blocks__reviewed_by_admin=False)
-    
-    # Search by username
-    search = request.GET.get('search')
-    if search:
-        reports = reports.filter(
-            Q(reporter__username__icontains=search) |
-            Q(reported_user__username__icontains=search)
-        )
-    
-    # Order by latest first
-    reports = reports.order_by('-created_date')
-    
-    # Pagination
-    paginator = Paginator(reports, 20)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-    
-    # Get report types for filter dropdown
-    report_types = MessageReport.REPORT_TYPES
-    
-    context = {
-        'page_obj': page_obj,
-        'report_types': report_types,
-        'current_filters': {
-            'report_type': report_type,
-            'review_status': review_status,
-            'search': search,
-        }
-    }
-    return render(request, 'messaging/admin/reports_list.html', context)
-
-
-@staff_member_required
-def admin_report_detail(request, report_id):
-    """Detailed view of a specific report with block/unblock actions"""
-    report = get_object_or_404(MessageReport.objects.select_related(
-        'reporter', 'reported_user'
-    ), id=report_id)
-    
-    # Get existing chat block if any
-    chat_block = ChatBlock.objects.filter(report=report).first()
-    
-    # Get messages between these users for context
-    messages_between = Message.objects.filter(
-        Q(sender=report.reporter, receiver=report.reported_user) |
-        Q(sender=report.reported_user, receiver=report.reporter)
-    ).select_related('sender', 'receiver').order_by('-timestamp')[:10]
-    
-    if request.method == 'POST':
-        action = request.POST.get('action')
-        admin_notes = request.POST.get('admin_notes', '')
-        
-        if action == 'block':
-            # Create or update chat block
-            if chat_block:
-                chat_block.is_active = True
-                chat_block.reviewed_by_admin = True
-                chat_block.admin_notes = admin_notes
-                chat_block.save()
-            else:
-                chat_block = ChatBlock.objects.create(
-                    reporter=report.reporter,
-                    blocked_user=report.reported_user,
-                    report=report,
-                    is_active=True,
-                    reviewed_by_admin=True,
-                    admin_notes=admin_notes
-                )
-            
-            messages.success(request, f'Chat blocked between {report.reporter.username} and {report.reported_user.username}')
-            
-        elif action == 'unblock':
-            if chat_block:
-                chat_block.is_active = False
-                chat_block.reviewed_by_admin = True
-                chat_block.admin_notes = admin_notes
-                chat_block.save()
-                
-                messages.success(request, f'Chat unblocked between {report.reporter.username} and {report.reported_user.username}')
-            else:
-                messages.warning(request, 'No active block found')
-                
-        elif action == 'dismiss':
-            # Mark as reviewed but don't block
-            if chat_block:
-                chat_block.reviewed_by_admin = True
-                chat_block.admin_notes = admin_notes
-                chat_block.save()
-            else:
-                # Create inactive block to mark as reviewed
-                ChatBlock.objects.create(
-                    reporter=report.reporter,
-                    blocked_user=report.reported_user,
-                    report=report,
-                    is_active=False,
-                    reviewed_by_admin=True,
-                    admin_notes=admin_notes
-                )
-            
-            messages.success(request, 'Report dismissed - no action taken')
-        
-        return redirect('messaging:admin_report_detail', report_id=report.id)
-    
-    context = {
-        'report': report,
-        'chat_block': chat_block,
-        'messages_between': messages_between,
-    }
-    return render(request, 'messaging/admin/report_detail.html', context)
-
-
-@staff_member_required
-def admin_chat_blocks_list(request):
-    """List all chat blocks with filtering"""
-    blocks = ChatBlock.objects.select_related(
-        'reporter', 'blocked_user', 'report'
-    )
-    
-    # Filter by active status
-    status = request.GET.get('status')
-    if status == 'active':
-        blocks = blocks.filter(is_active=True)
-    elif status == 'inactive':
-        blocks = blocks.filter(is_active=False)
-    
-    # Filter by review status
-    review_status = request.GET.get('review_status')
-    if review_status == 'reviewed':
-        blocks = blocks.filter(reviewed_by_admin=True)
-    elif review_status == 'unreviewed':
-        blocks = blocks.filter(reviewed_by_admin=False)
-    
-    # Search by username
-    search = request.GET.get('search')
-    if search:
-        blocks = blocks.filter(
-            Q(reporter__username__icontains=search) |
-            Q(blocked_user__username__icontains=search)
-        )
-    
-    # Order by latest first
-    blocks = blocks.order_by('-created_date')
-    
-    # Pagination
-    paginator = Paginator(blocks, 20)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-    
-    context = {
-        'page_obj': page_obj,
-        'current_filters': {
-            'status': status,
-            'review_status': review_status,
-            'search': search,
-        }
-    }
-    return render(request, 'messaging/admin/chat_blocks_list.html', context)
-
-
-@staff_member_required
-@require_POST
-def admin_toggle_block(request, block_id):
-    """Toggle chat block active/inactive status"""
-    block = get_object_or_404(ChatBlock, id=block_id)
-    
-    action = request.POST.get('action')
-    admin_notes = request.POST.get('admin_notes', block.admin_notes)
-    
-    if action == 'toggle':
-        block.is_active = not block.is_active
-        block.reviewed_by_admin = True
-        block.admin_notes = admin_notes
-        block.save()
-        
-        status_text = 'activated' if block.is_active else 'deactivated'
-        messages.success(request, f'Chat block {status_text} for {block.reporter.username} ↔ {block.blocked_user.username}')
-    
-    # Redirect back to the referring page or blocks list
-    next_url = request.POST.get('next') or request.META.get('HTTP_REFERER') or 'messaging:admin_chat_blocks_list'
-    return redirect(next_url)
 
 
 # ============================================
@@ -1530,15 +1322,38 @@ def chat_heading_api(request, user_id):
 @login_required
 @require_http_methods(["GET"])
 def user_info_api(request, user_id):
-    """API endpoint to get user info including last login time"""
+    """API endpoint to get user info including last login time and chat block status"""
     try:
         user = get_object_or_404(User, id=user_id)
+        
+        # Check if chat is blocked by the current user (via ChatBlock from reports)
+        from .models import ChatBlock
+        is_chat_blocked = ChatBlock.objects.filter(
+            reporter=request.user,
+            blocked_user=user,
+            is_active=True
+        ).exists()
+        
+        # Check if the current user has blocked this user (via UserBlock)
+        is_blocked_by_me = UserBlock.objects.filter(
+            blocker=request.user,
+            blocked=user
+        ).exists()
+        
+        # Check if this user has blocked the current user (via UserBlock)
+        has_blocked_me = UserBlock.objects.filter(
+            blocker=user,
+            blocked=request.user
+        ).exists()
         
         return JsonResponse({
             'success': True,
             'user_id': user.id,
             'username': user.username,
-            'last_login': user.last_login.isoformat() if user.last_login else None
+            'last_login': user.last_login.isoformat() if user.last_login else None,
+            'is_chat_blocked': is_chat_blocked,
+            'is_blocked_by_me': is_blocked_by_me,
+            'has_blocked_me': has_blocked_me
         })
     except Exception as e:
         return JsonResponse({

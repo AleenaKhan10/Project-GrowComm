@@ -245,9 +245,6 @@
                                 </svg>
                                 Audit
                             </a>
-                            <a href="{% url 'messaging:admin_dashboard' %}" class="{% if request.resolver_match.url_name|slice:':6' == 'admin_' and 'reports' in request.resolver_match.url_name %}border-white text-white bg-gray-950{% else %}border-transparent text-gray-400 hover:text-white hover:border-white{% endif %} inline-flex items-center px-3 py-2 border-b-2 text-sm font-light rounded-t-lg transition-all duration-200">
-                                Reports
-                            </a>
                             <a href="{% url 'messaging:admin_users_list' %}" class="{% if request.resolver_match.url_name|slice:':6' == 'admin_' and 'users' in request.resolver_match.url_name %}border-white text-white bg-gray-950{% else %}border-transparent text-gray-400 hover:text-white hover:border-white{% endif %} inline-flex items-center px-3 py-2 border-b-2 text-sm font-light rounded-t-lg transition-all duration-200">
                                 Users
                             </a>
@@ -336,9 +333,6 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                         </svg>
                         Audit
-                    </a>
-                    <a href="{% url 'messaging:admin_dashboard' %}" class="{% if request.resolver_match.url_name|slice:':6' == 'admin_' and 'reports' in request.resolver_match.url_name %}bg-gray-950 text-white{% else %}text-gray-400 hover:text-white hover:bg-gray-800{% endif %} block px-3 py-2 rounded-md text-base font-light transition-all duration-200">
-                        Reports
                     </a>
                     <a href="{% url 'messaging:admin_users_list' %}" class="{% if request.resolver_match.url_name|slice:':6' == 'admin_' and 'users' in request.resolver_match.url_name %}bg-gray-950 text-white{% else %}text-gray-400 hover:text-white hover:bg-gray-800{% endif %} block px-3 py-2 rounded-md text-base font-light transition-all duration-200">
                         Users

@@ -179,13 +179,14 @@ document.body.classList.add('messages-page');
                 </div>
             </div>
             
-            <!-- Report Button - Positioned at the end -->
+            <!-- Action Button - Positioned at the end -->
             <div class="flex-shrink-0 ml-auto">
-                <button id="report-user-btn" class="flex items-center space-x-1 px-2 py-1.5 bg-black text-white text-xs font-medium rounded-lg hover:bg-gray-800 transition-colors" onclick="openReportModal()" title="Report/Block User">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <!-- Report/Unblock Button -->
+                <button id="report-user-btn" class="flex items-center space-x-1 px-2 py-1.5 bg-black text-white text-xs font-medium rounded-lg hover:bg-gray-800 transition-colors" onclick="handleReportOrUnblock()" title="Report/Unblock User">
+                    <svg id="report-icon" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
                     </svg>
-                    <span class="hidden sm:inline">Report/Block</span>
+                    <span id="report-btn-text" class="hidden sm:inline">Report</span>
                 </button>
             </div>
         </div>
@@ -1253,6 +1254,9 @@ class MessagingApp {
         // Show reveal identity button (async)
         this.showRevealIdentityButton();
         
+        // Check chat block status for this user
+        checkChatBlockStatus(userId);
+        
         this.loadMessages(userId, messageTypeId);
         
         // Start polling for new messages
@@ -1788,6 +1792,100 @@ function revealIdentity() {
     }
 }
 
+// Handle Report or Unblock
+function handleReportOrUnblock() {
+    if (!window.messagingApp || !window.messagingApp.currentUserId) return;
+    
+    const reportBtn = document.getElementById('report-user-btn');
+    const isBlocked = reportBtn.dataset.blocked === 'true';
+    
+    if (isBlocked) {
+        // Unblock the user
+        unblockUser(window.messagingApp.currentUserId);
+    } else {
+        // Open report modal
+        openReportModal();
+    }
+}
+
+// Unblock User
+function unblockUser(userId) {
+    if (!confirm('Are you sure you want to unblock this user? They will be able to message you again.')) return;
+    
+    fetch(`/messages/api/unblock/${userId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('User has been unblocked successfully!', 'success');
+            // Update button state
+            const reportBtn = document.getElementById('report-user-btn');
+            const reportBtnText = document.getElementById('report-btn-text');
+            const reportIcon = document.getElementById('report-icon');
+            
+            reportBtn.dataset.blocked = 'false';
+            reportBtnText.textContent = 'Report';
+            reportBtn.classList.remove('bg-green-600', 'hover:bg-green-700');
+            reportBtn.classList.add('bg-black', 'hover:bg-gray-800');
+            
+            // Change icon back to warning
+            reportIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>';
+            
+            // Reload messages to reflect the change
+            if (window.messagingApp && window.messagingApp.currentUserId) {
+                window.messagingApp.loadMessages(window.messagingApp.currentUserId, window.messagingApp.currentMessageTypeId);
+            }
+        } else {
+            showNotification('Error: ' + data.error, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('An error occurred while unblocking the user', 'error');
+    });
+}
+
+// Check if chat is blocked
+function checkChatBlockStatus(userId) {
+    // This function will be called when a conversation is loaded
+    // to update the report/unblock button state
+    fetch(`/messages/api/user-info/${userId}/`)
+    .then(response => response.json())
+    .then(data => {
+        const reportBtn = document.getElementById('report-user-btn');
+        const reportBtnText = document.getElementById('report-btn-text');
+        const reportIcon = document.getElementById('report-icon');
+        
+        if (data.is_chat_blocked !== undefined && data.is_chat_blocked) {
+            // Chat is blocked, show unblock button
+            reportBtn.dataset.blocked = 'true';
+            reportBtnText.textContent = 'Unblock';
+            reportBtn.classList.remove('bg-black', 'hover:bg-gray-800');
+            reportBtn.classList.add('bg-green-600', 'hover:bg-green-700');
+            
+            // Change icon to unlock
+            reportIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/>';
+        } else {
+            // Chat is not blocked, show report button
+            reportBtn.dataset.blocked = 'false';
+            reportBtnText.textContent = 'Report';
+            reportBtn.classList.remove('bg-green-600', 'hover:bg-green-700');
+            reportBtn.classList.add('bg-black', 'hover:bg-gray-800');
+            
+            // Change icon to warning
+            reportIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>';
+        }
+    })
+    .catch(error => {
+        console.error('Error checking chat block status:', error);
+    });
+}
+
 // Open Report Modal
 function openReportModal() {
     if (!window.messagingApp || !window.messagingApp.currentUserId) return;
@@ -1845,18 +1943,75 @@ function submitReport() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            alert('Report submitted and user blocked successfully. Administrators will review your report.');
+            showNotification('Report submitted successfully. This user has also been blocked. Administrators will review your report.', 'success');
             closeReportModal();
-            // Optionally reload the conversation to show blocked state
-            window.location.reload();
+            // Update the button state without full page reload
+            checkChatBlockStatus(window.messagingApp.currentUserId);
+            // Reload messages to reflect the change
+            if (window.messagingApp && window.messagingApp.currentUserId) {
+                window.messagingApp.loadMessages(window.messagingApp.currentUserId, window.messagingApp.currentMessageTypeId);
+            }
         } else {
-            alert('Error: ' + data.error);
+            showNotification('Error: ' + data.error, 'error');
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('An error occurred while submitting the report');
+        showNotification('An error occurred while submitting the report', 'error');
     });
+}
+
+// Show notification function
+function showNotification(message, type = 'success') {
+    // Remove existing notification if any
+    const existingNotification = document.getElementById('notification');
+    if (existingNotification) {
+        existingNotification.remove();
+    }
+    
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.id = 'notification';
+    notification.className = `fixed top-4 right-4 z-50 px-6 py-3 rounded-lg shadow-lg transition-all duration-300 transform translate-x-full`;
+    
+    // Set colors based on type
+    if (type === 'success') {
+        notification.className += ' bg-green-500 text-white';
+    } else if (type === 'error') {
+        notification.className += ' bg-red-500 text-white';
+    } else {
+        notification.className += ' bg-blue-500 text-white';
+    }
+    
+    notification.innerHTML = `
+        <div class="flex items-center">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                ${type === 'success' ? 
+                    '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>' :
+                    '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>'
+                }
+            </svg>
+            <span>${message}</span>
+        </div>
+    `;
+    
+    // Add to page
+    document.body.appendChild(notification);
+    
+    // Animate in
+    setTimeout(() => {
+        notification.classList.remove('translate-x-full');
+    }, 100);
+    
+    // Auto remove after 4 seconds
+    setTimeout(() => {
+        notification.classList.add('translate-x-full');
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.remove();
+            }
+        }, 300);
+    }, 4000);
 }
 
 // Helper function to get cookie value
@@ -1880,12 +2035,12 @@ function getCookie(name) {
 <!-- Report Modal -->
 <div id="reportModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 z-50 flex items-center justify-center">
     <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-        <h3 class="text-lg font-semibold mb-4">Report & Block User</h3>
+        <h3 class="text-lg font-semibold mb-4">Report User</h3>
         
         <div class="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
             <p class="text-sm text-yellow-800">
-                <strong>Important:</strong> Submitting this report will also block this user from sending you messages. 
-                This action will be reviewed by administrators.
+                <strong>Note:</strong> This report will be reviewed by administrators. 
+                Use the Block button if you just want to prevent messages from this user.
             </p>
         </div>
         
@@ -1915,7 +2070,7 @@ function getCookie(name) {
                 </button>
                 <button type="submit" 
                         class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
-                    Report & Block
+                    Submit Report
                 </button>
             </div>
         </form>

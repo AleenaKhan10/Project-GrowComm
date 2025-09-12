@@ -72,6 +72,16 @@ def log_profile_edited(user, detail=""):
     return log_user_action(user, 'profile_edited', detail)
 
 
+def log_user_reported(user, detail=""):
+    """Log user report action."""
+    return log_user_action(user, 'user_reported', detail)
+
+
+def log_user_unblocked(user, detail=""):
+    """Log user unblock action."""
+    return log_user_action(user, 'user_unblocked', detail)
+
+
 # Action type constants for easy reference
 ACTIONS = {
     'SIGNIN': 'user_signin',
@@ -83,4 +93,6 @@ ACTIONS = {
     'MESSAGE_ANSWERED': 'message_answered',
     'USER_DELETED': 'user_deleted',
     'PROFILE_EDITED': 'profile_edited',
+    'USER_REPORTED': 'user_reported',
+    'USER_UNBLOCKED': 'user_unblocked',
 }
