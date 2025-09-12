@@ -261,7 +261,7 @@ def send_message(request):
                     }, status=400)
                 else:
                     # Log slot booking
-                    log_slot_booked(request.user, f"Booked {message_type.name} slot with {receiver.username}")
+                    log_slot_booked(request.user, f"Booked {message_type.name} slot with {receiver.username}", receiver)
         else:
             # For EXISTING conversations with same message type, check suspension status
             # Check if user is suspended
@@ -288,7 +288,7 @@ def send_message(request):
             
             # Log first time message answer
             if is_first_response:
-                log_message_answered(request.user, f"First response to {receiver.username} in {message_type.name if message_type else 'general'} conversation")
+                log_message_answered(request.user, f"First response to {receiver.username} in {message_type.name if message_type else 'general'} conversation", receiver)
         
         # Return success with message data
         return JsonResponse({
@@ -597,7 +597,7 @@ def send_message_request(request, user_id):
         
         if booking:
             # Log slot booking
-            log_slot_booked(request.user, f"Booked {message_type.name} slot with {recipient.username}")
+            log_slot_booked(request.user, f"Booked {message_type.name} slot with {recipient.username}", recipient)
             messages.success(request, f'{message_type.name} message sent to {recipient.username}!')
             return redirect('messaging:conversation', user_id=recipient.id)
         else:
@@ -973,7 +973,7 @@ def report_user(request, user_id):
     report_detail = f"Reported {reported_user.username} for {report_type}"
     if note:
         report_detail += f" - Note: {note[:100]}"  # Limit note length in audit log
-    log_user_reported(request.user, report_detail)
+    log_user_reported(request.user, report_detail, reported_user)
     
     # Create chat block
     from .models import ChatBlock
@@ -1024,7 +1024,7 @@ def unblock_chat(request, user_id):
     if chat_block:
         chat_block.delete()
         # Log the unblock action
-        log_user_unblocked(request.user, f"Unblocked chat with {other_user.username}")
+        log_user_unblocked(request.user, f"Unblocked chat with {other_user.username}", other_user)
         return JsonResponse({
             'success': True,
             'message': 'Chat unblocked successfully'

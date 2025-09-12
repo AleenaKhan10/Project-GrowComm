@@ -8,7 +8,7 @@ throughout the application.
 from .models import AuditEvent
 
 
-def log_user_action(user, action, detail=""):
+def log_user_action(user, action, detail="", target_user=None):
     """
     Log a user action to the audit trail.
     
@@ -16,70 +16,71 @@ def log_user_action(user, action, detail=""):
         user: User instance who performed the action
         action: Action type (must match AuditEvent.ACTION_CHOICES)
         detail: Optional detail about the action
+        target_user: Optional user instance who was the target of the action
     
     Returns:
         AuditEvent instance if successful, None if failed
     """
     try:
-        return AuditEvent.log_action(user, action, detail)
+        return AuditEvent.log_action(user, action, detail, target_user)
     except Exception as e:
         print(f"Failed to log audit action: {e}")
         return None
 
 
-def log_signin(user, detail=""):
+def log_signin(user, detail="", target_user=None):
     """Log user sign in action."""
-    return log_user_action(user, 'user_signin', detail)
+    return log_user_action(user, 'user_signin', detail, target_user)
 
 
-def log_signout(user, detail=""):
+def log_signout(user, detail="", target_user=None):
     """Log user sign out action."""
-    return log_user_action(user, 'user_signout', detail)
+    return log_user_action(user, 'user_signout', detail, target_user)
 
 
-def log_registration(user, detail=""):
+def log_registration(user, detail="", target_user=None):
     """Log user registration action."""
-    return log_user_action(user, 'user_registered', detail)
+    return log_user_action(user, 'user_registered', detail, target_user)
 
 
-def log_invite_created(user, detail=""):
+def log_invite_created(user, detail="", target_user=None):
     """Log invite creation action."""
-    return log_user_action(user, 'invite_created', detail)
+    return log_user_action(user, 'invite_created', detail, target_user)
 
 
-def log_referral_sent(user, detail=""):
+def log_referral_sent(user, detail="", target_user=None):
     """Log referral sent action."""
-    return log_user_action(user, 'referral_sent', detail)
+    return log_user_action(user, 'referral_sent', detail, target_user)
 
 
-def log_slot_booked(user, detail=""):
+def log_slot_booked(user, detail="", target_user=None):
     """Log message slot booking action."""
-    return log_user_action(user, 'slot_booked', detail)
+    return log_user_action(user, 'slot_booked', detail, target_user)
 
 
-def log_message_answered(user, detail=""):
+def log_message_answered(user, detail="", target_user=None):
     """Log message answered for first time action."""
-    return log_user_action(user, 'message_answered', detail)
+    return log_user_action(user, 'message_answered', detail, target_user)
 
 
-def log_user_deleted(user, detail=""):
+def log_user_deleted(user, detail="", target_user=None):
     """Log user deletion action."""
-    return log_user_action(user, 'user_deleted', detail)
+    return log_user_action(user, 'user_deleted', detail, target_user)
 
 
-def log_profile_edited(user, detail=""):
+def log_profile_edited(user, detail="", target_user=None):
     """Log profile edit action."""
-    return log_user_action(user, 'profile_edited', detail)
+    return log_user_action(user, 'profile_edited', detail, target_user)
 
 
-def log_user_reported(user, detail=""):
+def log_user_reported(user, detail="", target_user=None):
     """Log user report action."""
-    return log_user_action(user, 'user_reported', detail)
+    return log_user_action(user, 'user_reported', detail, target_user)
 
 
-def log_user_unblocked(user, detail=""):
+def log_user_unblocked(user, detail="", target_user=None):
     """Log user unblock action."""
-    return log_user_action(user, 'user_unblocked', detail)
+    return log_user_action(user, 'user_unblocked', detail, target_user)
 
 
 # Action type constants for easy reference

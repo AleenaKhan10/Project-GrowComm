@@ -96,7 +96,7 @@ def get_audit_logs(request):
     per_page = int(request.GET.get('per_page', 20))
     
     # Get all audit events ordered by timestamp (newest first)
-    events = AuditEvent.objects.select_related('user').all()
+    events = AuditEvent.objects.select_related('user', 'target_user').all()
     
     # Paginate
     paginator = Paginator(events, per_page)
@@ -109,6 +109,7 @@ def get_audit_logs(request):
             'id': event.id,
             'user': event.user.username if event.user else "Deleted User",
             'action': event.get_action_display(),
+            'target_user': event.target_user.username if event.target_user else None,
             'action_detail': event.action_detail,
             'timestamp': event.timestamp.isoformat()
         })

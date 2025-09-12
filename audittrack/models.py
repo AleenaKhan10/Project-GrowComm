@@ -37,7 +37,16 @@ class AuditEvent(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
+        related_name='audit_actions_performed',
         help_text="User who performed the action"
+    )
+    target_user = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='audit_actions_received',
+        help_text="User who was the target of the action (if applicable)"
     )
     action = models.CharField(
         max_length=50, 
@@ -63,7 +72,7 @@ class AuditEvent(models.Model):
         return f"{self.get_action_display()} - {username} - {self.timestamp.strftime('%Y-%m-%d %H:%M')}"
     
     @classmethod
-    def log_action(cls, user, action, action_detail=""):
+    def log_action(cls, user, action, action_detail="", target_user=None):
         """
         Class method to create audit event.
         
@@ -71,11 +80,13 @@ class AuditEvent(models.Model):
             user: User instance who performed the action
             action: String matching one of the ACTION_CHOICES
             action_detail: Optional detail about the action
+            target_user: Optional user instance who was the target of the action
         """
         return cls.objects.create(
             user=user,
             action=action,
-            action_detail=action_detail
+            action_detail=action_detail,
+            target_user=target_user
         )
     
     @classmethod

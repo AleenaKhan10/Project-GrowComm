@@ -359,7 +359,7 @@ def send_inline_message(request):
                     }, status=400)
                 else:
                     # Log slot booking audit event
-                    log_slot_booked(request.user, f"Booked {message_type_name} slot with {to_user.username} from community page")
+                    log_slot_booked(request.user, f"Booked {message_type_name} slot with {to_user.username} from community page", to_user)
             
             # Check if this is the first time responding to this user with this message type
             is_first_response = False
@@ -392,7 +392,7 @@ def send_inline_message(request):
                 ).exists()
                 
                 if has_received_messages:
-                    log_message_answered(request.user, f"First response to {to_user.username} in {message_type_name} category from community page")
+                    log_message_answered(request.user, f"First response to {to_user.username} in {message_type_name} category from community page", to_user)
             
             # Update the booking to reference the message
             if message_type and booking:
