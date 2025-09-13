@@ -22,7 +22,7 @@
         {% for community in communities %}
         {% if user.is_superuser or community.id in user_communities %}
             <!-- User has access - clickable card -->
-            <div class="card hover:shadow-lg transition-shadow cursor-pointer w-full max-w-sm" onclick="location.href='/community/'">
+            <div class="card hover:shadow-lg transition-shadow cursor-pointer w-full max-w-sm" onclick="location.href='{% url 'communities:user_list' community.id %}'">
                 <div class="p-6">
                     <!-- Membership Status Badge -->
                     <div class="flex justify-between items-start mb-4">

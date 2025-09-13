@@ -11,36 +11,32 @@ from django.contrib.admin.views.decorators import staff_member_required
 import json
 
 from .models import Community, CommunityMembership
+from .decorators import community_member_required, community_exists_required
 from profiles.forms import ProfileSearchForm
 from messaging.models import Message, MessageType, MessageSlotBooking, UserMessageSettings, CustomMessageSlot, ChatHeading
 from messaging.forms import MessageRequestForm
 from audittrack.utils import log_slot_booked, log_message_answered
 
 
-@login_required
-def user_list(request):
-    """Main community page showing all users with unified search functionality"""
+@community_member_required
+def user_list(request, community_id, community=None, membership=None):
+    """Community-specific user list showing members of the specified community"""
     # Get the unified search query
     search_query = request.GET.get('q', '').strip()
     
-    # Get users from the same community as current user (if any)
-    # Superusers can see all users regardless of community
+    # Get users from the specified community
+    # Superusers can see all users in the community
     if request.user.is_superuser:
-        users = User.objects.exclude(id=request.user.id).select_related('profile')
+        users = User.objects.filter(
+            community_memberships__community=community,
+            community_memberships__is_active=True
+        ).exclude(id=request.user.id).select_related('profile').distinct()
     else:
-        # Get current user's communities
-        user_communities = request.user.community_memberships.filter(is_active=True).values_list('community', flat=True)
-        
-        if user_communities:
-            # Show users from the same communities
-            users = User.objects.filter(
-                community_memberships__community__in=user_communities,
-                community_memberships__is_active=True
-            ).exclude(id=request.user.id).select_related('profile').distinct()
-        else:
-            # User has no community - show all users (fallback behavior)
-            # This ensures new users or users without communities can still see people
-            users = User.objects.exclude(id=request.user.id).select_related('profile')
+        # Regular users see other community members
+        users = User.objects.filter(
+            community_memberships__community=community,
+            community_memberships__is_active=True
+        ).exclude(id=request.user.id).select_related('profile').distinct()
     
     # Apply unified search if provided
     if search_query:
@@ -133,6 +129,9 @@ def user_list(request):
         'message_types': message_types,
         'users_slot_data': users_slot_data,
         'users_slot_data_json': json.dumps(users_slot_data, default=str),
+        'community': community,
+        'community_id': community_id,
+        'membership': membership,
     }
     return render(request, 'communities/user_list.html', context)
 

@@ -12,7 +12,7 @@ class CreateInviteForm(forms.ModelForm):
         initial=7,
         help_text="Number of days until the invite expires (1-30 days)",
         widget=forms.NumberInput(attrs={
-            'class': 'w-full px-4 py-3 bg-zinc-800 border-2 border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-0 focus:border-lime focus:shadow-lime transition-all duration-200',
+            'class': 'input',
             'placeholder': 'Enter number of days (1-30)',
         })
     )

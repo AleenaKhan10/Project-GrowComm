@@ -120,9 +120,15 @@ document.body.classList.add('messages-page');
                             </svg>
                         </div>
                         <p class="text-gray-600 text-sm">No conversations yet</p>
-                        <a href="{% url 'communities:user_list' %}" class="btn btn-ghost mt-3 text-sm">
+                        {% if request.resolver_match.kwargs.community_id %}
+                        <a href="{% url 'communities:user_list' request.resolver_match.kwargs.community_id %}" class="btn btn-ghost mt-3 text-sm">
                             Browse Community
                         </a>
+                        {% else %}
+                        <a href="{% url 'communities:community_list' %}" class="btn btn-ghost mt-3 text-sm">
+                            Browse Communities
+                        </a>
+                        {% endif %}
                     </div>
                 {% endif %}
             </div>

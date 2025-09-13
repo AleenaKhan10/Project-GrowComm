@@ -1,13 +1,20 @@
 from django.urls import path
 from . import views
+from . import community_views
 
 app_name = 'messaging'
 
 urlpatterns = [
-    # Main inbox view
+    # Main inbox view (no community context)
     path('', views.inbox, name='inbox'),
     
-    # Conversation views
+    # Community-specific messaging
+    path('community/<int:community_id>/', community_views.community_inbox, name='community_inbox'),
+    path('community/<int:community_id>/conversation/<int:user_id>/', community_views.community_conversation_view, name='community_conversation'),
+    path('community/<int:community_id>/send-request/<int:user_id>/', community_views.community_send_message_request, name='community_send_request'),
+    path('community/<int:community_id>/api/send-message/', community_views.community_send_message_api, name='community_send_message_api'),
+    
+    # Non-community conversation views
     path('conversation/<int:user_id>/', views.conversation_view, name='conversation'),
     
     # AJAX endpoints for messaging

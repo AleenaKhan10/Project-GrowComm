@@ -15,6 +15,7 @@ from .models import (
     MessageType, UserMessageSettings, MessageSlotBooking, IdentityRevelation,
     CustomMessageSlot, MessageReport, UserBlock, ChatBlock, ChatHeading
 )
+from communities.decorators import community_member_required
 from .forms import (
     MessageRequestForm, MessageReplyForm, UserMessageSettingsForm,
     CustomMessageSlotForm, CustomMessageSlotFormSet

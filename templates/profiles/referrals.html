@@ -134,7 +134,7 @@
         <div class="card">
             <h3 class="text-lg font-medium text-black mb-4">Send a Referral</h3>
             
-            {% if user.profile.is_verified %}
+            {% if user.is_superuser or user.profile.is_verified %}
                 <form method="post" action="{% url 'profiles:send_referral' %}" class="space-y-6">
                     {% csrf_token %}
                     <div class="form-group">

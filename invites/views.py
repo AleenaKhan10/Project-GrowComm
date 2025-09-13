@@ -14,7 +14,7 @@ from audittrack.utils import log_invite_created, log_referral_sent
 @login_required
 def my_invites(request):
     """Combined view for invites and referrals management"""
-    user_invites = InviteLink.objects.filter(created_by=request.user)
+    user_invites = InviteLink.objects.filter(created_by=request.user).order_by('-created_date')
     
     # Get referral data
     profile = request.user.profile

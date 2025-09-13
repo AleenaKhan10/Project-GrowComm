@@ -540,7 +540,7 @@
             <h3 class="text-lg font-medium text-black mb-4">Send a Referral</h3>
             <p class="text-gray-600 mb-6">Refer someone to help them get verified in the community.</p>
             
-            {% if verification_status.is_verified %}
+            {% if user.is_superuser or verification_status.is_verified %}
                 <form method="post" action="{% url 'invites:my_invites' %}" class="space-y-6">
                     {% csrf_token %}
                     <input type="hidden" name="send_referral" value="1">

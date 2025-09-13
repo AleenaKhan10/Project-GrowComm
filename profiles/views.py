@@ -8,6 +8,7 @@ from django.http import JsonResponse
 from .models import UserProfile, Referral
 from .forms import UserProfileForm, SendReferralForm, CustomMessageSlotForm, UserMessageSettingsForm
 from .decorators import verified_user_required
+from communities.decorators import community_member_required
 from messaging.models import CustomMessageSlot, UserMessageSettings
 from audittrack.utils import log_user_deleted, log_profile_edited
 
@@ -327,3 +328,334 @@ def get_custom_slots(request):
 def message_categories(request):
     """Standalone message categories management page"""
     return render(request, 'profiles/message_categories.html')
+
+
+# Community-specific profile views with membership validation
+
+@community_member_required
+def community_profile_view(request, community_id, user_id, community=None, membership=None):
+    """View a user's profile within a community context"""
+    user = get_object_or_404(User, id=user_id)
+    profile = user.profile
+    
+    # Check if current user can view this profile
+    can_message = request.user != user and request.user.is_authenticated
+    
+    context = {
+        'profile_user': user,
+        'profile': profile,
+        'can_message': can_message,
+        'community': community,
+        'community_id': community_id,
+        'membership': membership,
+    }
+    return render(request, 'profiles/profile_view.html', context)
+
+
+@community_member_required
+def community_profile_edit(request, community_id, community=None, membership=None):
+    """Edit current user's profile within a community context"""
+    profile = request.user.profile
+    
+    # Get or create message settings
+    message_settings, created = UserMessageSettings.objects.get_or_create(user=request.user)
+    
+    # Get user's custom message slots
+    custom_slots = CustomMessageSlot.objects.filter(user=request.user).order_by('name')
+    
+    if request.method == 'POST':
+        form = UserProfileForm(request.POST, request.FILES, instance=profile, user=request.user)
+        settings_form = UserMessageSettingsForm(request.POST, instance=message_settings)
+        
+        if form.is_valid() and settings_form.is_valid():
+            form.save()
+            settings_form.save()
+            log_profile_edited(request.user, "Updated profile information")
+            messages.success(request, 'Your profile has been updated successfully!')
+            return redirect('profiles:community_view', community_id=community_id, user_id=request.user.id)
+        else:
+            messages.error(request, 'Please correct the errors below.')
+    else:
+        form = UserProfileForm(instance=profile, user=request.user)
+        settings_form = UserMessageSettingsForm(instance=message_settings)
+    
+    context = {
+        'form': form,
+        'settings_form': settings_form,
+        'custom_slots': custom_slots,
+        'use_custom_slots': message_settings.use_custom_slots,
+        'community': community,
+        'community_id': community_id,
+        'membership': membership,
+    }
+    return render(request, 'profiles/profile_edit.html', context)
+
+
+@community_member_required
+def community_user_search(request, community_id, community=None, membership=None):
+    """Search and filter users within a community context"""
+    search_query = request.GET.get('search', '').strip()
+    organization_level = request.GET.get('organization_level', '')
+    tags_filter = request.GET.get('tags', '').strip()
+    
+    # Start with community members only (exclude current user)
+    users = User.objects.filter(
+        community_memberships__community=community,
+        community_memberships__is_active=True
+    ).exclude(id=request.user.id).select_related('profile').distinct()
+    
+    # Apply search filter
+    if search_query:
+        users = users.filter(
+            Q(first_name__icontains=search_query) |
+            Q(last_name__icontains=search_query) |
+            Q(username__icontains=search_query) |
+            Q(profile__company__icontains=search_query) |
+            Q(profile__team__icontains=search_query) |
+            Q(profile__bio__icontains=search_query) |
+            Q(profile__tags__icontains=search_query) |
+            Q(profile__schools__icontains=search_query)
+        )
+    
+    # Apply organization level filter
+    if organization_level:
+        users = users.filter(profile__organization_level=organization_level)
+    
+    # Apply tags filter
+    if tags_filter:
+        tag_list = [tag.strip().lower() for tag in tags_filter.split(',') if tag.strip()]
+        for tag in tag_list:
+            users = users.filter(profile__tags__icontains=tag)
+    
+    # Limit results
+    users = users[:50]
+    
+    context = {
+        'users': users,
+        'search_query': search_query,
+        'community': community,
+        'community_id': community_id,
+        'membership': membership,
+    }
+    
+    if request.headers.get('HX-Request'):
+        return render(request, 'profiles/user_list_partial.html', context)
+    
+    return render(request, 'profiles/user_search.html', context)
+
+
+@community_member_required
+def community_referrals_view(request, community_id, community=None, membership=None):
+    """View referrals page within community context"""
+    profile = request.user.profile
+    
+    # Get received referrals
+    received_referrals = Referral.objects.filter(
+        recipient_user=request.user
+    ).select_related('sender').order_by('-created_at')
+    
+    # Get sent referrals
+    sent_referrals = Referral.objects.filter(
+        sender=request.user
+    ).select_related('recipient_user').order_by('-created_at')
+    
+    context = {
+        'profile': profile,
+        'received_referrals': received_referrals,
+        'sent_referrals': sent_referrals,
+        'verification_status': {
+            'is_verified': profile.is_verified,
+            'referral_count': profile.referral_count,
+            'referrals_needed': profile.referrals_needed,
+            'needs_referrals': profile.needs_referrals,
+        },
+        'community': community,
+        'community_id': community_id,
+        'membership': membership,
+    }
+    return render(request, 'profiles/referrals.html', context)
+
+
+@community_member_required
+@verified_user_required
+def community_send_referral(request, community_id, community=None, membership=None):
+    """Send a referral within community context"""
+    if request.method == 'POST':
+        form = SendReferralForm(user=request.user, data=request.POST)
+        if form.is_valid():
+            try:
+                referral = form.save()
+                messages.success(
+                    request, 
+                    f'Referral sent successfully to {referral.recipient_email}!'
+                )
+                return redirect('profiles:community_referrals', community_id=community_id)
+            except Exception as e:
+                messages.error(request, f'Failed to send referral: {str(e)}')
+        else:
+            messages.error(request, 'Please correct the errors below.')
+    else:
+        form = SendReferralForm(user=request.user)
+    
+    context = {
+        'form': form,
+        'community': community,
+        'community_id': community_id,
+        'membership': membership,
+    }
+    return render(request, 'profiles/send_referral.html', context)
+
+
+@community_member_required
+def community_referral_stats(request, community_id, community=None, membership=None):
+    """AJAX endpoint for referral statistics within community context"""
+    profile = request.user.profile
+    
+    stats = {
+        'is_verified': profile.is_verified,
+        'referral_count': profile.referral_count,
+        'referrals_needed': profile.referrals_needed,
+        'needs_referrals': profile.needs_referrals,
+    }
+    
+    return JsonResponse(stats)
+
+
+@community_member_required
+def community_message_categories(request, community_id, community=None, membership=None):
+    """Message categories management page within community context"""
+    context = {
+        'community': community,
+        'community_id': community_id,
+        'membership': membership,
+    }
+    return render(request, 'profiles/message_categories.html', context)
+
+
+@community_member_required
+def community_add_custom_slot(request, community_id, community=None, membership=None):
+    """Add a new custom message slot category within community context"""
+    if request.method == 'POST':
+        form = CustomMessageSlotForm(user=request.user, data=request.POST)
+        if form.is_valid():
+            slot = form.save()
+            if request.headers.get('HX-Request'):
+                # Return updated slots list for HTMX
+                custom_slots = CustomMessageSlot.objects.filter(user=request.user).order_by('name')
+                context = {
+                    'custom_slots': custom_slots,
+                    'can_edit': True,
+                    'community': community,
+                    'community_id': community_id,
+                }
+                return render(request, 'profiles/custom_slots_list.html', context)
+            else:
+                messages.success(request, f'Category "{slot.name}" has been added successfully!')
+                return redirect('profiles:community_message_categories', community_id=community_id)
+        else:
+            if request.headers.get('HX-Request'):
+                # Return form with errors for HTMX
+                context = {
+                    'form': form,
+                    'community': community,
+                    'community_id': community_id,
+                }
+                return render(request, 'profiles/custom_slot_form.html', context)
+            else:
+                messages.error(request, 'Please correct the errors in the form.')
+    else:
+        form = CustomMessageSlotForm(user=request.user)
+    
+    if request.headers.get('HX-Request'):
+        context = {
+            'form': form,
+            'community': community,
+            'community_id': community_id,
+        }
+        return render(request, 'profiles/custom_slot_form.html', context)
+    
+    # Redirect to profile edit if not HTMX request
+    return redirect('profiles:community_message_categories', community_id=community_id)
+
+
+@community_member_required
+def community_edit_custom_slot(request, community_id, slot_id, community=None, membership=None):
+    """Edit an existing custom message slot within community context"""
+    slot = get_object_or_404(CustomMessageSlot, id=slot_id, user=request.user)
+    
+    if request.method == 'POST':
+        form = CustomMessageSlotForm(user=request.user, data=request.POST, instance=slot)
+        if form.is_valid():
+            form.save()
+            if request.headers.get('HX-Request'):
+                # Return updated slots list for HTMX
+                custom_slots = CustomMessageSlot.objects.filter(user=request.user).order_by('name')
+                context = {
+                    'custom_slots': custom_slots,
+                    'can_edit': True,
+                    'community': community,
+                    'community_id': community_id,
+                }
+                return render(request, 'profiles/custom_slots_list.html', context)
+            else:
+                messages.success(request, f'Category "{slot.name}" has been updated successfully!')
+                return redirect('profiles:community_message_categories', community_id=community_id)
+        else:
+            if request.headers.get('HX-Request'):
+                context = {
+                    'form': form,
+                    'slot': slot,
+                    'community': community,
+                    'community_id': community_id,
+                }
+                return render(request, 'profiles/custom_slot_form.html', context)
+    else:
+        form = CustomMessageSlotForm(user=request.user, instance=slot)
+    
+    if request.headers.get('HX-Request'):
+        context = {
+            'form': form,
+            'slot': slot,
+            'community': community,
+            'community_id': community_id,
+        }
+        return render(request, 'profiles/custom_slot_form.html', context)
+    
+    return redirect('profiles:community_message_categories', community_id=community_id)
+
+
+@community_member_required
+def community_delete_custom_slot(request, community_id, slot_id, community=None, membership=None):
+    """Delete a custom message slot within community context"""
+    slot = get_object_or_404(CustomMessageSlot, id=slot_id, user=request.user)
+    
+    if request.method == 'DELETE':
+        slot_name = slot.name
+        slot.delete()
+        if request.headers.get('HX-Request'):
+            # Return updated slots list for HTMX
+            custom_slots = CustomMessageSlot.objects.filter(user=request.user).order_by('name')
+            context = {
+                'custom_slots': custom_slots,
+                'can_edit': True,
+                'community': community,
+                'community_id': community_id,
+            }
+            return render(request, 'profiles/custom_slots_list.html', context)
+        else:
+            messages.success(request, f'Category "{slot_name}" has been deleted successfully!')
+    
+    return redirect('profiles:community_message_categories', community_id=community_id)
+
+
+@community_member_required
+def community_get_custom_slots(request, community_id, community=None, membership=None):
+    """HTMX endpoint to get user's custom slots within community context"""
+    custom_slots = CustomMessageSlot.objects.filter(user=request.user).order_by('name')
+    context = {
+        'custom_slots': custom_slots,
+        'can_edit': True,
+        'community': community,
+        'community_id': community_id,
+    }
+    return render(request, 'profiles/custom_slots_list.html', context)
