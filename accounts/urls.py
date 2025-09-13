@@ -11,4 +11,6 @@ urlpatterns = [
     path('login/user/', views.UserLoginView.as_view(), name='user_login'),  # Keep for legacy
     path('logout/', views.logout_view, name='logout'),
     path('register/<uuid:invite_code>/', views.register_view, name='register'),
+    path('verify-otp/<str:email>/', views.verify_otp_view, name='verify_otp'),
+    path('resend-otp/', views.resend_otp_view, name='resend_otp'),
 ]

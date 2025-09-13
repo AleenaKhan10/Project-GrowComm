@@ -1,11 +1,14 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, authenticate, logout
+from django.contrib.auth.models import User
 from django.contrib import messages
 from django.contrib.auth.views import LoginView
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse_lazy
 from django.views.generic import CreateView
-from .forms import AdminLoginForm, UserLoginForm, InviteRegistrationForm, UnifiedLoginForm
+from .forms import AdminLoginForm, UserLoginForm, InviteRegistrationForm, UnifiedLoginForm, OTPVerificationForm, ResendOTPForm
+from .otp_service import OTPService
+from .models import EmailOTP
 from invites.models import InviteLink
 from profiles.decorators import verified_user_required
 from django.http import Http404, HttpResponseForbidden
@@ -100,46 +103,28 @@ def register_view(request, invite_code):
     if request.method == 'POST':
         form = InviteRegistrationForm(invite_code=invite_code, data=request.POST)
         if form.is_valid():
-            user = form.save()
+            # Instead of creating user immediately, send OTP first
+            email = form.cleaned_data['email']
+            username = form.cleaned_data['username']
+            first_name = form.cleaned_data['first_name']
+            last_name = form.cleaned_data['last_name']
+            password = form.cleaned_data['password1']
             
-            # Set verification status based on who sent the invite
-            profile = user.profile
-            profile.invite_source = invite.created_by
+            # Send OTP email
+            success, result = OTPService.send_otp_email(
+                email=email,
+                username=username,
+                first_name=first_name,
+                last_name=last_name,
+                password=password,
+                invite_code=invite_code
+            )
             
-            if invite.created_by.is_superuser:
-                # Superadmin invite - verify immediately
-                profile.is_verified = True
-                profile.needs_referrals = False
-                messages.success(request, f'Welcome to GrwComm, {user.first_name}! Your account is fully verified.')
+            if success:
+                messages.success(request, f'Verification code sent to {email}. Please check your email.')
+                return redirect('accounts:verify_otp', email=email)
             else:
-                # Regular user invite - needs referrals
-                profile.is_verified = False
-                profile.needs_referrals = True
-                messages.info(request, f'Welcome to GrwComm, {user.first_name}! You need 3 referrals to unlock all features.')
-            
-            profile.save()
-            
-            # Join community if invite has one
-            if invite.community:
-                from communities.models import CommunityMembership
-                CommunityMembership.objects.create(
-                    user=user,
-                    community=invite.community,
-                    role='member',
-                    is_active=True
-                )
-            
-            # Log registration event
-            log_registration(user, f"Registered via invite from {invite.created_by.username}")
-            
-            # Automatically log in the user after registration
-            username = form.cleaned_data.get('username')
-            password = form.cleaned_data.get('password1')
-            user = authenticate(username=username, password=password)
-            if user:
-                login(request, user)
-                log_signin(user, "Initial login after registration")
-                return redirect('profiles:edit')  # Redirect to profile setup
+                messages.error(request, f'Failed to send verification email: {result}')
         else:
             messages.error(request, 'Please correct the errors below.')
     else:
@@ -151,6 +136,123 @@ def register_view(request, invite_code):
         'inviter_name': invite.created_by.first_name or invite.created_by.username,
     }
     return render(request, 'accounts/register.html', context)
+
+
+def verify_otp_view(request, email):
+    """OTP verification view"""
+    if request.method == 'POST':
+        form = OTPVerificationForm(email=email, data=request.POST)
+        if form.is_valid():
+            entered_otp = form.cleaned_data['otp_code']
+            
+            # Verify OTP
+            success, result = OTPService.verify_otp(email, entered_otp)
+            
+            if success:
+                # OTP verified successfully, create user
+                otp_record = result
+                
+                # Get invite
+                try:
+                    invite = InviteLink.objects.get(code=otp_record.invite_code)
+                except InviteLink.DoesNotExist:
+                    messages.error(request, 'Invalid invite code.')
+                    return redirect('accounts:login')
+                
+                # Create user
+                user = User.objects.create_user(
+                    username=otp_record.username,
+                    email=otp_record.email,
+                    first_name=otp_record.first_name,
+                    last_name=otp_record.last_name,
+                    password=None  # We'll set the password manually
+                )
+                
+                # Set the password from the stored hash
+                user.password = otp_record.password_hash
+                user.save()
+                
+                # Set verification status based on who sent the invite
+                profile = user.profile
+                profile.invite_source = invite.created_by
+                
+                if invite.created_by.is_superuser:
+                    # Superadmin invite - verify immediately
+                    profile.is_verified = True
+                    profile.needs_referrals = False
+                    messages.success(request, f'Welcome to GrwComm, {user.first_name}! Your account is fully verified.')
+                else:
+                    # Regular user invite - needs referrals
+                    profile.is_verified = False
+                    profile.needs_referrals = True
+                    messages.info(request, f'Welcome to GrwComm, {user.first_name}! You need 3 referrals to unlock all features.')
+                
+                profile.save()
+                
+                # Join community if invite has one
+                if invite.community:
+                    from communities.models import CommunityMembership
+                    CommunityMembership.objects.create(
+                        user=user,
+                        community=invite.community,
+                        role='member',
+                        is_active=True
+                    )
+                
+                # Mark invite as used
+                invite.mark_as_used(user)
+                
+                # Create referral approval record
+                from invites.models import ReferralApproval
+                ReferralApproval.objects.create(
+                    invited_user=user,
+                    inviter=invite.created_by
+                )
+                
+                # Log registration event
+                log_registration(user, f"Registered via invite from {invite.created_by.username}")
+                
+                # Clean up OTP record
+                otp_record.delete()
+                
+                # Automatically log in the user
+                login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+                log_signin(user, "Initial login after registration")
+                return redirect('profiles:edit')  # Redirect to profile setup
+                
+            else:
+                # OTP verification failed
+                messages.error(request, result)
+        else:
+            messages.error(request, 'Please enter a valid 6-digit code.')
+    else:
+        form = OTPVerificationForm(email=email)
+    
+    # Get invite code for links
+    otp_record = EmailOTP.objects.filter(email=email, is_verified=False).order_by('-created_at').first()
+    invite_code = otp_record.invite_code if otp_record else None
+    
+    context = {
+        'form': form,
+        'email': email,
+        'invite_code': invite_code,
+    }
+    return render(request, 'accounts/verify_otp.html', context)
+
+
+def resend_otp_view(request):
+    """Resend OTP view"""
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        if email:
+            success, message = OTPService.resend_otp(email)
+            if success:
+                messages.success(request, message)
+            else:
+                messages.error(request, message)
+            return redirect('accounts:verify_otp', email=email)
+    
+    return redirect('accounts:login')
 
 
 @login_required

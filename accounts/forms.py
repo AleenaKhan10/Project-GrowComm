@@ -260,3 +260,42 @@ class InviteRegistrationForm(UserCreationForm):
                 )
         
         return user
+
+
+class OTPVerificationForm(forms.Form):
+    """Form for OTP verification"""
+    
+    otp_code = forms.CharField(
+        max_length=6,
+        min_length=6,
+        required=True,
+        widget=forms.TextInput(attrs={
+            'class': 'input text-center text-2xl tracking-widest',
+            'placeholder': '000000',
+            'maxlength': '6',
+            'pattern': '[0-9]{6}',
+            'autocomplete': 'one-time-code',
+            'inputmode': 'numeric'
+        }),
+        help_text="Enter the 6-digit code sent to your email"
+    )
+    
+    def __init__(self, email=None, *args, **kwargs):
+        self.email = email
+        super().__init__(*args, **kwargs)
+    
+    def clean_otp_code(self):
+        otp_code = self.cleaned_data.get('otp_code')
+        
+        if not otp_code.isdigit():
+            raise forms.ValidationError("OTP must contain only numbers.")
+        
+        return otp_code
+
+
+class ResendOTPForm(forms.Form):
+    """Form for resending OTP"""
+    
+    def __init__(self, email=None, *args, **kwargs):
+        self.email = email
+        super().__init__(*args, **kwargs)
