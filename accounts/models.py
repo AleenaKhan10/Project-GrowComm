@@ -65,6 +65,42 @@ class EmailOTP(models.Model):
         cls.objects.filter(created_at__lt=expiry_time).delete()
 
 
+class PasswordResetToken(models.Model):
+    """Model to store password reset tokens"""
+    
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    token = models.CharField(max_length=64, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_used = models.BooleanField(default=False)
+    
+    class Meta:
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"Password reset for {self.user.email} - {self.token[:8]}..."
+    
+    @classmethod
+    def generate_token(cls):
+        """Generate a secure random token"""
+        import secrets
+        return secrets.token_urlsafe(32)
+    
+    def is_expired(self):
+        """Check if token is expired (24 hours)"""
+        expiry_time = self.created_at + timedelta(hours=24)
+        return timezone.now() > expiry_time
+    
+    def is_valid(self):
+        """Check if token is valid (not expired, not used)"""
+        return not self.is_expired() and not self.is_used
+    
+    @classmethod
+    def cleanup_expired(cls):
+        """Remove expired tokens"""
+        expiry_time = timezone.now() - timedelta(hours=24)
+        cls.objects.filter(created_at__lt=expiry_time).delete()
+
+
 # The accounts app uses Django's built-in User model
 # Extended functionality is provided through UserProfile in the profiles app
 # and ReferralApproval/InviteLink in the invites app

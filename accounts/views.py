@@ -6,9 +6,10 @@ from django.contrib.auth.views import LoginView
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse_lazy
 from django.views.generic import CreateView
-from .forms import AdminLoginForm, UserLoginForm, InviteRegistrationForm, UnifiedLoginForm, OTPVerificationForm, ResendOTPForm
+from .forms import AdminLoginForm, UserLoginForm, InviteRegistrationForm, UnifiedLoginForm, OTPVerificationForm, ResendOTPForm, PasswordResetRequestForm, PasswordResetConfirmForm
 from .otp_service import OTPService
-from .models import EmailOTP
+from .password_reset_service import PasswordResetService
+from .models import EmailOTP, PasswordResetToken
 from invites.models import InviteLink
 from profiles.decorators import verified_user_required
 from django.http import Http404, HttpResponseForbidden
@@ -277,3 +278,66 @@ def csrf_failure_view(request, reason=""):
     """Custom CSRF failure view with better error handling"""
     messages.error(request, 'Security verification failed. Please try again.')
     return redirect('accounts:login')
+
+
+def password_reset_request_view(request):
+    """Password reset request view"""
+    if request.method == 'POST':
+        form = PasswordResetRequestForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data['email']
+            
+            # Send reset email
+            success, message = PasswordResetService.send_reset_email(email)
+            
+            if success:
+                messages.success(request, 'If an account with this email exists, you\'ll receive password reset instructions shortly.')
+                return redirect('accounts:login')
+            else:
+                messages.error(request, message)
+        else:
+            messages.error(request, 'Please correct the errors below.')
+    else:
+        form = PasswordResetRequestForm()
+    
+    context = {
+        'form': form,
+    }
+    return render(request, 'accounts/password_reset_request.html', context)
+
+
+def password_reset_confirm_view(request, token):
+    """Password reset confirmation view"""
+    # Verify token first
+    success, result = PasswordResetService.verify_token(token)
+    
+    if not success:
+        messages.error(request, result)
+        return redirect('accounts:login')
+    
+    reset_token = result
+    
+    if request.method == 'POST':
+        form = PasswordResetConfirmForm(request.POST)
+        if form.is_valid():
+            new_password = form.cleaned_data['new_password']
+            
+            # Reset password
+            success, message = PasswordResetService.reset_password(token, new_password)
+            
+            if success:
+                messages.success(request, 'Your password has been reset successfully. You can now sign in with your new password.')
+                return redirect('accounts:login')
+            else:
+                messages.error(request, message)
+        else:
+            messages.error(request, 'Please correct the errors below.')
+    else:
+        form = PasswordResetConfirmForm()
+    
+    context = {
+        'form': form,
+        'token': token,
+        'user_email': reset_token.user.email,
+    }
+    return render(request, 'accounts/password_reset_confirm.html', context)
