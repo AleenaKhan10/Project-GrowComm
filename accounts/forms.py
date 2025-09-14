@@ -42,6 +42,14 @@ class UnifiedLoginForm(forms.Form):
                     self.user_cache = authenticate(self.request, username=user.username, password=password)
                 except User.DoesNotExist:
                     pass
+                except User.MultipleObjectsReturned:
+                    # Handle multiple users with same email (shouldn't happen after cleanup)
+                    users = User.objects.filter(email=username_email)
+                    # Try to authenticate with each user until one works
+                    for user in users:
+                        self.user_cache = authenticate(self.request, username=user.username, password=password)
+                        if self.user_cache:
+                            break
             
             if self.user_cache is None:
                 raise forms.ValidationError("Invalid username/email or password.")
@@ -85,6 +93,15 @@ class AdminLoginForm(AuthenticationForm):
                     raise forms.ValidationError("Invalid email or password.")
             except User.DoesNotExist:
                 raise forms.ValidationError("Invalid email or password.")
+            except User.MultipleObjectsReturned:
+                # Handle multiple users with same email
+                users = User.objects.filter(email=email)
+                for user in users:
+                    self.user_cache = authenticate(self.request, username=user.username, password=password)
+                    if self.user_cache and self.user_cache.is_staff:
+                        break
+                if self.user_cache is None:
+                    raise forms.ValidationError("Invalid email or password.")
         
         return self.cleaned_data
 
@@ -144,6 +161,18 @@ class UserLoginForm(forms.Form):
                     
             except User.DoesNotExist:
                 raise forms.ValidationError("Invalid email or password.")
+            except User.MultipleObjectsReturned:
+                # Handle multiple users with same email
+                users = User.objects.filter(email=email)
+                for user in users:
+                    self.user_cache = authenticate(self.request, username=user.username, password=password)
+                    if self.user_cache:
+                        # Check if user is associated with this invite
+                        if not user.is_staff and not hasattr(user, 'profile'):
+                            continue  # Try next user
+                        break
+                if self.user_cache is None:
+                    raise forms.ValidationError("Invalid email or password.")
         
         return self.cleaned_data
     
@@ -235,9 +264,19 @@ class InviteRegistrationForm(UserCreationForm):
     
     def clean_email(self):
         email = self.cleaned_data.get('email')
-        if User.objects.filter(email=email).exists():
-            raise forms.ValidationError("A user with this email already exists.")
+        if email:
+            # Check if email already exists
+            if User.objects.filter(email=email).exists():
+                raise forms.ValidationError("A user with this email address already exists. Please use a different email or try signing in.")
         return email
+    
+    def clean_username(self):
+        username = self.cleaned_data.get('username')
+        if username:
+            # Check if username already exists
+            if User.objects.filter(username=username).exists():
+                raise forms.ValidationError("This username is already taken. Please choose a different username.")
+        return username
     
     def save(self, commit=True):
         user = super().save(commit=False)
@@ -317,6 +356,10 @@ class PasswordResetRequestForm(forms.Form):
         email = self.cleaned_data.get('email')
         if not User.objects.filter(email=email).exists():
             raise forms.ValidationError("No account found with this email address.")
+        elif User.objects.filter(email=email).count() > 1:
+            # Multiple accounts with same email - this shouldn't happen after cleanup
+            # But we'll handle it gracefully by continuing (password reset will work for any of them)
+            pass
         return email
 
 

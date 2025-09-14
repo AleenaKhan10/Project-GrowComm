@@ -674,6 +674,230 @@
         }, 5000);
     </script>
     
+    {% if user.is_authenticated %}
+    <!-- Focus Tracking JavaScript -->
+    <script>
+    (function() {
+        'use strict';
+        
+        // Focus tracking configuration
+        const FOCUS_CONFIG = {
+            apiEndpoint: '/audit/api/focus/log/',
+            throttleDelay: 1000, // Minimum time between API calls (ms)
+            sessionId: Date.now() + '-' + Math.random().toString(36).substr(2, 9),
+            isTracking: true
+        };
+        
+        // State management
+        let isPageVisible = !document.hidden;
+        let isWindowFocused = document.hasFocus();
+        let lastEventTime = 0;
+        let focusStartTime = null;
+        
+        // Helper function to get CSRF token
+        function getCSRFToken() {
+            // Try to get from cookie first
+            const cookieValue = document.cookie.split(';').find(row => row.trim().startsWith('csrftoken='));
+            if (cookieValue) {
+                return cookieValue.split('=')[1];
+            }
+            
+            // Try to get from meta tag
+            const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+            if (csrfMeta) {
+                return csrfMeta.getAttribute('content');
+            }
+            
+            // Try to get from input field
+            const csrfInput = document.querySelector('input[name="csrfmiddlewaretoken"]');
+            if (csrfInput) {
+                return csrfInput.value;
+            }
+            
+            return null;
+        }
+        
+        // Throttle function to prevent too many API calls
+        function throttle(func, delay) {
+            return function() {
+                const now = Date.now();
+                if (now - lastEventTime >= delay) {
+                    lastEventTime = now;
+                    func.apply(this, arguments);
+                }
+            };
+        }
+        
+        // Send focus event to server
+        function logFocusEvent(eventType) {
+            if (!FOCUS_CONFIG.isTracking) return;
+            
+            const data = {
+                event_type: eventType,
+                page_url: window.location.href,
+                page_title: document.title,
+                session_id: FOCUS_CONFIG.sessionId
+            };
+            
+            const csrfToken = getCSRFToken();
+            if (!csrfToken) {
+                console.warn('Focus tracking: CSRF token not found');
+                return;
+            }
+            
+            // Use fetch API with proper error handling
+            fetch(FOCUS_CONFIG.apiEndpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify(data),
+                keepalive: true
+            }).then(function(response) {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    throw new Error('HTTP ' + response.status + ': ' + response.statusText);
+                }
+            }).then(function(result) {
+                if (result.success) {
+                    console.log('Focus Event logged:', eventType, data.page_url);
+                } else {
+                    console.warn('Focus tracking API error:', result.error);
+                }
+            }).catch(function(error) {
+                console.warn('Focus tracking error:', error);
+                // Fallback: try sendBeacon for page unload events
+                if (eventType === 'focus_end' && navigator.sendBeacon) {
+                    const formData = new FormData();
+                    formData.append('data', JSON.stringify(data));
+                    formData.append('csrfmiddlewaretoken', csrfToken);
+                    navigator.sendBeacon(FOCUS_CONFIG.apiEndpoint, formData);
+                }
+            });
+        }
+        
+        // Determine if page should be considered "focused"
+        function shouldTrackAsFocused() {
+            return isPageVisible && isWindowFocused;
+        }
+        
+        // Handle focus state changes
+        const handleFocusChange = throttle(function() {
+            const nowFocused = shouldTrackAsFocused();
+            
+            if (nowFocused && focusStartTime === null) {
+                // Page gained focus
+                focusStartTime = Date.now();
+                logFocusEvent('focus_start');
+            } else if (!nowFocused && focusStartTime !== null) {
+                // Page lost focus
+                focusStartTime = null;
+                logFocusEvent('focus_end');
+            }
+        }, FOCUS_CONFIG.throttleDelay);
+        
+        // Event listeners for different focus scenarios
+        
+        // Page Visibility API (tab switching, minimizing)
+        document.addEventListener('visibilitychange', function() {
+            isPageVisible = !document.hidden;
+            handleFocusChange();
+        });
+        
+        // Window focus/blur (switching between applications)
+        window.addEventListener('focus', function() {
+            isWindowFocused = true;
+            handleFocusChange();
+        });
+        
+        window.addEventListener('blur', function() {
+            isWindowFocused = false;
+            handleFocusChange();
+        });
+        
+        // Page unload (ensure we log focus_end when leaving page)
+        window.addEventListener('beforeunload', function() {
+            if (focusStartTime !== null) {
+                // Use sendBeacon for reliable delivery during page unload
+                logFocusEvent('focus_end');
+            }
+        });
+        
+        // Handle page navigation (SPA-style)
+        let currentUrl = window.location.href;
+        const originalPushState = history.pushState;
+        const originalReplaceState = history.replaceState;
+        
+        function handleUrlChange() {
+            if (window.location.href !== currentUrl) {
+                // URL changed, log focus_end for old page and focus_start for new page
+                if (focusStartTime !== null) {
+                    logFocusEvent('focus_end');
+                }
+                currentUrl = window.location.href;
+                if (shouldTrackAsFocused()) {
+                    focusStartTime = Date.now();
+                    setTimeout(function() {
+                        logFocusEvent('focus_start');
+                    }, 100); // Small delay to ensure page is ready
+                }
+            }
+        }
+        
+        history.pushState = function() {
+            originalPushState.apply(this, arguments);
+            handleUrlChange();
+        };
+        
+        history.replaceState = function() {
+            originalReplaceState.apply(this, arguments);
+            handleUrlChange();
+        };
+        
+        window.addEventListener('popstate', handleUrlChange);
+        
+        // Initialize tracking when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            // Small delay to ensure page is fully loaded
+            setTimeout(function() {
+                if (shouldTrackAsFocused()) {
+                    focusStartTime = Date.now();
+                    logFocusEvent('focus_start');
+                }
+            }, 1000);
+        });
+        
+        // Debug mode (only in development)
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            window.focusTracker = {
+                getState: function() {
+                    return {
+                        isPageVisible: isPageVisible,
+                        isWindowFocused: isWindowFocused,
+                        focusStartTime: focusStartTime,
+                        currentUrl: currentUrl,
+                        sessionId: FOCUS_CONFIG.sessionId
+                    };
+                },
+                disable: function() {
+                    FOCUS_CONFIG.isTracking = false;
+                    console.log('Focus tracking disabled');
+                },
+                enable: function() {
+                    FOCUS_CONFIG.isTracking = true;
+                    console.log('Focus tracking enabled');
+                }
+            };
+            console.log('Focus tracking initialized. Use window.focusTracker for debugging.');
+        }
+        
+    })();
+    </script>
+    {% endif %}
+    
     {% block extra_js %}
     {% endblock %}
 </body>

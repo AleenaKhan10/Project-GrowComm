@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
 from django.core.paginator import Paginator
-from .models import AuditEvent
+from .models import AuditEvent, FocusLog
 
 
 def log_audit_action(user, action, action_detail=""):
@@ -136,6 +136,14 @@ def audit_dashboard(request):
     return render(request, 'audittrack/dashboard.html')
 
 
+@login_required
+def focus_test_page(request):
+    """
+    Test page for focus tracking functionality.
+    """
+    return render(request, 'audittrack/focus_test.html')
+
+
 @require_http_methods(["POST"])
 @login_required
 def create_audit_log(request):
@@ -174,3 +182,192 @@ def create_audit_log(request):
         return JsonResponse({'error': 'Invalid JSON'}, status=400)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
+
+
+@require_http_methods(["POST"])
+@login_required
+def log_focus_event(request):
+    """
+    API endpoint to log page focus events.
+    
+    Expects JSON: {
+        "event_type": "focus_start" or "focus_end",
+        "page_url": "current page URL",
+        "page_title": "page title (optional)",
+        "session_id": "browser session ID (optional)"
+    }
+    """
+    import json
+    
+    try:
+        data = json.loads(request.body)
+        event_type = data.get('event_type')
+        page_url = data.get('page_url')
+        page_title = data.get('page_title', '')
+        session_id = data.get('session_id', '')
+        
+        # Validate required fields
+        if not event_type or not page_url:
+            return JsonResponse({
+                'error': 'event_type and page_url are required'
+            }, status=400)
+        
+        # Validate event type
+        valid_events = ['focus_start', 'focus_end']
+        if event_type not in valid_events:
+            return JsonResponse({
+                'error': 'Invalid event_type. Must be focus_start or focus_end'
+            }, status=400)
+        
+        # Get client info
+        user_agent = request.META.get('HTTP_USER_AGENT', '')
+        ip_address = request.META.get('REMOTE_ADDR')
+        
+        # Create focus log entry
+        focus_log = FocusLog.log_focus_event(
+            user=request.user,
+            page_url=page_url,
+            event_type=event_type,
+            page_title=page_title,
+            session_id=session_id,
+            user_agent=user_agent,
+            ip_address=ip_address
+        )
+        
+        # Also log to main AuditEvent table
+        audit_action = 'page_focus_start' if event_type == 'focus_start' else 'page_focus_end'
+        audit_detail = f"{page_title or 'Page'} - {page_url}"
+        AuditEvent.log_action(
+            user=request.user,
+            action=audit_action,
+            action_detail=audit_detail
+        )
+        
+        return JsonResponse({
+            'success': True, 
+            'message': f'Focus event {event_type} logged successfully',
+            'log_id': focus_log.id,
+            'timestamp': focus_log.timestamp.isoformat()
+        })
+        
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON'}, status=400)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@login_required
+def get_focus_statistics(request):
+    """
+    Get user focus statistics.
+    
+    Query params:
+    - filter: 'today', 'last_24_hours', 'last_6_days', 'last_30_days'
+    - user_id: optional, filter by specific user (admin only)
+    """
+    filter_type = request.GET.get('filter', 'today')
+    user_id = request.GET.get('user_id')
+    
+    start_time = get_time_filter(filter_type)
+    
+    # Determine which user(s) to analyze
+    if user_id and request.user.is_staff:
+        # Admin can view any user's stats
+        from django.contrib.auth.models import User
+        try:
+            target_user = User.objects.get(id=user_id)
+            focus_duration = FocusLog.get_user_focus_duration(target_user, start_time)
+            total_sessions = FocusLog.objects.filter(
+                user=target_user,
+                event_type='focus_start',
+                timestamp__gte=start_time
+            ).count()
+        except User.DoesNotExist:
+            return JsonResponse({'error': 'User not found'}, status=404)
+    else:
+        # Regular users can only view their own stats
+        target_user = request.user
+        focus_duration = FocusLog.get_user_focus_duration(target_user, start_time)
+        total_sessions = FocusLog.objects.filter(
+            user=target_user,
+            event_type='focus_start',
+            timestamp__gte=start_time
+        ).count()
+    
+    # Convert duration to human readable format
+    hours = int(focus_duration // 3600)
+    minutes = int((focus_duration % 3600) // 60)
+    seconds = int(focus_duration % 60)
+    
+    stats = {
+        'user': target_user.username,
+        'total_focus_duration_seconds': focus_duration,
+        'total_focus_duration_formatted': f"{hours:02d}:{minutes:02d}:{seconds:02d}",
+        'total_focus_sessions': total_sessions,
+        'average_session_duration': round(focus_duration / total_sessions, 2) if total_sessions > 0 else 0,
+        'filter_applied': filter_type,
+        'period_start': start_time.isoformat(),
+        'period_end': timezone.now().isoformat()
+    }
+    
+    return JsonResponse(stats)
+
+
+@login_required
+def get_focus_logs(request):
+    """
+    Get paginated focus logs.
+    
+    Query params:
+    - page: page number
+    - per_page: items per page
+    - user_id: filter by user (admin only)
+    - event_type: filter by event type
+    """
+    page = int(request.GET.get('page', 1))
+    per_page = int(request.GET.get('per_page', 20))
+    user_id = request.GET.get('user_id')
+    event_type = request.GET.get('event_type')
+    
+    # Build query
+    logs = FocusLog.objects.select_related('user').all()
+    
+    # Apply filters
+    if user_id and request.user.is_staff:
+        logs = logs.filter(user_id=user_id)
+    elif not request.user.is_staff:
+        # Regular users can only see their own logs
+        logs = logs.filter(user=request.user)
+    
+    if event_type:
+        logs = logs.filter(event_type=event_type)
+    
+    # Paginate
+    paginator = Paginator(logs, per_page)
+    page_obj = paginator.get_page(page)
+    
+    # Convert to JSON
+    logs_data = []
+    for log in page_obj:
+        logs_data.append({
+            'id': log.id,
+            'user': log.user.username,
+            'page_url': log.page_url,
+            'page_title': log.page_title,
+            'event_type': log.get_event_type_display(),
+            'timestamp': log.timestamp.isoformat(),
+            'session_id': log.session_id
+        })
+    
+    response_data = {
+        'logs': logs_data,
+        'pagination': {
+            'current_page': page_obj.number,
+            'total_pages': paginator.num_pages,
+            'total_count': paginator.count,
+            'has_next': page_obj.has_next(),
+            'has_previous': page_obj.has_previous()
+        }
+    }
+    
+    return JsonResponse(response_data)

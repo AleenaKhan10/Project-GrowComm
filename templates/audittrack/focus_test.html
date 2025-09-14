@@ -1,0 +1,178 @@
+{% extends 'base.html' %}
+
+{% block title %}Focus Tracking Test - GrwComm{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold mb-6">Focus Tracking Test Page</h1>
+        
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">Test Instructions</h2>
+            <ol class="list-decimal list-inside space-y-2 text-gray-700">
+                <li>Open browser developer tools (F12)</li>
+                <li>Go to the "Console" tab</li>
+                <li>You should see "Focus tracking initialized" message</li>
+                <li>Switch to another tab, then back - you should see focus events</li>
+                <li>Minimize the browser, then restore - you should see focus events</li>
+                <li>Check the admin panel for logged events</li>
+            </ol>
+        </div>
+        
+        <div class="bg-blue-50 rounded-lg p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4 text-blue-800">Debug Information</h2>
+            <div id="debug-info" class="space-y-2 text-sm">
+                <div>User: <span class="font-mono">{{ user.username }}</span></div>
+                <div>Page URL: <span class="font-mono" id="current-url">-</span></div>
+                <div>Session ID: <span class="font-mono" id="session-id">-</span></div>
+                <div>Is Page Visible: <span class="font-mono" id="page-visible">-</span></div>
+                <div>Is Window Focused: <span class="font-mono" id="window-focused">-</span></div>
+                <div>Focus Start Time: <span class="font-mono" id="focus-start-time">-</span></div>
+            </div>
+        </div>
+        
+        <div class="bg-green-50 rounded-lg p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4 text-green-800">Manual Test Controls</h2>
+            <div class="space-x-4">
+                <button id="test-focus-start" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+                    Send Focus Start
+                </button>
+                <button id="test-focus-end" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+                    Send Focus End
+                </button>
+                <button id="get-state" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                    Get State
+                </button>
+            </div>
+        </div>
+        
+        <div class="bg-gray-50 rounded-lg p-6">
+            <h2 class="text-xl font-semibold mb-4">Event Log</h2>
+            <div id="event-log" class="bg-white border rounded p-4 h-64 overflow-y-auto font-mono text-sm">
+                <div class="text-gray-500">Event log will appear here...</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const eventLog = document.getElementById('event-log');
+    
+    function logEvent(message) {
+        const timestamp = new Date().toLocaleTimeString();
+        const logEntry = document.createElement('div');
+        logEntry.className = 'border-b pb-1 mb-1';
+        logEntry.innerHTML = `<span class="text-gray-500">[${timestamp}]</span> ${message}`;
+        eventLog.appendChild(logEntry);
+        eventLog.scrollTop = eventLog.scrollHeight;
+    }
+    
+    function updateDebugInfo() {
+        if (window.focusTracker) {
+            const state = window.focusTracker.getState();
+            document.getElementById('current-url').textContent = state.currentUrl;
+            document.getElementById('session-id').textContent = state.sessionId;
+            document.getElementById('page-visible').textContent = state.isPageVisible;
+            document.getElementById('window-focused').textContent = state.isWindowFocused;
+            document.getElementById('focus-start-time').textContent = state.focusStartTime ? new Date(state.focusStartTime).toLocaleTimeString() : 'null';
+        } else {
+            document.getElementById('current-url').textContent = window.location.href;
+            document.getElementById('session-id').textContent = 'Focus tracker not available';
+        }
+    }
+    
+    // Update debug info every second
+    setInterval(updateDebugInfo, 1000);
+    updateDebugInfo();
+    
+    // Manual test buttons
+    document.getElementById('test-focus-start').addEventListener('click', function() {
+        logEvent('🔴 Manual focus_start test triggered');
+        // This would call the focus tracking function directly if we had access to it
+        fetch('/audit/api/focus/log/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || 'missing',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({
+                event_type: 'focus_start',
+                page_url: window.location.href,
+                page_title: document.title,
+                session_id: 'manual-test-' + Date.now()
+            })
+        }).then(response => response.json())
+          .then(data => {
+              if (data.success) {
+                  logEvent('✅ Manual focus_start logged successfully');
+              } else {
+                  logEvent('❌ Manual focus_start failed: ' + data.error);
+              }
+          })
+          .catch(error => {
+              logEvent('❌ Manual focus_start error: ' + error.message);
+          });
+    });
+    
+    document.getElementById('test-focus-end').addEventListener('click', function() {
+        logEvent('🔴 Manual focus_end test triggered');
+        fetch('/audit/api/focus/log/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || 'missing',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({
+                event_type: 'focus_end',
+                page_url: window.location.href,
+                page_title: document.title,
+                session_id: 'manual-test-' + Date.now()
+            })
+        }).then(response => response.json())
+          .then(data => {
+              if (data.success) {
+                  logEvent('✅ Manual focus_end logged successfully');
+              } else {
+                  logEvent('❌ Manual focus_end failed: ' + data.error);
+              }
+          })
+          .catch(error => {
+              logEvent('❌ Manual focus_end error: ' + error.message);
+          });
+    });
+    
+    document.getElementById('get-state').addEventListener('click', function() {
+        if (window.focusTracker) {
+            const state = window.focusTracker.getState();
+            logEvent('📊 Current state: ' + JSON.stringify(state, null, 2));
+        } else {
+            logEvent('❌ Focus tracker not available');
+        }
+    });
+    
+    // Override console.log to capture focus tracking logs
+    const originalLog = console.log;
+    console.log = function() {
+        if (arguments[0] && arguments[0].toString().includes('Focus Event')) {
+            logEvent('🎯 ' + Array.from(arguments).join(' '));
+        }
+        originalLog.apply(console, arguments);
+    };
+    
+    const originalWarn = console.warn;
+    console.warn = function() {
+        if (arguments[0] && arguments[0].toString().includes('Focus tracking')) {
+            logEvent('⚠️ ' + Array.from(arguments).join(' '));
+        }
+        originalWarn.apply(console, arguments);
+    };
+    
+    logEvent('🚀 Focus tracking test page loaded');
+});
+</script>
+
+{% csrf_token %}
+{% endblock %}

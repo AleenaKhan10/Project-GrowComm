@@ -83,6 +83,16 @@ def log_user_unblocked(user, detail="", target_user=None):
     return log_user_action(user, 'user_unblocked', detail, target_user)
 
 
+def log_page_focus_start(user, detail="", target_user=None):
+    """Log page focus start action."""
+    return log_user_action(user, 'page_focus_start', detail, target_user)
+
+
+def log_page_focus_end(user, detail="", target_user=None):
+    """Log page focus end action."""
+    return log_user_action(user, 'page_focus_end', detail, target_user)
+
+
 # Action type constants for easy reference
 ACTIONS = {
     'SIGNIN': 'user_signin',
