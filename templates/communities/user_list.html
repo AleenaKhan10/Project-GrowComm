@@ -82,6 +82,17 @@ td[title]:hover {
     position: relative;
     cursor: help;
 }
+
+/* Tag container styles to prevent overflow */
+.tag-container {
+    max-width: 128px; /* w-32 equivalent */
+    overflow: hidden;
+}
+
+.tag-container .tag-wrapper {
+    max-height: 48px; /* max-h-12 equivalent */
+    overflow: hidden;
+}
 </style>
 {% endblock %}
 
@@ -136,7 +147,7 @@ td[title]:hover {
                     <th class="w-32 pl-3">Team</th>
                     <th class="w-24 pl-3">Org Level</th>
                     <th class="w-48 pl-3">Education</th>
-                    <th class="w-32 pl-3">Tags</th>
+                    <th class="w-32 pl-3 max-w-32">Tags</th>
                     <th class="w-20 pl-3">Actions</th>
                 </tr>
             </thead>
@@ -184,18 +195,22 @@ td[title]:hover {
                             {{ user.profile.schools|default:"-" }}
                         </div>
                     </td>
-                    <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-600">
+                    <td class="px-3 py-4 text-sm text-gray-600 tag-container">
                         {% if user.profile.tag_list %}
-                            {% for tag in user.profile.tag_list|slice:":2" %}
-                                <span class="px-1.5 py-0.5 bg-gray-100 text-gray-700 rounded text-xs mr-1">
-                                    {{ tag }}
-                                </span>
-                            {% endfor %}
-                            {% if user.profile.tag_list|length > 2 %}
-                                <span class="text-xs text-gray-400">+{{ user.profile.tag_list|length|add:"-2" }}</span>
-                            {% endif %}
+                            <div class="flex flex-wrap gap-1 tag-wrapper">
+                                {% for tag in user.profile.tag_list|slice:":3" %}
+                                    <span class="px-1.5 py-0.5 bg-gray-100 text-gray-700 rounded text-xs whitespace-nowrap" title="{{ tag }}">
+                                        {{ tag|truncatechars:12 }}
+                                    </span>
+                                {% endfor %}
+                                {% if user.profile.tag_list|length > 3 %}
+                                    <span class="px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded text-xs font-medium whitespace-nowrap" title="View all {{ user.profile.tag_list|length }} tags in detail view">
+                                        +{{ user.profile.tag_list|length|add:"-3" }}
+                                    </span>
+                                {% endif %}
+                            </div>
                         {% else %}
-                            -
+                            <span class="text-gray-400">-</span>
                         {% endif %}
                     </td>
                     <td class="px-3 py-4 whitespace-nowrap text-sm font-medium">
