@@ -13,7 +13,7 @@ import json
 from .models import (
     Conversation, Message, MessageRequest, 
     MessageType, UserMessageSettings, MessageSlotBooking, IdentityRevelation,
-    CustomMessageSlot, MessageReport, UserBlock, ChatBlock, ChatHeading
+    CustomMessageSlot, MessageReport, UserBlock, ChatBlock, ChatHeading, UserCredit, CreditTransaction
 )
 from communities.decorators import community_member_required
 from .forms import (
@@ -67,10 +67,14 @@ def inbox(request):
         is_read=False
     ).count()
     
+    # Get user's credit information
+    user_credit = UserCredit.get_or_create_for_user(request.user)
+    
     context = {
         'conversations': conversations,
         'pending_requests': pending_requests,
         'total_unread': total_unread,
+        'user_credit': user_credit,
     }
     return render(request, 'messaging/inbox.html', context)
 
@@ -609,17 +613,28 @@ def send_message_request(request, user_id):
         if booking:
             # Log slot booking
             log_slot_booked(request.user, f"Booked {message_type.name} slot with {recipient.username}", recipient)
-            messages.success(request, f'{message_type.name} message sent to {recipient.username}!')
+            messages.success(request, f'{message_type.name} message sent to {recipient.username}! You have used 1 credit.')
             return redirect('messaging:conversation', user_id=recipient.id)
         else:
             # If booking failed, delete the message
             message.delete()
-            messages.error(request, f'Failed to send message: {booking_reason}')
+            if booking_reason == "no_credits":
+                messages.error(request, 'You do not have enough credits to send a new message. Credits reset weekly.')
+            elif booking_reason == "already_sent":
+                messages.error(request, f"You have already sent a {message_type.name} message to {recipient.username}. Please wait 3 days before sending another.")
+            elif booking_reason == "slots_full":
+                messages.error(request, f"{recipient.username}'s {message_type.name} slots are currently full. Please try again later.")
+            else:
+                messages.error(request, f'Failed to send message: {booking_reason}')
+    
+    # Get user's credit information
+    user_credit = UserCredit.get_or_create_for_user(request.user)
     
     context = {
         'recipient': recipient,
         'message_types': message_types,
         'slot_availability': slot_availability,
+        'user_credit': user_credit,
     }
     return render(request, 'messaging/send_request.html', context)
 
@@ -1371,3 +1386,141 @@ def user_info_api(request, user_id):
             'success': False,
             'error': str(e)
         }, status=500)
+
+
+# ============================================================================
+# ADMIN CREDIT MANAGEMENT VIEWS
+# ============================================================================
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def admin_credit_management(request):
+    """Admin view for managing user credits"""
+    from django.contrib import messages as django_messages
+    
+    # Check if user is staff/admin
+    if not request.user.is_staff:
+        django_messages.error(request, "You don't have permission to access this page.")
+        return redirect('messaging:inbox')
+    
+    # Get all users with their credit information
+    users_with_credits = []
+    all_users = User.objects.all().order_by('username')
+    
+    for user in all_users:
+        credit_record = UserCredit.get_or_create_for_user(user)
+        users_with_credits.append({
+            'user': user,
+            'credit': credit_record
+        })
+    
+    selected_user = None
+    selected_credit = None
+    credit_transactions = []
+    
+    if request.method == 'POST':
+        # Handle credit grant
+        user_id = request.POST.get('user_id')
+        credit_amount = request.POST.get('credit_amount')
+        description = request.POST.get('description', '')
+        
+        if user_id and credit_amount:
+            try:
+                target_user = User.objects.get(id=user_id)
+                amount = int(credit_amount)
+                
+                if amount > 0:
+                    # Get user's credit record
+                    credit_record = UserCredit.get_or_create_for_user(target_user)
+                    balance_before = credit_record.available_credits
+                    
+                    # Add credits
+                    credit_record.add_credits(amount, is_bonus=True)
+                    balance_after = credit_record.available_credits
+                    
+                    # Log transaction
+                    CreditTransaction.log_transaction(
+                        user=target_user,
+                        transaction_type='admin_grant',
+                        amount=amount,
+                        balance_before=balance_before,
+                        balance_after=balance_after,
+                        description=description or f"Admin granted {amount} bonus credits",
+                        created_by=request.user
+                    )
+                    
+                    # Log to audit trail
+                    from audittrack.utils import log_credit_granted
+                    log_credit_granted(
+                        request.user,
+                        f"Admin granted {amount} credits to {target_user.username}. New balance: {balance_after}",
+                        target_user
+                    )
+                    
+                    django_messages.success(request, f'Successfully granted {amount} credits to {target_user.username}')
+                    return redirect('messaging:admin_credit_management')
+                else:
+                    django_messages.error(request, 'Credit amount must be positive')
+            except User.DoesNotExist:
+                django_messages.error(request, 'User not found')
+            except ValueError:
+                django_messages.error(request, 'Invalid credit amount')
+    
+    # Handle GET request - check if a user is selected
+    selected_user_id = request.GET.get('user_id')
+    if selected_user_id:
+        try:
+            selected_user = User.objects.get(id=selected_user_id)
+            selected_credit = UserCredit.get_or_create_for_user(selected_user)
+            
+            # Get transaction history for selected user
+            credit_transactions = CreditTransaction.objects.filter(
+                user=selected_user
+            ).order_by('-created_date')[:20]  # Last 20 transactions
+        except User.DoesNotExist:
+            django_messages.error(request, 'User not found')
+    
+    context = {
+        'users_with_credits': users_with_credits,
+        'selected_user': selected_user,
+        'selected_credit': selected_credit,
+        'credit_transactions': credit_transactions,
+    }
+    
+    return render(request, 'messaging/admin_credit_management.html', context)
+
+
+@login_required
+@require_POST
+def admin_reset_user_credits(request, user_id):
+    """Admin action to reset a specific user's weekly credits"""
+    if not request.user.is_staff:
+        return JsonResponse({'error': 'Permission denied'}, status=403)
+    
+    try:
+        target_user = User.objects.get(id=user_id)
+        credit_record = UserCredit.get_or_create_for_user(target_user)
+        
+        old_total = credit_record.total_credits
+        new_total = credit_record.reset_weekly_credits()
+        
+        # Log transaction
+        CreditTransaction.log_transaction(
+            user=target_user,
+            transaction_type='weekly_reset',
+            amount=new_total - old_total,
+            balance_before=old_total,
+            balance_after=new_total,
+            description="Manual weekly credit reset by admin",
+            created_by=request.user
+        )
+        
+        return JsonResponse({
+            'success': True,
+            'message': f'Credits reset for {target_user.username}',
+            'new_total': new_total
+        })
+    except User.DoesNotExist:
+        return JsonResponse({'error': 'User not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)

@@ -185,6 +185,35 @@
         [x-cloak] {
             display: none !important;
         }
+        
+        /* Mobile responsive text sizing */
+        @media (max-width: 768px) {
+            /* Make logo text smaller on mobile */
+            .logo-text {
+                font-size: 1rem !important;
+            }
+            
+            /* Make mobile menu items smaller */
+            #mobile-menu a {
+                font-size: 0.75rem !important;
+                padding: 0.5rem 0.75rem !important;
+            }
+            
+            /* Make mobile menu icons smaller */
+            #mobile-menu svg {
+                width: 1rem !important;
+                height: 1rem !important;
+            }
+            
+            /* Profile section in mobile menu */
+            #mobile-menu .text-sm {
+                font-size: 0.75rem !important;
+            }
+            
+            #mobile-menu .text-xs {
+                font-size: 0.625rem !important;
+            }
+        }
     </style>
 </head>
 <body class="bg-white text-black flex flex-col min-h-screen">
@@ -286,6 +315,12 @@
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"/>
                                             </svg>
                                             User Management
+                                        </a>
+                                        <a href="{% url 'messaging:admin_credit_management' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                                            <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v2a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
+                                            </svg>
+                                            Credit Management
                                         </a>
                                         <a href="{% url 'communities:admin_community_list' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
                                             <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -399,7 +434,22 @@
                         Audit
                     </a>
                     <a href="{% url 'messaging:admin_users_list' %}" class="{% if request.resolver_match.url_name|slice:':6' == 'admin_' and 'users' in request.resolver_match.url_name %}bg-gray-950 text-white{% else %}text-gray-400 hover:text-white hover:bg-gray-800{% endif %} block px-3 py-2 rounded-md text-base font-light transition-all duration-200">
-                        Users
+                        <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"/>
+                        </svg>
+                        User Management
+                    </a>
+                    <a href="{% url 'messaging:admin_credit_management' %}" class="{% if 'admin_credit' in request.resolver_match.url_name %}bg-gray-950 text-white{% else %}text-gray-400 hover:text-white hover:bg-gray-800{% endif %} block px-3 py-2 rounded-md text-base font-light transition-all duration-200">
+                        <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v2a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
+                        </svg>
+                        Credit Management
+                    </a>
+                    <a href="{% url 'communities:admin_community_list' %}" class="{% if 'admin_community' in request.resolver_match.url_name %}bg-gray-950 text-white{% else %}text-gray-400 hover:text-white hover:bg-gray-800{% endif %} block px-3 py-2 rounded-md text-base font-light transition-all duration-200">
+                        <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                        </svg>
+                        Communities
                     </a>
                     {% endif %}
                     <div class="border-t border-gray-700 mt-4 pt-4">

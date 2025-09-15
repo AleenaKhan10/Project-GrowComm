@@ -1,0 +1,40 @@
+{% extends "admin/base_site.html" %}
+
+{% block title %}Grant Credits to Users{% endblock %}
+
+{% block content %}
+<div class="module">
+    <h2>Grant Bonus Credits</h2>
+    <p>You are about to grant bonus credits to {{ users.count }} user{{ users.count|pluralize }}:</p>
+    
+    <ul>
+        {% for user_credit in users %}
+            <li>{{ user_credit.user.username }} (Current: {{ user_credit.available_credits }} credits)</li>
+        {% endfor %}
+    </ul>
+    
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-row">
+            <div class="form-group">
+                <label for="{{ form.amount.id_for_label }}">{{ form.amount.label }}:</label>
+                {{ form.amount }}
+                <p class="help">{{ form.amount.help_text }}</p>
+            </div>
+        </div>
+        
+        <div class="form-row">
+            <div class="form-group">
+                <label for="{{ form.description.id_for_label }}">{{ form.description.label }}:</label>
+                {{ form.description }}
+                <p class="help">{{ form.description.help_text }}</p>
+            </div>
+        </div>
+        
+        <div class="submit-row">
+            <input type="submit" value="Grant Credits" name="apply" class="default" />
+            <a href="../" class="button cancel-link">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

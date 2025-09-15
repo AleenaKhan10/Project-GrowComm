@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
 from django.db.models import Q, Max, Count, Case, When, IntegerField
+from datetime import timedelta
 
 
 class MessageType(models.Model):
@@ -372,6 +373,11 @@ class MessageSlotBooking(models.Model):
     @classmethod
     def book_slot(cls, sender, receiver, message_type, message=None):
         """Book a slot for sender to message receiver"""
+        # Check if sender has available credits
+        credit_record = UserCredit.get_or_create_for_user(sender)
+        if not credit_record.can_use_credit():
+            return None, "no_credits"
+        
         can_send, reason = cls.can_user_send_message(sender, receiver, message_type)
         if not can_send:
             return None, reason
@@ -384,7 +390,37 @@ class MessageSlotBooking(models.Model):
                 message_type=message_type,
                 message=message
             )
-            return booking, "booked"
+            
+            # Use credit and log transaction
+            balance_before = credit_record.available_credits
+            if credit_record.use_credit():
+                balance_after = credit_record.available_credits
+                
+                # Log the credit transaction
+                CreditTransaction.log_transaction(
+                    user=sender,
+                    transaction_type='used',
+                    amount=-1,  # Negative because credit was used
+                    balance_before=balance_before,
+                    balance_after=balance_after,
+                    description=f"Credit used for message slot to {receiver.username}",
+                    message_slot_booking=booking
+                )
+                
+                # Also log to audit trail
+                from audittrack.utils import log_credit_used
+                log_credit_used(
+                    sender, 
+                    f"Used 1 credit for {message_type.name} message to {receiver.username}. Balance: {balance_after}/{credit_record.total_credits}",
+                    receiver
+                )
+                
+                return booking, "booked"
+            else:
+                # This shouldn't happen due to our check above, but just in case
+                booking.delete()
+                return None, "no_credits"
+                
         except Exception as e:
             # Handle duplicate booking constraint
             return None, "already_sent"
@@ -533,7 +569,7 @@ class UserMessageSettings(models.Model):
         return availability
 
 
-# Signal to create message settings when user is created
+# Signals to create message settings and credits when user is created
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
@@ -541,6 +577,11 @@ from django.dispatch import receiver
 def create_user_message_settings(sender, instance, created, **kwargs):
     if created:
         UserMessageSettings.objects.get_or_create(user=instance)
+
+@receiver(post_save, sender=User)
+def create_user_credit(sender, instance, created, **kwargs):
+    if created:
+        UserCredit.objects.get_or_create(user=instance)
 
 
 class MessageReport(models.Model):
@@ -701,3 +742,232 @@ class ChatHeading(models.Model):
                 message_type=message_type
             ).delete()
             return None
+
+
+class UserCredit(models.Model):
+    """Model to track user credits for new message slots"""
+    
+    user = models.OneToOneField(
+        User, 
+        on_delete=models.CASCADE, 
+        related_name='credit_balance',
+        help_text="User who owns these credits"
+    )
+    
+    # Current credit balance
+    total_credits = models.IntegerField(
+        default=3, 
+        help_text="Total available credits (base + purchased + admin granted)"
+    )
+    
+    # Base credits (reset weekly)
+    base_credits = models.IntegerField(
+        default=3,
+        help_text="Base credits reset weekly (always 3)"
+    )
+    
+    # Additional credits (purchased or admin granted)
+    bonus_credits = models.IntegerField(
+        default=0,
+        help_text="Additional credits from purchases or admin grants"
+    )
+    
+    # Credit tracking
+    credits_used_this_week = models.IntegerField(
+        default=0,
+        help_text="Credits used in current week"
+    )
+    
+    # Weekly reset tracking
+    last_reset_date = models.DateTimeField(
+        default=timezone.now,
+        help_text="Last time credits were reset"
+    )
+    
+    # Metadata
+    created_date = models.DateTimeField(auto_now_add=True)
+    updated_date = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name = 'User Credit'
+        verbose_name_plural = 'User Credits'
+    
+    def __str__(self):
+        return f"{self.user.username}: {self.total_credits} credits"
+    
+    @property
+    def available_credits(self):
+        """Calculate available credits (total - used this week)"""
+        return max(0, self.total_credits - self.credits_used_this_week)
+    
+    def can_use_credit(self):
+        """Check if user has available credits"""
+        return self.available_credits > 0
+    
+    def use_credit(self, amount=1):
+        """Use credits and return success status"""
+        if self.available_credits >= amount:
+            self.credits_used_this_week += amount
+            self.save(update_fields=['credits_used_this_week', 'updated_date'])
+            return True
+        return False
+    
+    def add_credits(self, amount, is_bonus=True):
+        """Add credits to user balance"""
+        old_total = self.total_credits
+        
+        if is_bonus:
+            self.bonus_credits += amount
+        self.total_credits += amount
+        self.save(update_fields=['bonus_credits', 'total_credits', 'updated_date'])
+        
+        # Log to audit trail
+        from audittrack.utils import log_credit_granted
+        credit_type = "bonus" if is_bonus else "base"
+        log_credit_granted(
+            self.user,
+            f"Granted {amount} {credit_type} credits: {old_total} → {self.total_credits} total credits"
+        )
+    
+    def should_reset_weekly_credits(self):
+        """Check if weekly credits should be reset"""
+        week_ago = timezone.now() - timedelta(days=7)
+        return self.last_reset_date < week_ago
+    
+    def reset_weekly_credits(self):
+        """Reset weekly credits - gives base 3 credits plus any bonus credits"""
+        old_total = self.total_credits
+        
+        # Always get 3 base credits per week
+        self.base_credits = 3
+        
+        # Total credits = base credits + any bonus credits
+        self.total_credits = self.base_credits + self.bonus_credits
+        
+        # Reset weekly usage counter
+        self.credits_used_this_week = 0
+        self.last_reset_date = timezone.now()
+        
+        self.save(update_fields=[
+            'base_credits', 'total_credits', 'credits_used_this_week', 
+            'last_reset_date', 'updated_date'
+        ])
+        
+        # Log to audit trail
+        from audittrack.utils import log_weekly_credit_reset
+        log_weekly_credit_reset(
+            self.user,
+            f"Weekly credit reset: {old_total} → {self.total_credits} credits (Base: {self.base_credits}, Bonus: {self.bonus_credits})"
+        )
+        
+        return self.total_credits
+    
+    @classmethod
+    def get_or_create_for_user(cls, user):
+        """Get or create credit record for user"""
+        credit_record, created = cls.objects.get_or_create(
+            user=user,
+            defaults={
+                'total_credits': 3,
+                'base_credits': 3,
+                'bonus_credits': 0,
+                'credits_used_this_week': 0,
+                'last_reset_date': timezone.now()
+            }
+        )
+        
+        # Check if weekly reset is needed
+        if credit_record.should_reset_weekly_credits():
+            credit_record.reset_weekly_credits()
+        
+        return credit_record
+    
+    @classmethod
+    def check_and_reset_all_weekly_credits(cls):
+        """Management command helper - reset credits for all users who need it"""
+        week_ago = timezone.now() - timedelta(days=7)
+        users_to_reset = cls.objects.filter(last_reset_date__lt=week_ago)
+        
+        reset_count = 0
+        for credit_record in users_to_reset:
+            credit_record.reset_weekly_credits()
+            reset_count += 1
+            
+        return reset_count
+
+
+class CreditTransaction(models.Model):
+    """Model to track credit usage and grants for audit purposes"""
+    
+    TRANSACTION_TYPES = [
+        ('used', 'Credits Used'),
+        ('weekly_reset', 'Weekly Reset'),
+        ('admin_grant', 'Admin Grant'),
+        ('purchase', 'Purchase'),
+        ('bonus', 'Bonus Credits'),
+        ('refund', 'Refund'),
+    ]
+    
+    user = models.ForeignKey(
+        User, 
+        on_delete=models.CASCADE, 
+        related_name='credit_transactions'
+    )
+    
+    transaction_type = models.CharField(
+        max_length=20, 
+        choices=TRANSACTION_TYPES
+    )
+    
+    amount = models.IntegerField(help_text="Positive for grants, negative for usage")
+    
+    # Optional references
+    message_slot_booking = models.ForeignKey(
+        'MessageSlotBooking', 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True,
+        help_text="Reference to slot booking if credit was used for messaging"
+    )
+    
+    # Description for admin grants or other special cases
+    description = models.TextField(blank=True)
+    
+    # Balances after transaction
+    balance_before = models.IntegerField()
+    balance_after = models.IntegerField()
+    
+    # Metadata
+    created_date = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(
+        User, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True,
+        related_name='credit_transactions_created',
+        help_text="Admin user who created this transaction (for admin grants)"
+    )
+    
+    class Meta:
+        ordering = ['-created_date']
+        verbose_name = 'Credit Transaction'
+        verbose_name_plural = 'Credit Transactions'
+    
+    def __str__(self):
+        action = "used" if self.amount < 0 else "gained"
+        return f"{self.user.username} {action} {abs(self.amount)} credits - {self.get_transaction_type_display()}"
+    
+    @classmethod
+    def log_transaction(cls, user, transaction_type, amount, balance_before, balance_after, 
+                       description="", created_by=None, message_slot_booking=None):
+        """Log a credit transaction"""
+        return cls.objects.create(
+            user=user,
+            transaction_type=transaction_type,
+            amount=amount,
+            balance_before=balance_before,
+            balance_after=balance_after,
+            description=description,
+            created_by=created_by,
+            message_slot_booking=message_slot_booking
+        )

@@ -93,6 +93,21 @@ def log_page_focus_end(user, detail="", target_user=None):
     return log_user_action(user, 'page_focus_end', detail, target_user)
 
 
+def log_credit_used(user, detail="", target_user=None):
+    """Log credit usage action."""
+    return log_user_action(user, 'credit_used', detail, target_user)
+
+
+def log_credit_granted(user, detail="", target_user=None):
+    """Log credit grant action."""
+    return log_user_action(user, 'credit_granted', detail, target_user)
+
+
+def log_weekly_credit_reset(user, detail="", target_user=None):
+    """Log weekly credit reset action."""
+    return log_user_action(user, 'weekly_credit_reset', detail, target_user)
+
+
 # Action type constants for easy reference
 ACTIONS = {
     'SIGNIN': 'user_signin',

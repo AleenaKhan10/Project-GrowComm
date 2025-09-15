@@ -1,5 +1,7 @@
 from django.contrib import admin
-from .models import MessageType, Conversation, Message, MessageRequest, UserMessageSettings, MessageReport, UserBlock, ChatBlock
+from django.utils.html import format_html
+from .models import (MessageType, Conversation, Message, MessageRequest, UserMessageSettings, 
+                    MessageReport, UserBlock, ChatBlock, UserCredit, CreditTransaction)
 
 
 @admin.register(MessageType)
@@ -69,3 +71,113 @@ class ChatBlockAdmin(admin.ModelAdmin):
     
     def get_queryset(self, request):
         return super().get_queryset(request).select_related('reporter', 'blocked_user', 'report')
+
+
+@admin.register(UserCredit)
+class UserCreditAdmin(admin.ModelAdmin):
+    list_display = ('user', 'available_credits_display', 'total_credits', 'base_credits', 'bonus_credits', 'credits_used_this_week', 'last_reset_date')
+    list_filter = ('last_reset_date', 'total_credits', 'bonus_credits')
+    search_fields = ('user__username', 'user__email')
+    readonly_fields = ('created_date', 'updated_date')
+    actions = ['grant_bonus_credits', 'reset_weekly_credits']
+    
+    def available_credits_display(self, obj):
+        available = obj.available_credits
+        color = 'green' if available > 0 else 'red'
+        return format_html(
+            '<span style="color: {}; font-weight: bold;">{}</span>',
+            color, available
+        )
+    available_credits_display.short_description = 'Available Credits'
+    
+    def grant_bonus_credits(self, request, queryset):
+        """Admin action to grant bonus credits"""
+        from django import forms
+        from django.shortcuts import render, redirect
+        from django.contrib import messages
+        
+        class CreditGrantForm(forms.Form):
+            amount = forms.IntegerField(min_value=1, help_text="Number of bonus credits to grant")
+            description = forms.CharField(widget=forms.Textarea, required=False, help_text="Reason for granting credits")
+        
+        if 'apply' in request.POST:
+            form = CreditGrantForm(request.POST)
+            if form.is_valid():
+                amount = form.cleaned_data['amount']
+                description = form.cleaned_data['description'] or f"Admin granted {amount} bonus credits"
+                
+                for credit_record in queryset:
+                    balance_before = credit_record.available_credits
+                    credit_record.add_credits(amount, is_bonus=True)
+                    balance_after = credit_record.available_credits
+                    
+                    # Log transaction
+                    CreditTransaction.log_transaction(
+                        user=credit_record.user,
+                        transaction_type='admin_grant',
+                        amount=amount,
+                        balance_before=balance_before,
+                        balance_after=balance_after,
+                        description=description,
+                        created_by=request.user
+                    )
+                
+                messages.success(request, f'Successfully granted {amount} bonus credits to {queryset.count()} users.')
+                return redirect(request.get_full_path())
+        else:
+            form = CreditGrantForm()
+            
+        return render(request, 'admin/grant_credits.html', {
+            'form': form,
+            'users': queryset,
+            'action': 'grant_bonus_credits'
+        })
+    
+    grant_bonus_credits.short_description = "Grant bonus credits to selected users"
+    
+    def reset_weekly_credits(self, request, queryset):
+        """Admin action to manually reset weekly credits"""
+        count = 0
+        for credit_record in queryset:
+            old_total = credit_record.total_credits
+            new_total = credit_record.reset_weekly_credits()
+            
+            # Log transaction
+            CreditTransaction.log_transaction(
+                user=credit_record.user,
+                transaction_type='weekly_reset',
+                amount=new_total - old_total,
+                balance_before=old_total,
+                balance_after=new_total,
+                description="Manual weekly credit reset",
+                created_by=request.user
+            )
+            count += 1
+            
+        self.message_user(request, f'Successfully reset weekly credits for {count} users.')
+    
+    reset_weekly_credits.short_description = "Reset weekly credits for selected users"
+    
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('user')
+
+
+@admin.register(CreditTransaction)
+class CreditTransactionAdmin(admin.ModelAdmin):
+    list_display = ('user', 'transaction_type', 'amount_display', 'balance_before', 'balance_after', 'created_date', 'created_by')
+    list_filter = ('transaction_type', 'created_date')
+    search_fields = ('user__username', 'description')
+    readonly_fields = ('created_date',)
+    date_hierarchy = 'created_date'
+    
+    def amount_display(self, obj):
+        color = 'green' if obj.amount > 0 else 'red'
+        symbol = '+' if obj.amount > 0 else ''
+        return format_html(
+            '<span style="color: {}; font-weight: bold;">{}{}</span>',
+            color, symbol, obj.amount
+        )
+    amount_display.short_description = 'Amount'
+    
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('user', 'created_by', 'message_slot_booking')

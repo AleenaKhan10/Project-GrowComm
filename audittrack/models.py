@@ -32,6 +32,10 @@ class AuditEvent(models.Model):
         # Focus tracking actions
         ('page_focus_start', 'Page Focus Started'),
         ('page_focus_end', 'Page Focus Ended'),
+        # Credit system actions
+        ('credit_used', 'Credit Used'),
+        ('credit_granted', 'Credit Granted'),
+        ('weekly_credit_reset', 'Weekly Credit Reset'),
     ]
     
     # Required Fields
