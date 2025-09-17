@@ -8,11 +8,10 @@ def confirm_target_user_field(apps, schema_editor):
     Confirm that the target_user field exists in the database.
     This migration just validates the current state without making changes.
     """
-    # Check if the field exists in the database
+    # Check if the field exists in the database using database-agnostic approach
     with schema_editor.connection.cursor() as cursor:
-        cursor.execute("PRAGMA table_info(audittrack_auditevent)")
-        columns = [row[1] for row in cursor.fetchall()]
-        
+        columns = [col.name for col in schema_editor.connection.introspection.get_table_description(cursor, 'audittrack_auditevent')]
+
         if 'target_user_id' in columns:
             print("✓ target_user_id column confirmed in database")
         else:
