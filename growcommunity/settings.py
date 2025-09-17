@@ -81,6 +81,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'django_extensions',
+    # Project core app for dual database sync
+    'growcommunity.apps.GrowcommunityConfig',
     # Local apps
     'accounts',
     'profiles',
@@ -130,8 +132,27 @@ DATABASES = {
     'default': {
         'ENGINE': os.getenv('DB_ENGINE', 'django.db.backends.sqlite3'),
         'NAME': BASE_DIR / os.getenv('DB_NAME', 'db.sqlite3'),
+    },
+    'postgresql': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'grwcomm',
+        'USER': 'master',
+        'PASSWORD': 'master123',
+        'HOST': 'grwcomm.c2z0ui48odxp.us-east-1.rds.amazonaws.com',
+        'PORT': '5432',
+        'OPTIONS': {
+            'connect_timeout': 10,
+            'sslmode': 'prefer',
+        },
+        'CONN_MAX_AGE': 0,  # Don't keep connections open
+        'TEST': {
+            'NAME': 'test_grwcomm',
+        }
     }
 }
+
+# Database routing configuration for dual database setup
+DATABASE_ROUTERS = ['growcommunity.dual_db_router.DualDatabaseRouter']
 
 
 # Password validation
