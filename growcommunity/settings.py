@@ -128,20 +128,8 @@ WSGI_APPLICATION = 'growcommunity.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'grwcomm',
-        'USER': 'master',
-        'PASSWORD': 'master123',
-        'HOST': 'grwcomm.c2z0ui48odxp.us-east-1.rds.amazonaws.com',
-        'PORT': '5432',
-        'OPTIONS': {
-            'connect_timeout': 30,
-            'sslmode': 'prefer',
-        },
-        'CONN_MAX_AGE': 60,  # Keep connections open for 60 seconds
-        'TEST': {
-            'NAME': 'test_grwcomm',
-        }
+        'ENGINE': os.getenv('DB_ENGINE', 'django.db.backends.sqlite3'),
+        'NAME': BASE_DIR / os.getenv('DB_NAME', 'db.sqlite3'),
     }
 }
 
@@ -195,15 +183,8 @@ LOGIN_URL = '/auth/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/auth/login/'
 
-# Email Configuration
-EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
-EMAIL_HOST = os.getenv('EMAIL_HOST', 'localhost')
-EMAIL_PORT = int(os.getenv('EMAIL_PORT', '25'))
-EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'False').lower() == 'true'
-EMAIL_USE_SSL = os.getenv('EMAIL_USE_SSL', 'False').lower() == 'true'
-EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', 'dummy@example.com')
-EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', 'dummy_password')
-DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'noreply@example.com')
+# Email Configuration (for development)
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # Django REST Framework
 REST_FRAMEWORK = {
