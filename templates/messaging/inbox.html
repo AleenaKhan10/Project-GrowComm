@@ -138,61 +138,47 @@ document.body.classList.add('messages-page');
     <!-- Right Chat Area -->
     <div class="chat-area">
         <!-- Chat Header -->
-        <div id="chat-header" class="chat-header hidden">
-            <div class="flex items-center space-x-4">
+        <div id="chat-header" style="display: none; margin: 8px 0; padding: 6px 8px; background: white; border-bottom: 1px solid #e5e7eb; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; height: auto; min-height: 32px; gap: 4px; overflow: visible;">
+            <!-- Left Section: Back + Username -->
+            <div style="display: flex; align-items: center; gap: 4px; flex: 1; min-width: 0; overflow: visible;">
                 <!-- Mobile back button -->
-                <button class="mobile-back-button p-2 text-gray-600 hover:text-black rounded-lg hover:bg-gray-100 transition-all duration-200 md:hidden" title="Back to conversations">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <button class="mobile-back-button" style="padding: 2px; display: flex; align-items: center; justify-content: center; width: 16px; height: 16px; flex-shrink: 0; background: transparent; border: none; cursor: pointer;" title="Back to conversations">
+                    <svg style="width: 12px; height: 12px; color: #000000; stroke-width: 2;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
                     </svg>
                 </button>
-                
-                <!-- Chat Avatar -->
-                <div class="relative">
-                    <div id="chat-avatar" class="avatar avatar-white">
-                        A
-                    </div>
-                    <div class="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-gray-600 border-2 border-white rounded-full"></div>
-                </div>
-                
+
                 <!-- Chat Info -->
-                <div class="flex-1">
-                    <h3 id="chat-name" class="text-lg font-semibold text-black leading-tight">Select a conversation</h3>
-                    <p id="chat-status" class="text-sm text-gray-600">
+                <div style="flex: 1; min-width: 0; overflow: hidden;">
+                    <h3 id="chat-name" style="font-size: 13px; font-weight: 600; color: #1f2937; margin: 0; line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Select a conversation</h3>
+                    <p id="chat-status" style="font-size: 4.5px; color: #9ca3af; margin: 0; line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px;">
                         Last seen: <span id="last-seen-time">Select a conversation</span>
                     </p>
                 </div>
+            </div>
 
+            <!-- Right Section: Buttons -->
+            <div style="display: flex; align-items: center; gap: 2px; flex-shrink: 0;">
                 <!-- Reveal Identity Button -->
-                <div class="flex-shrink-0">
-                    <button id="reveal-identity-btn" class="hidden flex items-center space-x-2 px-3 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors mr-2" onclick="revealIdentity()">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                        </svg>
-                        <span class="hidden sm:inline">Reveal Identity</span>
-                    </button>
-                </div>
+                <button id="reveal-identity-btn" style="display: none; padding: 2px; border-radius: 2px; display: flex; align-items: center; justify-content: center; width: 12px; height: 12px; flex-shrink: 0; background: #16a34a; color: white; border: none; cursor: pointer;" onclick="revealIdentity()" title="Reveal Identity">
+                    <svg style="width: 8px; height: 8px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                    </svg>
+                </button>
 
                 <!-- Schedule Meeting Button -->
-                <div class="flex-shrink-0">
-                    <button id="schedule-meeting-btn" class="flex items-center space-x-2 px-3 py-2 bg-black text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-colors" onclick="scheduleMeeting()">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
-                        </svg>
-                        <span class="hidden sm:inline">Meeting</span>
-                    </button>
-                </div>
-            </div>
-            
-            <!-- Action Button - Positioned at the end -->
-            <div class="flex-shrink-0 ml-auto">
+                <button id="schedule-meeting-btn" style="padding: 2px; border-radius: 2px; display: flex; align-items: center; justify-content: center; width: 12px; height: 12px; flex-shrink: 0; background: #1f2937; color: white; border: none; cursor: pointer;" onclick="scheduleMeeting()" title="Schedule Meeting">
+                    <svg style="width: 8px; height: 8px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                    </svg>
+                </button>
+
                 <!-- Report/Unblock Button -->
-                <button id="report-user-btn" class="flex items-center space-x-1 px-2 py-1.5 bg-black text-white text-xs font-medium rounded-lg hover:bg-gray-800 transition-colors" onclick="handleReportOrUnblock()" title="Report/Unblock User">
-                    <svg id="report-icon" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <button id="report-user-btn" style="padding: 2px; border-radius: 2px; display: flex; align-items: center; justify-content: center; width: 12px; height: 12px; flex-shrink: 0; background: #1f2937; color: white; border: none; cursor: pointer;" onclick="handleReportOrUnblock()" title="Report/Unblock User">
+                    <svg id="report-icon" style="width: 8px; height: 8px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
                     </svg>
-                    <span id="report-btn-text" class="hidden sm:inline">Report</span>
                 </button>
             </div>
         </div>
@@ -584,295 +570,322 @@ class MessagingApp {
                     gap: 0.25rem !important;
                 }
                 
-                /* CONVERSATION ITEMS - SINGLE LINE FORCED BUT INTERACTIVE */
+                /* CONVERSATION ITEMS - MOBILE REDESIGN */
                 .conversation-item {
-                    display: flex !important;
-                    align-items: center !important;
+                    display: block !important;
                     padding: 0.5rem !important;
-                    margin: 0 !important;
+                    margin: 0 0 0.375rem 0 !important;
                     background: white !important;
                     border-radius: 0.5rem !important;
                     border: 1px solid #e5e7eb !important;
                     cursor: pointer !important;
-                    transition: all 0.15s ease !important;
-                    height: 3.5rem !important; /* Fixed height to prevent multi-line */
-                    max-height: 3.5rem !important;
-                    overflow: hidden !important;
-                    flex-shrink: 0 !important;
+                    transition: all 0.2s ease !important;
+                    min-height: 3rem !important;
                     width: 100% !important;
                     box-sizing: border-box !important;
-                    /* PRESERVE CLICK FUNCTIONALITY */
                     pointer-events: auto !important;
                     position: relative !important;
-                    z-index: 1 !important;
+                    overflow: visible !important;
                 }
-                
+
                 .conversation-item:hover {
-                    background: #f3f4f6 !important;
-                    border-color: #d1d5db !important;
+                    background: #f8fafc !important;
+                    border-color: #cbd5e1 !important;
+                    transform: translateY(-1px) !important;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
                 }
-                
+
                 .conversation-item.active {
                     background: #eff6ff !important;
                     border-color: #3b82f6 !important;
+                    box-shadow: 0 2px 8px rgba(59,130,246,0.15) !important;
                 }
-                
-                /* FORCE HORIZONTAL LAYOUT - NO WRAPPING */
-                .conversation-item > * {
-                    flex-shrink: 0 !important;
+
+                /* MAIN CONTAINER - HORIZONTAL LAYOUT */
+                .conversation-item .flex.items-center.space-x-3 {
                     display: flex !important;
-                    align-items: center !important;
+                    align-items: flex-start !important;
+                    gap: 0.5rem !important;
+                    width: 100% !important;
+                    height: auto !important;
                 }
-                
-                /* AVATAR CONTAINER - FIXED SIZE */
+
+                /* AVATAR CONTAINER */
                 .conversation-item .relative.flex-shrink-0 {
-                    width: 1.5rem !important;
-                    height: 1.5rem !important;
+                    width: 2rem !important;
+                    height: 2rem !important;
                     flex-shrink: 0 !important;
-                    margin-right: 0.5rem !important;
                     position: relative !important;
+                    margin-top: 0.125rem !important;
                 }
-                
+
                 .conversation-item .avatar {
-                    width: 1.5rem !important;
-                    height: 1.5rem !important;
-                    font-size: 0.5rem !important;
-                    line-height: 1.5rem !important;
+                    width: 2rem !important;
+                    height: 2rem !important;
+                    font-size: 0.75rem !important;
+                    line-height: 2rem !important;
                     border-radius: 50% !important;
                     display: flex !important;
                     align-items: center !important;
                     justify-content: center !important;
                     font-weight: 600 !important;
                     flex-shrink: 0 !important;
-                    margin: 0 !important;
                 }
-                
-                /* ONLINE INDICATOR - TINY */
+
+                /* ONLINE INDICATOR */
                 .conversation-item .absolute.-bottom-1.-right-1 {
-                    width: 0.375rem !important;
-                    height: 0.375rem !important;
-                    bottom: -0.0625rem !important;
-                    right: -0.0625rem !important;
-                    position: absolute !important;
+                    width: 0.625rem !important;
+                    height: 0.625rem !important;
+                    bottom: 0.125rem !important;
+                    right: 0.125rem !important;
+                    border: 2px solid white !important;
                 }
-                
-                /* CONVERSATION INFO - FLEXIBLE BUT CONSTRAINED */
+
+                /* CONTENT AREA */
                 .conversation-item .flex-1.min-w-0 {
                     flex: 1 !important;
                     min-width: 0 !important;
                     overflow: hidden !important;
-                    height: 100% !important;
-                    display: flex !important;
-                    flex-direction: column !important;
-                    justify-content: center !important;
+                    display: block !important;
                 }
-                
-                /* NAME ROW - SINGLE LINE */
+
+                /* TOP ROW - NAME AND TIME */
                 .conversation-item .flex.items-center.justify-between {
                     display: flex !important;
                     align-items: center !important;
                     justify-content: space-between !important;
-                    width: 100% !important;
-                    margin-bottom: 0.125rem !important;
+                    margin-bottom: 0.25rem !important;
+                    gap: 0.5rem !important;
+                }
+
+                .conversation-item .flex.items-center.justify-between .flex-1.min-w-0 {
+                    flex: 1 !important;
+                    min-width: 0 !important;
                     overflow: hidden !important;
                 }
-                
+
+                /* NAME */
                 .conversation-item h3 {
-                    font-size: 0.6875rem !important; /* 11px */
+                    font-size: 0.875rem !important;
                     font-weight: 600 !important;
-                    color: black !important;
+                    color: #1f2937 !important;
                     margin: 0 !important;
-                    line-height: 1.2 !important;
+                    line-height: 1.25 !important;
                     white-space: nowrap !important;
                     overflow: hidden !important;
                     text-overflow: ellipsis !important;
-                    max-width: calc(100% - 3rem) !important; /* Reserve space for timestamp */
+                    width: 100% !important;
                 }
-                
-                .conversation-item .text-xs.text-gray-500 {
-                    font-size: 0.5rem !important; /* 8px */
+
+                /* TIMESTAMP */
+                .conversation-item .text-xs.text-gray-500.flex-shrink-0 {
+                    font-size: 0.625rem !important;
                     color: #6b7280 !important;
+                    font-weight: 500 !important;
                     flex-shrink: 0 !important;
-                    margin-left: 0.25rem !important;
                     white-space: nowrap !important;
+                    margin-left: 0.5rem !important;
+                }
+
+                /* CHAT HEADING */
+                .conversation-item .text-xs.text-blue-600.font-medium.truncate.chat-heading-display {
+                    font-size: 0.625rem !important;
+                    color: #2563eb !important;
+                    font-weight: 500 !important;
+                    margin: 0.125rem 0 !important;
+                    line-height: 1.2 !important;
+                    white-space: nowrap !important;
+                    overflow: hidden !important;
+                    text-overflow: ellipsis !important;
+                    display: block !important;
+                }
+
+                /* LAST SEEN */
+                .conversation-item .text-xs.text-gray-500.truncate {
+                    font-size: 0.625rem !important;
+                    color: #6b7280 !important;
+                    margin: 0.125rem 0 !important;
+                    line-height: 1.2 !important;
+                    white-space: nowrap !important;
+                    overflow: hidden !important;
+                    text-overflow: ellipsis !important;
+                    display: block !important;
                 }
                 
-                /* MESSAGE TYPE TAG - INLINE TINY */
+                /* MESSAGE TYPE TAG */
                 .conversation-item .inline-flex.items-center.px-2.py-1.rounded-full {
-                    display: inline-flex !important;
-                    padding: 0.0625rem 0.25rem !important; /* Ultra tiny */
-                    font-size: 0.5rem !important; /* 8px */
+                    display: inline-block !important;
+                    padding: 0.125rem 0.375rem !important;
+                    font-size: 0.5625rem !important;
+                    font-weight: 500 !important;
                     line-height: 1 !important;
-                    border-radius: 0.5rem !important;
-                    margin-right: 0.25rem !important;
-                    margin-bottom: 0 !important;
-                    vertical-align: middle !important;
-                    max-width: 4rem !important;
+                    border-radius: 0.75rem !important;
+                    margin: 0.125rem 0 0.25rem 0 !important;
+                    background: #f1f5f9 !important;
+                    color: #475569 !important;
+                    max-width: 100% !important;
                     overflow: hidden !important;
                     text-overflow: ellipsis !important;
                     white-space: nowrap !important;
                 }
-                
-                /* LAST MESSAGE - SINGLE LINE ONLY */
-                .conversation-item p {
-                    font-size: 0.5625rem !important; /* 9px */
-                    color: #6b7280 !important;
-                    margin: 0 !important;
-                    line-height: 1.2 !important;
+
+                /* LAST MESSAGE */
+                .conversation-item p.text-sm.text-gray-600.truncate {
+                    font-size: 0.75rem !important;
+                    color: #4b5563 !important;
+                    margin: 0.25rem 0 0 0 !important;
+                    line-height: 1.3 !important;
                     white-space: nowrap !important;
                     overflow: hidden !important;
                     text-overflow: ellipsis !important;
                     max-width: 100% !important;
+                    font-weight: 400 !important;
                 }
-                
+
                 .conversation-item p .font-medium.text-black {
-                    color: black !important;
-                    font-weight: 500 !important;
+                    color: #1f2937 !important;
+                    font-weight: 600 !important;
                 }
                 
-                /* FORCE NO EXTRA SPACING */
-                .conversation-item .flex.items-center.space-x-3 {
-                    width: 100% !important;
-                    display: flex !important;
-                    align-items: center !important;
-                    gap: 0 !important;
-                    height: 100% !important;
-                    overflow: hidden !important;
-                }
-                
+                /* CLEAN UP SPACING */
                 .conversation-item .flex.items-center.space-x-3 > * + * {
                     margin-left: 0 !important;
                 }
-                
-                /* REMOVE ANY POTENTIAL LINE BREAKS */
-                .conversation-item * {
-                    white-space: nowrap !important;
-                    overflow: hidden !important;
+
+                .conversation-item .space-x-3 > * + *,
+                .conversation-item .space-x-4 > * + *,
+                .conversation-item .space-y-4 > * + * {
+                    margin-left: 0 !important;
+                    margin-top: 0 !important;
                 }
                 
-                /* CHAT AREA WHEN ACTIVE */
+                /* CHAT HEADER - EXACT LAYOUT AS REQUESTED */
                 .messages-container.chat-active .chat-header {
                     flex-shrink: 0 !important;
-                    padding: 0.5rem 0.75rem !important;
+                    padding: 0.75rem 0.75rem 0.5rem 0.75rem !important;
                     background: white !important;
                     border-bottom: 1px solid #e5e7eb !important;
                     display: flex !important;
                     align-items: center !important;
-                    min-height: 3rem !important;
-                }
-                
-                .chat-header .flex.items-center.space-x-4 {
-                    width: 100% !important;
+                    justify-content: space-between !important;
+                    min-height: 3.25rem !important;
+                    height: 3.25rem !important;
                     gap: 0.5rem !important;
                 }
-                
+
+                /* LEFT SECTION: BACK ARROW + USERNAME */
+                .chat-header .flex.items-center.space-x-4 {
+                    display: flex !important;
+                    align-items: center !important;
+                    gap: 0.5rem !important;
+                    flex: 1 !important;
+                    min-width: 0 !important;
+                    overflow: hidden !important;
+                }
+
                 .chat-header .flex.items-center.space-x-4 > * + * {
                     margin-left: 0 !important;
                 }
-                
-                /* MOBILE BACK BUTTON */
+
+                /* BACK ARROW */
                 .mobile-back-button {
-                    padding: 0.375rem !important;
-                    margin-right: 0.25rem !important;
-                    border-radius: 0.375rem !important;
+                    padding: 0.25rem !important;
                     display: flex !important;
                     align-items: center !important;
                     justify-content: center !important;
+                    width: 1.5rem !important;
+                    height: 1.5rem !important;
+                    flex-shrink: 0 !important;
+                    background: transparent !important;
                 }
-                
+
                 .mobile-back-button svg {
                     width: 1rem !important;
                     height: 1rem !important;
+                    color: #374151 !important;
                 }
-                
-                /* CHAT AVATAR - OVERFLOW HIDDEN TO HIDE EXTRA ICONS */
-                .chat-header .relative {
-                    position: relative !important;
-                    width: 1.75rem !important;
-                    height: 1.75rem !important;
-                    overflow: hidden !important;
-                    flex-shrink: 0 !important;
-                }
-                
+
+                /* HIDE AVATAR */
+                .chat-header .relative:not(.flex-shrink-0),
                 .chat-header #chat-avatar {
-                    width: 1.75rem !important;
-                    height: 1.75rem !important;
-                    font-size: 0.625rem !important;
-                    position: relative !important;
-                    z-index: 1 !important;
-                }
-                
-                /* HIDE ALL ABSOLUTE POSITIONED ELEMENTS (ONLINE DOTS) */
-                .chat-header .absolute.-bottom-0\\.5.-right-0\\.5,
-                .chat-header .absolute {
                     display: none !important;
-                    visibility: hidden !important;
-                    opacity: 0 !important;
                 }
-                
-                /* HIDE STATUS DOT */
-                .chat-header #chat-status .w-2.h-2 {
-                    display: none !important;
-                    visibility: hidden !important;
-                    width: 0 !important;
-                    height: 0 !important;
-                }
-                
-                /* CHAT INFO */
+
+                /* USERNAME + LAST MESSAGE TIME */
                 .chat-header .flex-1 {
                     flex: 1 !important;
                     min-width: 0 !important;
+                    overflow: hidden !important;
+                    display: flex !important;
+                    flex-direction: column !important;
+                    justify-content: center !important;
                 }
-                
+
                 .chat-header #chat-name {
-                    font-size: 0.875rem !important;
+                    font-size: 1rem !important;
                     font-weight: 600 !important;
-                    color: black !important;
+                    color: #1f2937 !important;
                     margin: 0 !important;
-                    line-height: 1.2 !important;
+                    line-height: 1.25 !important;
                     white-space: nowrap !important;
                     overflow: hidden !important;
                     text-overflow: ellipsis !important;
                 }
-                
+
+                /* SHOW LAST MESSAGE TIME BELOW USERNAME */
                 .chat-header #chat-status {
+                    display: block !important;
                     font-size: 0.625rem !important;
-                    color: #6b7280 !important;
+                    color: #9ca3af !important;
                     margin: 0 !important;
-                    line-height: 1.2 !important;
-                    display: flex !important;
-                    align-items: center !important;
+                    line-height: 1.1 !important;
+                    white-space: nowrap !important;
+                    overflow: hidden !important;
+                    text-overflow: ellipsis !important;
+                    font-weight: 400 !important;
+                    margin-top: 0.0625rem !important;
                 }
-                
-                .chat-header #chat-status .w-2.h-2 {
-                    width: 0.375rem !important;
-                    height: 0.375rem !important;
-                    margin-right: 0.25rem !important;
-                }
-                
-                /* ACTION BUTTONS - Compact */
-                .chat-header .flex-shrink-0 {
-                    display: flex !important;
-                    gap: 0.25rem !important;
-                }
-                
-                #reveal-identity-btn, #schedule-meeting-btn {
-                    padding: 0.375rem 0.5rem !important;
-                    font-size: 0.625rem !important;
-                    line-height: 1 !important;
-                    border-radius: 0.375rem !important;
+
+                /* RIGHT SECTION: BUTTONS ONLY */
+                .chat-header .flex-shrink-0:not(.relative):not(.mobile-back-button) {
                     display: flex !important;
                     align-items: center !important;
                     gap: 0.25rem !important;
-                }
-                
-                #reveal-identity-btn svg, #schedule-meeting-btn svg {
-                    width: 0.75rem !important;
-                    height: 0.75rem !important;
                     flex-shrink: 0 !important;
                 }
-                
+
+                /* REMOVE LAST MESSAGE TIME FROM HEADER */
+                .chat-header::after {
+                    display: none !important;
+                }
+
+                /* COMPACT BUTTONS - 30% SMALLER */
+                #reveal-identity-btn, #schedule-meeting-btn, #report-user-btn {
+                    padding: 0.1875rem !important;
+                    border-radius: 0.1875rem !important;
+                    display: flex !important;
+                    align-items: center !important;
+                    justify-content: center !important;
+                    width: 1.25rem !important;
+                    height: 1.25rem !important;
+                    flex-shrink: 0 !important;
+                }
+
+                #reveal-identity-btn svg, #schedule-meeting-btn svg, #report-user-btn svg {
+                    width: 0.625rem !important;
+                    height: 0.625rem !important;
+                }
+
+                /* HIDE ALL TEXT LABELS */
+                #reveal-identity-btn span,
+                #schedule-meeting-btn span,
+                #report-user-btn span,
                 .hidden.sm\\:inline {
+                    display: none !important;
+                }
+
+                /* HIDE STATUS DOTS */
+                .chat-header .absolute {
                     display: none !important;
                 }
                 
