@@ -34,9 +34,8 @@ RUN mkdir -p /app/staticfiles /app/media /app/data
 EXPOSE $PORT
 
 # Run migrations, collect static files, create superuser, and start server
-# CMD python manage.py migrate && \
-#     python manage.py collectstatic --noinput && \
-#     echo "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.filter(username='admin').exists() or User.objects.create_superuser('admin', 'admin@example.com', 'admin123')" | python manage.py shell && \
-#     echo "Starting GrowComm on port $PORT" && \
-#     python manage.py runserver 0.0.0.0:$PORT
-CMD python manage.py runserver 0.0.0.0:$PORT
+CMD python manage.py migrate && \
+    python manage.py collectstatic --noinput && \
+    echo "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.filter(username='admin').exists() or User.objects.create_superuser('admin', 'admin@example.com', 'admin123')" | python manage.py shell && \
+    echo "Starting GrowComm on port $PORT" && \
+    python manage.py runserver 0.0.0.0:$PORT
